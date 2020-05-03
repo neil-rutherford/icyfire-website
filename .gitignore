@@ -1,0 +1,9 @@
+__pycache__/
+venv/
+logs/
+migrations/
+*.pyc
+*.py[cod]
+*$py.class
+*.swp
+*.*~

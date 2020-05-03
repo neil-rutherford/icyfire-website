@@ -1,0 +1,25 @@
+td, th {
+  border: 1px solid black;
+  text-align: left;
+  padding: 8px;
+}
+
+.queue {
+  background-color: #ffffcc;
+  color: black;
+}
+
+.on-deck {
+  background-color: #00ff00;
+  color: black;
+}
+
+.posted {
+  background-color: #ccccff;
+  color: black;
+}
+
+.main-table {
+  table-layout: auto;
+  width: 100%;
+}

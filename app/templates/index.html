@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+	<h1>Dashboard</h1>
+	{{ wtf.quick_form(form) }}
+	<br><br>
+	<table class="main-table">
+		<tr>
+			<th>Timestamp</th>
+			<th>Post Body</th>
+			<th>Twitter?</th>
+			<th>Tumblr?</th>
+			<th>Options</th>
+		</tr>
+		{% for post in posts %}
+			<tr>
+				<td class="queue">{{ moment(post.timestamp).format('LLL') }}</td>
+				<td class="queue">{{ post.body }}</td>
+				<td class="queue">{{ post.is_twitter }}</td>
+				<td class="queue">{{ post.is_tumblr }}</td>
+				<td class="queue"><a href="{{ url_for('edit', post_id=post.id) }}">Edit</a> | <a href="{{ url_for('delete', post_id=post.id) }}">Delete</a></td>
+			</tr>
+		{% endfor %}
+	</table>
+{% endblock %}

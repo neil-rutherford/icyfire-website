@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block app_content %}
+	<h1>Help Page</h1>
+	<h2>Creating a new post</h2>
+	<p>At the top of <a href="{{ url_for('index') }}">your dashboard</a>, there is a text box. Type your social media post in the box, select which social networks you would like it to be posted to, and click "Post" when you are finished. After you click "Post", you should see your social media post added to the light yellow part of the queue. Text posts are limited to 280 characters, and non-text media are not supported at this time (we're working on it though!).</p>
+	<h2>Seeing your queued posts</h2>
+	<p>Below the text box on <a href="{{ url_for('index') }}">your dashboard</a>, there is a chart with light yellow, green, and light blue rows. Here's what the colors mean:</p>
+	<table>
+		<tr>
+			<th>Key</th>
+		</tr>
+		<tr>
+			<td class="queue"><b>Queue: </b>These will be posted in the future.</td>
+		</tr>
+		<tr>
+			<td class="on-deck"><b>On Deck: </b>This is scheduled to be posted next.</td>
+		</tr>
+		<tr>
+			<td class="posted"><b>Posted: </b>These have already been posted.</td>
+		</tr>
+	</table>
+	<br>
+	<p>There are also different columns. Here's what the columns mean:</p>
+	<ul>
+		<li><b>Timestamp: </b>When was the post added to the queue? (Note: This is <u>not</u> when the post is scheduled to be posted on social media.)</li>
+		<li><b>Post Body: </b>The text in the social media post.</li>
+		<li><b>Twitter?: </b>Is this going to be posted on Twitter? (True means yes, False means no.)</li>
+		<li><b>Tumblr?: </b>Is this going to be posted on Tumblr? (True means yes, False means no.)</li>
+		<li><b>Options: </b>Click "Edit" to edit the post; click "Delete" to delete the post. (More on these in sections below.)</li>
+	</ul>
+	<h2>Editing an existing post</h2>
+	<br>
+	<h2>Deleting a post</h2>
+	<p>Deleting a post surrenders its spot in the queue and cannot be undone. If you want to change the text but keep its spot in the queue, consider <i>editing</i> the post instead.</p>
+	
+	<p>To delete a post, click the "Delete" button in the "Options" column. To do this, you have to meet two simple criteria -- the post has to exist and it has to belong to you. If the post doesn't exist and we can't find it in our database, you will receive a "Post not found" error. If we can find the post but we see that you are not the author, you will receive a "You don't have permission to delete that" error. If all goes well, you will receive a "Success!" notification and you should see the post removed from the queue.</p>
+{% endblock %}
