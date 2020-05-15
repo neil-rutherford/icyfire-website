@@ -3,7 +3,8 @@
 
 {% block app_content %}
 	<h1>Log In</h1>
-	<p>New user? <a href="{{ url_for('register') }}">Click to register!</a></p><br>
+	<p>New user? <a href="{{ url_for('register_user') }}">Click to register as a new user!</a></p>
+	<p>New client? <a href="{{ url_for('register_domain') }}">Click to register your new domain!</a></p><br>
 	<div class="row">
 		<div class="col-md-4">
 			{{ wtf.quick_form(form) }}

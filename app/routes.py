@@ -1,193 +1,1226 @@
-from flask import render_template, flash, redirect, url_for, request, jsonify, Response
+from flask import render_template, flash, redirect, url_for, request, jsonify, Response, send_from_directory
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, PostForm
-from app.models import User, Post
+from app.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ShortTextPostForm, LongTextPostForm, ImagePostForm, VideoPostForm
+from app.models import Domain, User, FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost, Ewok, Sentry
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
+from werkzeug.utils import secure_filename
 import logging
 from datetime import datetime
+import uuid
 
+'''
+TO-DO:
 
-@app.route('/')
-def main_page():
-    return "Main page!"
+    - Finish link_social()
+    - Finish link_social.html
 
-@app.route('/index', methods = ['GET', 'POST'])
-@login_required
-def index():
-    form = PostForm()
+    - DOMAIN REGISTRATION
+        + Link social networks and store tokens
+        + Request time slots
+        + User registration (must be linked to domain) (permissions)
+    - USER INTERFACE
+        + Create
+        + Read
+        + Update
+        + Delete
+    - API
+        + Read
+        + Delete
+        + Get creds
+    - LOGIN
+    - ERROR HANDLING
+    - EMAIL SUPPORT
+    - ARTICLES AND MARKETING PAGES
+    - HELP PAGES AND TUTORIALS
+    - SECURITY
+        + Domain-level
+        + App-level
+'''
+
+def make_ewok(user_id, ip_address, endpoint, status_code, status_message):
+    incident = Ewok(ip_address=str(ip_address), endpoint=str(endpoint))
+    incident.user_id = user_id
+    incident.status_code = int(status_code)
+    incident.status_message = str(status_message)
+    db.session.add(incident)
+    db.session.commit()
+
+def make_sentry(user_id, ip_address, endpoint, status_code, status_message):
+    activity = Sentry(ip_address=str(ip_address), user_id=int(user_id), endpoint=str(endpoint))
+    activity.status_code = int(status_code)
+    activity.status_message = str(status_message)
+    db.session.add(activity)
+    db.session.commit()
+
+def make_facebook(domain_id, user_id, post_type, body, link_url, multimedia_url, tags):
+    post = FacebookPost(body=body)
+    post.domain_id = domain_id
+    post.user_id = user_id
+    post.post_type = post_type
+    post.link_url = link_url
+    post.multimedia_url = multimedia_url
+    post.tags = tags
+    db.session.add(post)
+    db.session.commit()
+
+def make_twitter(domain_id, user_id, post_type, body, link_url, multimedia_url, tags):
+    post = TwitterPost(body=body)
+    post.domain_id = domain_id
+    post.user_id = user_id
+    post.post_type = post_type
+    post.link_url = link_url
+    post.multimedia_url = multimedia_url
+    post.tags = tags
+    db.session.add(post)
+    db.session.commit()
+
+def make_tumblr(domain_id, user_id, post_type, title, body, link_url, multimedia_url, tags, caption):
+    post = TumblrPost(body=body)
+    post.domain_id = domain_id
+    post.user_id = user_id
+    post.post_type = post_type
+    post.title = title
+    post.link_url = link_url
+    post.multimedia_url = multimedia_url
+    post.tags = tags
+    post.caption = caption
+    db.session.add(post)
+    db.session.commit()
+
+def make_reddit(domain_id, user_id, post_type, title, body, link_url, image_url, video_url):
+    post = RedditPost(body=body)
+    post.domain_id = domain_id
+    post.user_id = user_id
+    post.post_type = post_type
+    post.title = title
+    post.link_url = link_url
+    post.image_url = image_url
+    post.video_url = video_url
+    db.session.add(post)
+    db.session.commit()
+
+def make_youtube(domain_id, user_id, multimedia_url, title, caption, tags, category):
+    post = YoutubePost(title=title)
+    post.domain_id = domain_id
+    post.user_id = user_id
+    post.multimedia_url = multimedia_url
+    post.caption = caption
+    post.tags = tags
+    post.category = category
+    db.session.add(post)
+    db.session.commit()
+
+def make_linkedin(domain_id, user_id, post_type, title, body, caption, multimedia_url, link_url, tags):
+    post = LinkedinPost(body=body)
+    post.domain_id = domain_id
+    post.user_id = user_id
+    post.post_type = post_type
+    post.title = title
+    post.caption = caption
+    post.multimedia_url = multimedia_url
+    post.link_url = link_url
+    post.tags = tags
+    db.session.add(post)
+    db.session.commit()
+
+# User control and permissions
+
+@app.route('/register/domain', methods=['GET', 'POST'])
+def register_domain():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    form = DomainRegistrationForm()
     if form.validate_on_submit():
-        post = Post(body=str(form.body.data), author=current_user, is_twitter=bool(form.is_twitter.data), is_tumblr=bool(form.is_tumblr.data))
-        db.session.add(post)
+        user = User(email=str(form.email.data))
+        domain = Domain.query.filter_by(activation_code=str(form.activation_code.data)).first()
+        user.set_password(str(form.password.data))
+        user.domain_id = int(domain.id)
+        user.post_count = int(0)
+        user.is_admin = bool(True)
+        user.is_create = bool(True)
+        user.is_read = bool(True)
+        user.is_update = bool(True)
+        user.is_delete = bool(True)
+        domain.domain_name = str(form.domain_name.data)
+        #domain.admin = int(user.id)
+        db.session.add(user)
+        db.session.add(domain)
         db.session.commit()
-        flash('Success! Post queued.')
-        return redirect(url_for('index'))
-    posts = Post.query.filter_by(user_id=current_user.id).order_by(Post.id.desc()).all()
-    return render_template('index.html', title='Home', posts=posts, form=form)
+        login_user(user, remember_me=bool(form.remember_me.data))
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/domain', status_code=200, status_message='Domain creation successful.')
+        flash("Welcome to IcyFire! Let's link your social media accounts.")
+        return redirect(url_for('link_social'))
+    return render_template('register_domain.html', title='Register Your New Domain', form=form)
 
+@app.route('/register/user', methods=['GET', 'POST'])
+def register_user():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    form = UserRegistrationForm()
+    if form.validate_on_submit():
+        user = User(email=str(form.email.data))
+        domain = Domain.query.filter_by(domain_name=str(form.domain_name.data)).first()
+        user.set_password(str(form.password.data))
+        user.domain_id = int(domain.id)
+        user.post_count = int(0)
+        user.is_admin = bool(False)
+        user.is_create = bool(False)
+        user.is_read = bool(False)
+        user.is_update = bool(False)
+        user.is_delete = bool(False)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user, remember_me=bool(form.remember_me.data))
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/user', status_code=200, status_message='User creation successful.')
+        flash("As a security precaution, new users have limited permissions by default. This will change once your domain admin gives your account the all clear.")
+        return redirect(url_for('dashboard'))
+    return render_template('register_user.html', title='New User Registration', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None or not user.check_password(form.password.data):
+            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/login', status_code=401, status_message='{}/{}'.format(str(form.email.data), str(form.password.data)))
             flash('Invalid email or password!')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/login', status_code=200, status_message='Successful login.')
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
+            next_page = url_for('dashboard')
         return redirect(next_page)
     return render_template('login.html', title='Log In', form=form)
-
 
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/logout', status_code=200, status_message='Successful logout.')
+    return redirect(url_for('home'))
 
+# Not done
+@app.route('/register/link/social')
+@login_required
+def link_social():
+    if current_user.is_admin is False:
+        flash("ERROR: You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/link/social', status_code=403, status_message='Admin permission denied.')
+        return redirect(url_for('dashboard'))
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.facebook_token is None:
+        facebook_creds = False
+    if domain.twitter_token is None or domain.twitter_secret is None:
+        twitter_creds = False
+    if domain.tumblr_blog_name is None or domain.tumblr_token is None or domain.tumblr_secret is None:
+        tumblr_creds = False
+    if domain.reddit_subreddit is None or domain.reddit_username is None or domain.reddit_password is None:
+        reddit_creds = False
+    if domain.youtube_refresh is None or domain.youtube_access is None:
+        youtube_creds = False
+    if domain.linkedin_author is None or domain.linkedin_token is None or domain.linkedin_secret is None:
+        linkedin_creds = False
+    if facebook_creds is True and twitter_creds is True and tumblr_creds is True and reddit_creds is True and youtube_creds is True and linkedin_creds is True:
+        flash("Welcome to IcyFire! We're so glad you're here.")
+        return redirect(url_for('dashboard'))
+    else:
+        return redirect(url_for('link_social'))
+    return render_template('link_social.html', title="Link Your Social Media Accounts", facebook_creds=facebook_creds, twitter_creds=twitter_creds, tumblr_creds=tumblr_creds, reddit_creds=reddit_creds, youtube_creds=youtube_creds, linkedin_creds=linkedin_creds)
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(email=str(form.email.data))
-        user.set_password(form.password.data)
+@app.route('/admin')
+@login_required
+def admin():
+    if current_user.is_admin is False:
+        flash("ERROR: You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/admin', status_code=403, status_message='Admin permission denied.')
+        return redirect(url_for('dashboard'))
+    make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/admin', status_code=200, status_message='Successful admin access.')
+    users = User.query.filter_by(domain_id=current_user.domain_id).order_by(User.id.desc()).all()
+    return render_template('admin.html', title='User Control Panel', users=users)
+
+@app.route('/admin/<user_id>/+<permission>', methods=['GET', 'POST'])
+@login_required
+def grant_permission(user_id, permission):
+    user = User.query.filter_by(id=int(user_id)).first()
+    if current_user.is_admin is False:
+        flash("ERROR: You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=403, status_message='Admin permission denied.')
+        return redirect(url_for('dashboard'))
+    elif current_user.domain_id != user.domain_id:
+        flash("ERROR: That user isn't part of your domain.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=403, status_message='User not in domain.')
+        return redirect(url_for('admin'))
+    elif str(permission) == 'c':
+        user.is_create = True
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations! You are now registered.')
-        return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=200, status_message='Permission granted: Create.')
+        flash("Create permission granted.")
+        return redirect(url_for('admin'))
+    elif str(permission) == 'r':
+        user.is_read = True
+        db.session.add(user)
+        db.session.commit()
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=200, status_message='Permission granted: Read.')
+        flash("Read permission granted.")
+        return redirect(url_for('admin'))
+    elif str(permission) == 'u':
+        user.is_update = True
+        db.session.add(user)
+        db.session.commit()
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=200, status_message='Permission granted: Update.')
+        flash("Update permission granted.")
+        return redirect(url_for('admin'))
+    elif str(permission) == 'd':
+        user.is_delete = True
+        db.session.add(user)
+        db.session.commit()
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=200, status_message='Permission granted: Delete.')
+        flash('Delete permission granted.')
+        return redirect(url_for('admin'))
+    else:
+        flash('ERROR: Not a valid permission.')
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/+{}'.format(user_id, permission), status_code=400, status_message='Not a valid permission.')
+        return redirect(url_for('admin'))
 
-
-@app.route('/delete/<post_id>')
+@app.route('/admin/<user_id>/-<permission>', methods=['GET', 'POST'])
 @login_required
-def delete(post_id):
-    post = Post.query.filter_by(id=int(post_id)).first()
-    if post is None:
-        flash("Error: Post not found. Are you sure it hasn't already been deleted?")
-        return redirect(url_for('index'))
-    elif post.user_id != current_user.id:
-        flash("Error: You don't have permission to delete that. Are you sure that post is yours to delete?")
-        return redirect(url_for('index'))
-    db.session.delete(post)
-    db.session.commit()
-    flash("Success! Post deleted.")
-    return redirect(url_for('index'))
+def revoke_permission(user_id, permission):
+    user = User.query.filter_by(id=int(user_id)).first()
+    if current_user.is_admin is False:
+        flash("ERROR: You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=403, status_message='Admin permission denied.')
+        return redirect(url_for('admin'))
+    elif current_user.domain_id != user.domain_id:
+        flash("ERROR: That user isn't part of your domain.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=403, status_message='User not in domain.')
+        return redirect(url_for('admin'))
+    elif str(permission) == 'c':
+        user.is_create = False
+        db.session.add(user)
+        db.session.commit()
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Create.')
+        flash("Create permission revoked.")
+        return redirect(url_for('admin'))
+    elif str(permission) == 'r':
+        user.is_read = False
+        db.session.add(user)
+        db.session.commit()
+        flash("Read permission revoked.")
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Read.')
+        return redirect(url_for('admin'))
+    elif str(permission) == 'u':
+        user.is_update = False
+        db.session.add(user)
+        db.session.commit()
+        flash("Update permission revoked.")
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Update.')
+        return redirect(url_for('admin'))
+    elif str(permission) == 'd':
+        user.is_delete = False
+        db.session.add(user)
+        db.session.commit()
+        flash('Delete permission revoked.')
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Delete.')
+        return redirect(url_for('admin'))
+    elif str(permission) == 'kill':
+        db.session.delete(user)
+        db.session.commit()
+        flash('User deleted.')
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='User deleted.')
+        return(redirect(url_for('admin')))
+    else:
+        flash('ERROR: Not a valid permission.')
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=400, status_message='Not a valid permission.')
+        return redirect(url_for('admin'))
 
+# Post management
+
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    if current_user.is_read is False:
+        flash("ERROR: Talk to your domain admin about getting read permissions.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/dashboard', status_code=403, status_message='Read permission denied.')
+        return redirect(url_for('dashboard'))
+    facebook_queue = FacebookPost.query.filter_by(domain_id=current_user.domain_id).order_by(FacebookPost.timestamp.asc()).all()
+    twitter_queue = TwitterPost.query.filter_by(domain_id=current_user.domain_id).order_by(TwitterPost.timestamp.asc()).all()
+    tumblr_queue = TumblrPost.query.filter_by(domain_id=current_user.domain_id).order_by(TumblrPost.timestamp.asc()).all()
+    reddit_queue = RedditPost.query.filter_by(domain_id=current_user.domain_id).order_by(RedditPost.timestamp.asc()).all()
+    youtube_queue = YoutubePost.query.filter_by(domain_id=current_user.domain_id).order_by(YoutubePost.timestamp.asc()).all()
+    linkedin_queue = LinkedinPost.query.filter_by(domain_id=current_user.domain_id).order_by(LinkedinPost.timestamp.asc()).all()
+    make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/dashboard', status_code=200, status_message='Successful dashboard access.')
+    return render_template('dashboard.html', facebook_queue=facebook_queue, twitter_queue=twitter_queue, tumblr_queue=tumblr_queue, reddit_queue=reddit_queue, youtube_queue=youtube_queue, linkedin_queue=linkedin_queue)
+
+@app.route('/create/short-text', methods=['GET', 'POST'])
+@login_required
+def create_short_text():
+    if current_user.is_create is False:
+        flash("You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/short-text', status_code=403, status_message='Create permission denied.')
+        return redirect(url_for('dashboard'))
+    form = ShortTextPostForm()
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        if form.is_facebook.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/short-text', status_code=200, status_message='Facebook short text created.')
+        if form.is_twitter.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/short-text', status_code=200, status_message='Twitter short text created.')
+        if form.is_tumblr.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=str(tags), caption=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/short-text', status_code=200, status_message='Tumblr short text created.')
+        if form.is_reddit.data is True:
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/short-text', status_code=200, status_message='Reddit short text created.')
+        if form.is_linkedin.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/short-text', status_code=200, status_message='LinkedIn short text created.')
+        flash('Successfully queued!')
+        return redirect(url_for('dashboard'))
+    return render_template('create_short_text.html', title='New Short Text Post', form=form)
+
+@app.route('/create/long-text', methods=['GET', 'POST'])
+@login_required
+def create_long_text():
+    if current_user.is_create is False:
+        flash("You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/long-text', status_code=403, status_message='Create permission denied.')
+        return redirect(url_for('dashboard'))
+    form = LongTextPostForm()
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        if form.is_facebook.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/long-text', status_code=200, status_message='Facebook long text created.')
+        if form.is_tumblr.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=str(tags), caption=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/long-text', status_code=200, status_message='Tumblr long text created.')
+        if form.is_reddit.data is True:
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/long-text', status_code=200, status_message='Reddit long text created.')
+        if form.is_linkedin.data is True:
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/long-text', status_code=200, status_message='LinkedIn long text created.')
+        flash('Successfully queued!')
+        return redirect(url_for('dashboard'))
+    return render_template('create_long_text.html', title='New Long Text Post', form=form)
+
+@app.route('/create/image', methods=['GET', 'POST'])
+@login_required
+def create_image():
+    if current_user.is_create is False:
+        flash("You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/image', status_code=403, status_message='Create permission denied.')
+        return redirect(url_for('dashboard'))
+    form = ImagePostForm()
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        image_name = str(uuid.uuid4())
+        f = form.image.data
+        file_list = str(f.filename).split('.')[-1:]
+        for x in file_list:
+            file_type = x
+        if form.is_facebook.data is True:
+            filename = secure_filename('facebook-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_image', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/image', status_code=200, status_message='Facebook image created.')
+        if form.is_twitter.data is True:
+            filename = secure_filename('twitter-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_image', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/image', status_code=200, status_message='Twitter image created.')
+        if form.is_tumblr.data is True:
+            filename = secure_filename('tumblr-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('get_image', filename), tags=str(tags), caption=str(form.caption.data))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/image', status_code=200, status_message='Tumblr image created.')
+        if form.is_reddit.data is True:
+            filename = secure_filename('reddit-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=url_for('get_image', filename), video_url=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/image', status_code=200, status_message='Reddit image created.')
+        if form.is_linkedin.data is True:
+            filename = secure_filename('linkedin-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('get_image', filename), link_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/image', status_code=200, status_message='LinkedIn image created.')
+        flash('Successfully queued!')
+        return redirect(url_for('dashboard'))
+    return render_template('create_image.html', title='New Image Post', form=form)    
+
+@app.route('/create/video', methods=['GET', 'POST'])
+@login_required
+def create_video():
+    if current_user.is_create is False:
+        flash("You don't have permission to do that.")
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=403, status_message='Create permission denied.')
+        return redirect(url_for('dashboard'))
+    form = VideoPostForm()
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        video_name = str(uuid.uuid4())
+        f = form.video.data
+        file_list = str(f.filename).split('.')[-1:]
+        for x in file_list:
+            file_type = x
+        if form.is_facebook.data is True:
+            filename = secure_filename('facebook-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_video', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=200, status_message='Facebook video created.')
+        if form.is_twitter.data is True:
+            filename = secure_filename('twitter-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_video', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=200, status_message='Twitter video created.')
+        if form.is_tumblr.data is True:
+            filename = secure_filename('tumblr-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('get_video', filename), tags=str(tags), caption=str(form.caption.data))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=200, status_message='Tumblr video created.')
+        if form.is_reddit.data is True:
+            filename = secure_filename('reddit-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=None, video_url=url_for('get_video', filename))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=200, status_message='Reddit video created.')
+        if form.is_youtube.data is True:
+            filename = secure_filename('youtube-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_youtube(domain_id=current_user.domain_id, user_id=current_user.id, multimedia_url=url_for('get_video', filename), title=str(form.title.data), caption=str(form.caption.data), tags='#' + tagline, category=int(form.category.data))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=200, status_message='YouTube video created.')
+        if form.is_linkedin.data is True:
+            filename = secure_filename('linkedin-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('get_video', filename), link_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/create/video', status_code=200, status_message='LinkedIn video created.')
+        flash('Successfully queued!')
+        return redirect(url_for('dashboard'))
+    return render_template('create_video.html', title='New Video Post', form=form)
+
+@app.route('/update/short-text/<platform>/<post_id>', methods=['GET', 'POST'])
+@login_required
+def update_short_text(platform, post_id):
+    if current_user.is_update is False:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text', status_code=403, status_message='Update permission denied.')
+        flash("You don't have permission to do that.")
+        return redirect(url_for('dashboard'))
+    if platform == 'facebook':
+        post = FacebookPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/facebook', status_code=404, status_message='Facebook post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'twitter':
+        post = TwitterPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/twitter', status_code=404, status_message='Twitter post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'tumblr':
+        post = TumblrPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/tumblr', status_code=404, status_message='Tumblr post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'reddit':
+        post = RedditPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/reddit', status_code=404, status_message='Reddit post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'linkedin':
+        post = LinkedinPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/linkedin', status_code=404, status_message='LinkedIn post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    else:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/?', status_code=400, status_message='Malformed request; platform not found.')
+        flash('ERROR: Malformed request; network not found.')
+        return redirect(url_for('dashboard'))
+    form = ShortTextPostForm(obj=post)
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        if platform == 'facebook':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/facebook/{}'.format(post_id), status_code=200, status_message='Facebook short text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'twitter':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/twitter/{}'.format(post_id), status_code=200, status_message='Twitter short text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'tumblr':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=str(tags), caption=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/tumblr/{}'.format(post_id), status_code=200, status_message='Tumblr short text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'reddit':
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/reddit/{}'.format(post_id), status_code=200, status_message='Reddit short text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'linkedin':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/short-text/linkedin/{}'.format(post_id), status_code=200, status_message='LinkedIn short text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+    return render_template('update_short_text.html', title='Edit Short Text Post', form=form)
+
+@app.route('/update/long-text/<platform>/<post_id>', methods=['GET', 'POST'])
+@login_required
+def update_long_text(platform, post_id):
+    if current_user.is_update is False:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text', status_code=403, status_message='Update permission denied.')
+        flash("You don't have permission to do that.")
+        return redirect(url_for('dashboard'))
+    if platform == 'facebook':
+        post = FacebookPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/facebook', status_code=404, status_message='Facebook post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'tumblr':
+        post = TumblrPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/tumblr', status_code=404, status_message='Tumblr post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'reddit':
+        post = RedditPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/reddit', status_code=404, status_message='Reddit post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'linkedin':
+        post = LinkedinPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/linkedin', status_code=404, status_message='LinkedIn post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    else:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/?', status_code=400, status_message='Malformed request; platform not found.')
+        flash('ERROR: Malformed request; network not found.')
+        return redirect(url_for('dashboard'))
+    form = LongTextPostForm(obj=post)
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        if platform == 'facebook':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/facebook/{}'.format(post_id), status_code=200, status_message='Facebook long text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'tumblr':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=str(tags), caption=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/tumblr/{}'.format(post_id), status_code=200, status_message='Tumblr long text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'reddit':
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/reddit/{}'.format(post_id), status_code=200, status_message='Reddit long text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'linkedin':
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/long-text/linkedin/{}'.format(post_id), status_code=200, status_message='LinkedIn long text updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+    return render_template('update_long_text.html', title='Edit Long Text Post', form=form)
+
+@app.route('/update/image/<platform>/<post_id>', methods=['GET', 'POST'])
+@login_required
+def update_image(platform, post_id):
+    if current_user.is_update is False:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image', status_code=403, status_message='Update permission denied.')
+        flash("You don't have permission to do that.")
+        return redirect(url_for('dashboard'))
+    if platform == 'facebook':
+        post = FacebookPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/facebook', status_code=404, status_message='Facebook post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'twitter':
+        post = TwitterPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/twitter', status_code=404, status_message='Twitter post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'tumblr':
+        post = TumblrPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/tumblr', status_code=404, status_message='Tumblr post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'reddit':
+        post = RedditPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/reddit', status_code=404, status_message='Reddit post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'linkedin':
+        post = LinkedinPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/linkedin', status_code=404, status_message='LinkedIn post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    else:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/?', status_code=400, status_message='Malformed request; platform not found.')
+        flash('ERROR: Malformed request; network not found.')
+        return redirect(url_for('dashboard'))
+    form = ImagePostForm(obj=post)
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        image_name = str(uuid.uuid4())
+        f = form.image.data
+        file_list = str(f.filename).split('.')[-1:]
+        for x in file_list:
+            file_type = x
+        if platform == 'facebook':
+            filename = secure_filename('facebook-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_image', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/facebook/{}'.format(post_id), status_code=200, status_message='Facebook image updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'twitter':
+            filename = secure_filename('twitter-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_image', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/twitter/{}'.format(post_id), status_code=200, status_message='Twitter image updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'tumblr':
+            filename = secure_filename('tumblr-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('get_image', filename), tags=str(tags), caption=str(form.caption.data))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/tumblr/{}'.format(post_id), status_code=200, status_message='Tumblr image updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'reddit':
+            filename = secure_filename('reddit-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=url_for('get_image', filename), video_url=None)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/reddit/{}'.format(post_id), status_code=200, status_message='Reddit image updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'linkedin':
+            filename = secure_filename('linkedin-{}.{}'.format(image_name, file_type))
+            f.save(os.path.join(app.instance_path, 'images', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('get_image', filename), link_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/image/linkedin/{}'.format(post_id), status_code=200, status_message='LinkedIn image updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+    return render_template('update_image.html', title='Edit Image Post', form=form)
+
+@app.route('/update/video/<platform>/<post_id>', methods=['GET', 'POST'])
+@login_required
+def update_video(platform, post_id):
+    if current_user.is_update is False:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video', status_code=403, status_message='Update permission denied.')
+        flash("You don't have permission to do that.")
+        return redirect(url_for('dashboard'))
+    if platform == 'facebook':
+        post = FacebookPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/facebook', status_code=404, status_message='Facebook post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'twitter':
+        post = TwitterPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/twitter', status_code=404, status_message='Twitter post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'tumblr':
+        post = TumblrPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/tumblr', status_code=404, status_message='Tumblr post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'reddit':
+        post = RedditPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/reddit', status_code=404, status_message='Reddit post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'youtube':
+        post = YoutubePost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/youtube', status_code=404, status_message='YouTube post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    elif platform == 'linkedin':
+        post = LinkedinPost.query.filter_by(id=int(post_id)).first()
+        if post is None:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/linkedin', status_code=404, status_message='LinkedIn post not found.')
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('dashboard'))
+    else:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/?', status_code=400, status_message='Malformed request; platform not found.')
+        flash('ERROR: Malformed request; network not found.')
+        return redirect(url_for('dashboard'))
+    form = VideoPostForm(obj=post)
+    if form.validate_on_submit():
+        current_user.post_count += 1
+        db.session.add(current_user)
+        db.session.commit()
+        video_name = str(uuid.uuid4())
+        f = form.video.data
+        file_list = str(f.filename).split('.')[-1:]
+        for x in file_list:
+            file_type = x
+        if platform == 'facebook':
+            filename = secure_filename('facebook-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_video', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/facebook/{}'.format(post_id), status_code=200, status_message='Facebook video updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'twitter':
+            filename = secure_filename('twitter-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('get_video', filename), tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/twitter/{}'.format(post_id), status_code=200, status_message='Twitter video updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'tumblr':
+            filename = secure_filename('tumblr-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+            make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('get_video', filename), tags=str(tags), caption=str(form.caption.data))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/tumblr/{}'.format(post_id), status_code=200, status_message='Tumblr video updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'reddit':
+            filename = secure_filename('reddit-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=None, video_url=url_for('get_video', filename))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/reddit/{}'.format(post_id), status_code=200, status_message='Reddit video updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'youtube':
+            filename = secure_filename('youtube-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_youtube(domain_id=current_user.domain_id, user_id=current_user.id, multimedia_url=url_for('get_video', filename), title=str(form.title.data), caption=str(form.caption.data), tags='#' + tagline, category=int(form.category.data))
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/youtube/{}'.format(post_id), status_code=200, status_message='YouTube video updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+        elif platform == 'linkedin':
+            filename = secure_filename('linkedin-{}.{}'.format(video_name, file_type))
+            f.save(os.path.join(app.instance_path, 'videos', filename))
+            if form.tags.data is not None:
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+            make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('get_video', filename), link_url=None, tags='#' + tagline)
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/update/video/linkedin/{}'.format(post_id), status_code=200, status_message='LinkedIn video updated.')
+            flash('Successfully edited!')
+            return redirect(url_for('dashboard'))
+    return render_template('update_video.html', title='Edit Video Post', form=form)
+
+@app.route('/delete/post/<platform>/<post_id>', methods=['GET', 'POST'])
+@login_required
+def delete_post(platform, post_id):
+    if current_user.is_delete is True:
+        if platform == 'facebook':
+            post = FacebookPost.query.filter_by(id=int(post_id)).first()
+            if post.domain_id == current_user.domain_id:
+                db.session.delete(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/facebook', status_code=204, status_message='Facebook post deleted.')
+                flash('Successfully deleted!')
+                return redirect(url_for('dashboard'))
+            else:
+                make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/facebook', status_code=403, status_message='Attempted to delete post from domain {}.'.format(post.domain_id))
+                flash("ERROR: That post doesn't belong to your domain.")
+                return redirect(url_for('dashboard'))
+        elif platform == 'twitter':
+            post = TwitterPost.query.filter_by(id=int(post_id)).first()
+            if post.domain_id == current_user.domain_id:
+                db.session.delete(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/twitter', status_code=204, status_message='Twitter post deleted.')
+                flash('Successfully deleted!')
+                return redirect(url_for('dashboard'))
+            else:
+                make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/twitter', status_code=403, status_message='Attempted to delete post from domain {}.'.format(post.domain_id))
+                flash("ERROR: That post doesn't belong to your domain.")
+                return redirect(url_for('dashboard'))
+        elif platform == 'tumblr':
+            post = TumblrPost.query.filter_by(id=int(post_id)).first()
+            if post.domain_id == current_user.domain_id:
+                db.session.delete(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/tumblr', status_code=204, status_message='Tumblr post deleted.')
+                flash('Successfully deleted!')
+                return redirect(url_for('dashboard'))
+            else:
+                make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/tumblr', status_code=403, status_message='Attempted to delete post from domain {}.'.format(post.domain_id))
+                flash("ERROR: That post doesn't belong to your domain.")
+                return redirect(url_for('dashboard'))
+        elif platform == 'reddit':
+            post = RedditPost.query.filter_by(id=int(post_id)).first()
+            if post.domain_id == current_user.domain_id:
+                db.session.delete(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/reddit', status_code=204, status_message='Reddit post deleted.')
+                flash('Successfully deleted!')
+                return redirect(url_for('dashboard'))
+            else:
+                make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/reddit', status_code=403, status_message='Attempted to delete post from domain {}.'.format(post.domain_id))
+                flash("ERROR: That post doesn't belong to your domain.")
+                return redirect(url_for('dashboard'))
+        elif platform == 'youtube':
+            post = YoutubePost.query.filter_by(id=int(post_id)).first()
+            if post.domain_id == current_user.domain_id:
+                db.session.delete(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/youtube', status_code=204, status_message='YouTube post deleted.')
+                flash('Successfully deleted!')
+                return redirect(url_for('dashboard'))
+            else:
+                make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/youtube', status_code=403, status_message='Attempted to delete post from domain {}.'.format(post.domain_id))
+                flash("ERROR: That post doesn't belong to your domain.")
+                return redirect(url_for('dashboard'))
+        elif platform == 'linkedin':
+            post = LinkedinPost.query.filter_by(id=int(post_id)).first()
+            if post.domain_id == current_user.domain_id:
+                db.session.delete(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/linkedin', status_code=204, status_message='LinkedIn post deleted.')
+                flash('Successfully deleted!')
+                return redirect(url_for('dashboard'))
+            else:
+                make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/linkedin', status_code=403, status_message='Attempted to delete post from domain {}.'.format(post.domain_id))
+                flash("ERROR: That post doesn't belong to your domain.")
+                return redirect(url_for('dashboard'))
+        else:
+            make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post/?', status_code=400, status_message='Malformed request; network not found.')
+            flash('ERROR: Malformed request; network not found.')
+            return redirect(url_for('dashboard'))
+    else:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/delete/post', status_code=403, status_message='Delete permission denied.')
+        flash("You don't have permission to do that.")
+        return redirect(url_for('dashboard'))
+
+@app.route('/get/image/<filename>', methods=['GET'])
+def get_image(filename):
+    return send_from_directory(os.path.join(app.instance_path, 'images'), filename, as_attachment=True)
+
+@app.route('/get/video/<filename>', methods=['GET'])
+def get_video(filename):
+    return send_from_directory(os.path.join(app.instance_path, 'videos'), filename, as_attachment=True)
+
+# API
+
+@app.route('/api/_r/<domain_id>/<platform>/auth=<read_token>', methods=['GET'])
+def api_read(domain_id, platform, read_token):
+    timestamp = datetime.utcnow()
+    ip_address = request.remote_addr
+    if str(read_token) == app.config['READ_TOKEN']:
+        if str(platform) == 'facebook':
+            post = FacebookPost.query.filter_by(domain_id=int(domain_id)).order_by(FacebookPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
+                return jsonify(post_type=post.post_type, timestamp=post.timestamp, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
+        elif str(platform) == 'twitter':
+            post = TwitterPost.query.filter_by(domain_id=int(domain_id)).order_by(TwitterPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
+                return jsonify(post_type=post.post_type, timestamp=post.timestamp, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
+        elif str(platform) == 'tumblr':
+            post = TumblrPost.query.filter_by(domain_id=int(domain_id)).order_by(TumblrPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
+                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
+        elif str(platform) == 'reddit':
+            post = RedditPost.query.filter_by(domain_id=int(domain_id)).order_by(RedditPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
+                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url), 200
+        elif str(platform) == 'youtube':
+            post = YoutubePost.query.filter_by(domain_id=int(domain_id)).order_by(YoutubePost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
+                return jsonify(timestamp=post.timestamp, multimedia_url=post.multimedia_url, title=post.title, caption=post.caption, tags=post.tags, category=post.category), 200
+        elif str(platform) == 'linkedin':
+            post = LinkedinPost.query.filter_by(domain_id=int(domain_id)).order_by(LinkedinPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
+                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, caption=post.caption, multimedia_url=post.multimedia_url, link_url=post.link_url, tags=post.tags), 200
+        else:
+            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/?'.format(domain_id), status_code=400, status_message='Malformed request; platform not found.')
+            return jsonify(endpoint='api/_r', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
+    else:
+        make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=403, status_message='Incorrect read token: {}'.format(str(read_token)))
+        return jsonify(endpoint='api/_r', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
+
+@app.route('/api/_d/<domain_id>/<platform>/auth=<read_token>&<delete_token>', methods=['GET'])
+def api_delete(domain_id, platform, read_token, delete_token):
+    timestamp = datetime.utcnow()
+    ip_address = request.remote_addr
+    if str(read_token) == app.config['READ_TOKEN'] and str(delete_token) == app.config['DELETE_TOKEN']:
+        if str(platform) == 'facebook':
+            post = FacebookPost.query.filter_by(domain_id=int(domain_id)).order_by(FacebookPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
+                db.session.delete(post)
+                db.session.commit()
+                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
+        elif str(platform) == 'twitter':
+            post = TwitterPost.query.filter_by(domain_id=int(domain_id)).order_by(TwitterPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
+                db.session.delete(post)
+                db.session.commit()
+                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
+        elif str(platform) == 'tumblr':
+            post = TumblrPost.query.filter_by(domain_id=int(domain_id)).order_by(TumblrPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
+                db.session.delete(post)
+                db.session.commit()
+                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
+        elif str(platform) == 'reddit':
+            post = RedditPost.query.filter_by(domain_id=int(domain_id)).order_by(RedditPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
+                db.session.delete(post)
+                db.session.commit()
+                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
+        elif str(platform) == 'youtube':
+            post = YoutubePost.query.filter_by(domain_id=int(domain_id)).order_by(YoutubePost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
+                db.session.delete(post)
+                db.session.commit()
+                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
+        elif str(platform) == 'linkedin':
+            post = LinkedinPost.query.filter_by(domain_id=int(domain_id)).order_by(LinkedinPost.timestamp.asc()).first()
+            if post is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
+                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
+                db.session.delete(post)
+                db.session.commit()
+                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
+        else:
+            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/?'.format(domain_id), status_code=400, status_message='Malformed request; platform not found.')
+            return jsonify(endpoint='api/_d', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
+    else:
+        make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=403, status_message='{}/{}'.format(str(read_token), str(delete_token)))
+        return jsonify(endpoint='api/_d', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
+
+@app.route('/api/_p/<domain_id>/<platform>/auth=<read_token>&<delete_token>&<permission_token>', methods=['GET'])
+def api_permission(domain_id, platform, read_token, delete_token, permission_token):
+    timestamp = datetime.utcnow()
+    ip_address = request.remote_addr
+    if str(read_token) == app.config['READ_TOKEN'] and str(delete_token) == app.config['DELETE_TOKEN'] and str(permission_token) == app.config['PERMISSION_TOKEN']:
+        domain = Domain.query.filter_by(id=int(domain_id)).first()
+        if str(platform) == 'facebook':
+            facebook_token = domain.facebook_token
+            if facebook_token is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/facebook'.format(domain_id), status_code=404, status_message='Credential not found.')
+                return jsonify(endpoint='/api/_p/facebook', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/facebook'.format(domain_id), status_code=200, status_message='Credential accessed.')
+                return jsonify(facebook_token=facebook_token), 200
+        elif str(platform) == 'twitter':
+            twitter_token = domain.twitter_token
+            twitter_secret = domain.twitter_secret
+            if twitter_token is None or twitter_secret is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/twitter'.format(domain_id), status_code=404, status_message='Credential not found.')
+                return jsonify(endpoint='/api/_p/twitter', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/twitter'.format(domain_id), status_code=200, status_message='Credentials accessed.')
+                return jsonify(twitter_token=twitter_token, twitter_secret=twitter_secret), 200
+        elif str(platform) == 'tumblr':
+            tumblr_blog_name = domain.tumblr_blog_name
+            tumblr_token = domain.tumblr_token
+            tumblr_secret = domain.tumblr_secret
+            if tumblr_blog_name is None or tumblr_token is None or tumblr_secret is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/tumblr'.format(domain_id), status_code=404, status_message='Credential not found.')
+                return jsonify(endpoint='/api/_p/tumblr', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/tumblr'.format(domain_id), status_code=200, status_message='Credentials accessed.')
+                return jsonify(tumblr_blog_name=tumblr_blog_name, tumblr_token=tumblr_token, tumblr_secret=tumblr_secret), 200
+        elif str(platform) == 'reddit':
+            reddit_subreddit = domain.reddit_subreddit
+            reddit_username = domain.reddit_username
+            reddit_password = domain.reddit_password
+            if reddit_subreddit is None or reddit_username is None or reddit_password is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/reddit'.format(domain_id), status_code=404, status_message='Credential not found.')
+                return jsonify(endpoint='/api/_p/reddit', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/tumblr'.format(domain_id), status_code=200, status_message='Credentials accessed.')
+                return jsonify(reddit_subreddit=reddit_subreddit, reddit_username=reddit_username, reddit_password=reddit_password), 200
+        elif str(platform) == 'youtube':
+            youtube_refresh = domain.youtube_refresh
+            youtube_access = domain.youtube_access
+            if youtube_refresh is None or youtube_access is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/youtube'.format(domain_id), status_code=404, status_message='Credential not found.')
+                return jsonify(endpoint='/api/_p/youtube', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/youtube'.format(domain_id), status_code=200, status_message='Credentials accessed.')
+                return jsonify(youtube_refresh=youtube_refresh, youtube_access=youtube_access), 200
+        elif str(platform) == 'linkedin':
+            linkedin_author = domain.linkedin_author
+            linkedin_token = domain.linkedin_token
+            linkedin_secret = domain.linkedin_secret
+            if linkedin_author is None or linkedin_token is None or linkedin_secret is None:
+                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/linkedin'.format(domain_id), status_code=404, status_message='Credential not found.')
+                return jsonify(endpoint='/api/_p/linkedin', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+            else:
+                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/youtube'.format(domain_id), status_code=200, status_message='Credentials accessed.')
+                return jsonify(linkedin_author=linkedin_author, linkedin_token=linkedin_token, linkedin_secret=linkedin_secret), 200
+        else:
+            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/?'.format(domain_id), status_code=400, status_message='Malformed request; platform not found.')
+            return jsonify(endpoint='api/_d', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
+    else:
+        make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_p/{}/{}'.format(domain_id, platform), status_code=403, status_message='{}/{}/{}'.format(str(read_token), str(delete_token), str(permission_token)))
+        return jsonify(endpoint='api/_p', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
+
+# Help
 
 @app.route('/help')
 def help():
     return render_template('help.html', title='Help')
-
-
-@app.route('/edit/<post_id>', methods=['GET', 'POST'])
-@login_required
-def edit(post_id):
-    post = Post.query.filter_by(id=int(post_id)).first()
-    if post is None:
-        flash("Error: Post not found. Are you sure it hasn't already been deleted?")
-        return redirect(url_for('index'))
-    elif post.user_id != current_user.id:
-        flash("Error: You don't have permission to edit that. Are you sure that post is yours to edit?")
-        return redirect(url_for('index'))
-    form = PostForm(obj=post)
-    if form.validate_on_submit():
-        post.body = str(form.body.data)
-        post.is_twitter = bool(form.is_twitter.data)
-        post.is_tumblr = bool(form.is_tumblr.data)
-        db.session.commit()
-        flash("Success! Post edited.")
-        return redirect(url_for('index'))
-    return render_template('edit.html', title='Edit Post', form=form)
-
-
-@app.route('/api/_r/<read_token>&<email>', methods=['GET'])
-def api_read(read_token, email):
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if read_token == 'read_test':
-        user = User.query.filter_by(email=str(email)).first()
-        if user is None:
-            logging.warning('[ENDPOINT: api/_r, STATUS: 422 No Such User, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-            return jsonify(endpoint='api/_r', status='422 Unprocessable Entity', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such user.'), 422
-        else:
-            post = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.asc()).first()
-            if post is None:
-                logging.warning('[ENDPOINT: api/_r, STATUS: 404 No Such Post, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                logging.info('[ENDPOINT: api/_r, STATUS: 200 OK, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                return jsonify(body=post.body, is_twitter=post.is_twitter, is_tumblr=post.is_tumblr), 200
-    else:
-        logging.warning('[ENDPOINT: api/_r, STATUS: 403 Forbidden, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-        return jsonify(endpoint='api/_r', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
-
-
-@app.route('/api/_d/<read_token>&<delete_token>&<email>', methods=['GET', 'POST'])
-def api_delete(read_token, delete_token, email):
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if delete_token == 'delete_test' and read_token == 'read_test':
-        user = User.query.filter_by(email=str(email)).first()
-        if user is None:
-            logging.warning('[ENDPOINT: api/_d, STATUS: 422 No Such User, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-            return jsonify(endpoint='api/_d', status='422 Unprocessable Entity', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such user.'), 422
-        else:
-            post = Post.query.filter_by(user_id=user.id).order_by(Post.timestamp.asc()).first()
-            if post is None:
-                logging.warning('[ENDPOINT: api/_d, STATUS: 404 No Such Post, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                db.session.delete(post)
-                db.session.commit()
-                logging.info('[ENDPOINT: api/_d, STATUS: 204 No Content, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-    else:
-        logging.warning('[ENDPOINT: api/_d, STATUS: 403 Forbidden, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-        return jsonify(endpoint='api/_d', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
-
-
-@app.route('/api/_p/<platform>/<read_token>&<delete_token>&<permission_token>&<email>', methods=['GET'])
-def api_permission(platform, read_token, delete_token, permission_token, email):
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if read_token == 'read_test' and delete_token == 'delete_test' and permission_token == 'permission_test':
-        user = User.query.filter_by(email=str(email)).first()
-        if user is None:
-            logging.warning('[ENDPOINT: api/_p, STATUS: 422 No Such User, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-            return jsonify(endpoint='api/_p', status='422 Unprocessable Entity', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such user.'), 422
-        else:
-            if platform == 'twitter':
-                twitter_consumer_key = user.twitter_consumer_key
-                twitter_consumer_secret = user.twitter_consumer_secret
-                twitter_access_token_key = user.twitter_access_token_key
-                twitter_access_token_secret = user.twitter_access_token_secret
-                if twitter_consumer_key is None or twitter_consumer_secret is None or twitter_access_token_key is None or twitter_access_token_secret is None:
-                    logging.warning('[ENDPOINT: api/_p/twitter, STATUS: 404 No Such Credentials, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                    return jsonify(endpoint='api/_p/twitter', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such credentials.'), 404
-                else:
-                    logging.info('[ENDPOINT: api/_p/twitter, STATUS: 200 OK, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                    return jsonify(consumer_key=twitter_consumer_key, consumer_secret=twitter_consumer_secret, access_token_key=twitter_access_token_key, access_token_secret=twitter_access_token_secret), 200
-            elif platform == 'tumblr':
-                tumblr_consumer_key = user.tumblr_consumer_key
-                tumblr_consumer_secret = user.tumblr_consumer_key
-                tumblr_oauth_token = user.tumblr_oauth_token
-                tumblr_oauth_secret = user.tumblr_oauth_secret
-                if tumblr_consumer_key is None or tumblr_consumer_secret is None or tumblr_oauth_token is None or tumblr_oauth_secret is None:
-                    logging.warning('[ENDPOINT: api/_p/tumblr, STATUS: 404 No Such Credentials, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                    return jsonify(endpoint='api/_p/tumblr', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such credentials.'), 404
-                else:
-                    logging.info('[ENDPOINT: api/_p/tumblr, STATUS: 200 OK, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                    return jsonify(consumer_key=tumblr_consumer_key, consumer_secret=tumblr_consumer_secret, oauth_token=tumblr_oauth_token, oauth_secret=tumblr_oauth_secret), 200
-            else:
-                logging.warning('[ENDPOINT: api/_p, STATUS: 400 Bad Request, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-                return jsonify(endpoint='api/_p', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform needs to be specified.'), 400
-    else:
-        logging.warning('[ENDPOINT: api/_p, STATUS: 403 Forbidden, UTC_TIMESTAMP: {}, IP_ADDRESS: {}]'.format(timestamp, ip_address))
-        return jsonify(endpoint='api/_p', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403

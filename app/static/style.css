@@ -1,25 +1,41 @@
-td, th {
-  border: 1px solid black;
-  text-align: left;
-  padding: 8px;
+.invisible {
+  border: none;
 }
 
-.queue {
-  background-color: #ffffcc;
+.facebook {
+  background-color: #4267B2;
+  color: #FFFFFF;
+}
+
+.twitter {
+  background-color: #1DA1F2;
+  color: #FFFFFF;
+}
+
+.tumblr {
+  background-color: #34526f;
+  color: white;
+}
+
+.reddit {
+  background-color: #FF4500;
   color: black;
 }
 
-.on-deck {
-  background-color: #00ff00;
-  color: black;
+.youtube {
+  background-color: #FF0000;
+  color: #282828;
 }
 
-.posted {
-  background-color: #ccccff;
-  color: black;
+.linkedin {
+  background-color: #2867B2;
+  color: #FFFFFF;
 }
 
-.main-table {
-  table-layout: auto;
-  width: 100%;
+.action-needed {
+  background-color: yellow;
+}
+
+.normal {
+  background-color: green;
 }

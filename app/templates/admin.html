@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <table>
+        <tr>
+            <th>Email</th>
+            <th>Post Count</th>
+            <th>Create</th>
+            <th>Read</th>
+            <th>Update</th>
+            <th>Delete</th>
+            <th>Remove</th>
+        </tr>
+        {% for user in users %}
+            {% if user.is_create == false and user.is_read == false and user.is_update == false and user.is_delete == false %}
+                <tr class="action-needed">
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.post_count }}</td>
+                    <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='c') }}">Grant</a></td>
+                    <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='r') }}">Grant</a></td>
+                    <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='u') }}">Grant</a></td>
+                    <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='d') }}">Grant</a></td>
+                    <td><a href="{{ url_for('revoke_permission', user_id=user.id, permission='kill') }}">Kill</a></td>
+                </tr>
+            {% else %}
+                <tr class="normal">
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.post_count }}</td>
+                    {% if user.is_create == false %}
+                        <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='c') }}">Grant</a></td>
+                    {% else %}
+                        <td><a href="{{ url_for('revoke_permission', user_id=user.id, permission='c') }}">Revoke</a></td>
+                    {% endif %}
+                    {% if user.is_read == false %}
+                        <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='r') }}">Grant</a></td>
+                    {% else %}
+                        <td><a href="{{ url_for('revoke_permission', user_id=user.id, permission='r') }}">Revoke</a></td>
+                    {% endif %}
+                    {% if user.is_update == false %}
+                        <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='u') }}">Grant</a></td>
+                    {% else %}
+                        <td><a href="{{ url_for('revoke_permission', user_id=user.id, permission='u') }}">Revoke</a></td>
+                    {% endif %}
+                    {% if user.is_delete == false %}
+                        <td><a href="{{ url_for('grant_permission', user_id=user.id, permission='d') }}">Grant</a></td>
+                    {% else %}
+                        <td><a href="{{ url_for('revoke_permission', user_id=user.id, permission='d') }}">Revoke</a></td>
+                    {% endif %}
+                    <td><a href="{{ url_for('revoke_permission', user_id=user.id, permission='kill') }}">Kill</a></td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+{% endblock %}
