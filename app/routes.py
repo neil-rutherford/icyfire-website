@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify, Response, send_from_directory
 from app import app, db
-from app.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ShortTextPostForm, LongTextPostForm, ImagePostForm, VideoPostForm
-from app.models import Domain, User, FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost, Ewok, Sentry
+from app.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ContractorRegistrationForm, ShortTextPostForm, LongTextPostForm, ImagePostForm, VideoPostForm
+from app.models import Domain, User, FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost, Ewok, Sentry, CountryLead, RegionLead, TeamLead, Agent
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
@@ -143,7 +143,6 @@ def register_domain():
         user.is_update = bool(True)
         user.is_delete = bool(True)
         domain.domain_name = str(form.domain_name.data)
-        #domain.admin = int(user.id)
         db.session.add(user)
         db.session.add(domain)
         db.session.commit()
@@ -176,6 +175,64 @@ def register_user():
         flash("As a security precaution, new users have limited permissions by default. This will change once your domain admin gives your account the all clear.")
         return redirect(url_for('dashboard'))
     return render_template('register_user.html', title='New User Registration', form=form)
+
+@app.route('/register/sales', methods=['GET', 'POST'])
+def register_sales():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    form = ContractorRegistrationForm()
+    if form.validate_on_submit():
+        domain = Domain.query.filter_by(domain_name='icyfire').first()
+        user = User(email=str(form.email.data))
+        user.domain_id = domain.id
+        user.set_password(str(form.password.data))
+        user.is_admin = False
+        user.is_create = False
+        user.is_read = False
+        user.is_update = False
+        user.is_delete = False
+        user.icyfire_crta = 'USA-' + str(form.icyfire_region.data) + '-' + str(form.icyfire_team.data) + '-' + str(form.icyfire_agent.data)
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/sales', status_code=200, status_message='User creation successful.')
+        if str(form.icyfire_team.data) == '00' and str(form.icyfire_agent.data) == '00':
+            region_lead = RegionLead(user_id=current_user.id)
+            region_lead.first_name = str(form.first_name.data)
+            region_lead.last_name = str(form.last_name.data)
+            region_lead.phone_country = int(1)
+            region_lead.phone_number = int(form.phone_number.data)
+            region_lead.crta_code = current_user.icyfire_crta
+            country_lead = CountryLead.query.filter_by(crta_code='USA-00-00-00').first()
+            region_lead.country_lead_id = country_lead.id
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/sales', status_code=200, status_message='Region Lead creation successful.')
+            db.session.add(region_lead)
+            db.session.commit()
+        elif str(form.icyfire_agent.data) == '00':
+            team_lead = TeamLead(user_id=current_user.id)
+            team_lead.first_name = str(form.first_name.data)
+            team_lead.last_name = str(form.last_name.data)
+            team_lead.phone_country = int(1)
+            team_lead.phone_number = int(form.phone_number.data)
+            team_lead.crta_code = current_user.icyfire_crta
+            region_lead = RegionLead.query.filter_by(crta_code='USA-{}-00-00'.format(str(form.icyfire_region.data))).first()
+            team_lead.region_lead_id = region_lead.id
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/sales', status_code=200, status_message='Team Lead creation successful.')
+            db.session.add(team_lead)
+            db.session.commit()
+        else:
+            agent = Agent(user_id=current_user.id)
+            agent.first_name = str(form.first_name.data)
+            agent.last_name = str(form.last_name.data)
+            agent.phone_country = int(1)
+            agent.phone_number = int(form.phone_number.data)
+            agent.crta_code = current_user.icyfire_crta
+            team_lead = TeamLead.query.filter_by(crta_code='USA-{}-{}-00'.format(str(form.icyfire_region.data), str(form.icyfire_team.data))).first()
+            agent.team_lead_id = team_lead.id
+            make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/register/sales', status_code=200, status_message='Agent creation successful.')
+            db.session.add(agent)
+            db.session.commit()
+    return render_template('register_sales.html', title='New Contractor Registration', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

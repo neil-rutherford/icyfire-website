@@ -25,7 +25,6 @@ class Domain(db.Model):
     [domain_name]           : str  : Name for this domain.
     [activation_code]       : str  : UUID generated when payment is received.
     [requested_time_slots]  : text : Set-up information for IcyFire server administrators.
-    [admin]                 : int  : User_id for this domain's administrator. (Administrator can assign/revoke CRUD permissions.) 
     [users]                 : rel  : List of all users linked to this domain. 
     [facebook_posts]        : rel  : List of all Facebook posts queued for this domain.
     [twitter_posts]         : rel  : List of all Twitter posts queued for this domain.
@@ -52,10 +51,9 @@ class Domain(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     domain_name = db.Column(db.String(120), index=True, unique=True)
-    sale_id = db.Column(db.Integer, db.ForeignKey('sale.id')) #
+    sale_id = db.Column(db.Integer, db.ForeignKey('sale.id'))
     activation_code = db.Column(db.String(300), unique=True)
     requested_time_slots = db.Column(db.String(300))
-    #admin = db.Column(db.Integer, db.ForeignKey('user.id'))
     users = db.relationship('User', backref='group', lazy='dynamic')
     facebook_posts = db.relationship('FacebookPost', backref='author', lazy='dynamic')
     twitter_posts = db.relationship('TwitterPost', backref='author', lazy='dynamic')
@@ -103,7 +101,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(254), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) 
     post_count = db.Column(db.Integer)
     is_admin = db.Column(db.Boolean)
     is_create = db.Column(db.Boolean)
@@ -136,8 +134,8 @@ class FacebookPost(db.Model):
     '''
     __tablename__ = 'facebook_post'
     id = db.Column(db.Integer, primary_key=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_type = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     body = db.Column(db.Text)
@@ -164,8 +162,8 @@ class TwitterPost(db.Model):
     __tablename__ = 'twitter_post'
 
     id = db.Column(db.Integer, primary_key=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_type = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     body = db.Column(db.String(300)) 
@@ -193,8 +191,8 @@ class TumblrPost(db.Model):
     '''
     __tablename__ = 'tumblr_post'
     id = db.Column(db.Integer, primary_key=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_type = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     title = db.Column(db.String(300))
@@ -224,8 +222,8 @@ class RedditPost(db.Model):
     __tablename__ = 'reddit_post'
 
     id = db.Column(db.Integer, primary_key=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_type = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     title = db.Column(db.String(300))
@@ -253,8 +251,8 @@ class YoutubePost(db.Model):
     __tablename__ = 'youtube_post'
 
     id = db.Column(db.Integer, primary_key=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     multimedia_url = db.Column(db.String(300))
     title = db.Column(db.String(300))
@@ -283,8 +281,8 @@ class LinkedinPost(db.Model):
     __tablename__ = 'linkedin_post'
 
     id = db.Column(db.Integer, primary_key=True)
-    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id')) #
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     post_type = db.Column(db.Integer)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     title = db.Column(db.String(300))
@@ -346,13 +344,13 @@ class RegionLead(db.Model):
     __tablename__ = 'region_lead'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
     phone_country = db.Column(db.Integer)
     phone_number = db.Column(db.Integer)
     crta_code = db.Column(db.String(20))
-    country_lead_id = db.Column(db.Integer, db.ForeignKey('country_lead.id')) #
+    country_lead_id = db.Column(db.Integer, db.ForeignKey('country_lead.id'))
     team_leads = db.relationship('TeamLead', backref='superior', lazy='dynamic')
     sales = db.relationship('Sale', backref='region_lead', lazy='dynamic')
 
@@ -384,7 +382,7 @@ class TeamLead(db.Model):
     phone_country = db.Column(db.Integer) 
     phone_number = db.Column(db.Integer) 
     crta_code = db.Column(db.String(20))
-    region_lead_id = db.Column(db.Integer, db.ForeignKey('region_lead.id')) #
+    region_lead_id = db.Column(db.Integer, db.ForeignKey('region_lead.id'))
     agents = db.relationship('Agent', backref='superior', lazy='dynamic')
     sales = db.relationship('Sale', backref='team_lead', lazy='dynamic')
 
@@ -409,13 +407,13 @@ class Agent(db.Model):
     __tablename__ = 'agent'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     first_name = db.Column(db.String(50))
     last_name = db.Column(db.String(50))
     phone_country = db.Column(db.Integer)
     phone_number = db.Column(db.Integer)
     crta_code = db.Column(db.String(20))
-    team_lead_id = db.Column(db.Integer, db.ForeignKey('team_lead.id')) #
+    team_lead_id = db.Column(db.Integer, db.ForeignKey('team_lead.id'))
     sales = db.relationship('Sale', backref='agent', lazy='dynamic')
 
     def __repr__(self):
@@ -450,10 +448,10 @@ class Sale(db.Model):
     __tablename__='sale'
 
     id = db.Column(db.Integer, primary_key=True)
-    agent_id = db.Column(db.Integer, db.ForeignKey('agent.id')) #
-    team_lead_id = db.Column(db.Integer, db.ForeignKey('team_lead.id')) #
-    region_lead_id = db.Column(db.Integer, db.ForeignKey('region_lead.id')) #
-    country_lead_id = db.Column(db.Integer, db.ForeignKey('country_lead.id')) #
+    agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'))
+    team_lead_id = db.Column(db.Integer, db.ForeignKey('team_lead.id'))
+    region_lead_id = db.Column(db.Integer, db.ForeignKey('region_lead.id'))
+    country_lead_id = db.Column(db.Integer, db.ForeignKey('country_lead.id'))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     client_name = db.Column(db.String(100))
     client_street_address = db.Column(db.String(100))
@@ -491,7 +489,7 @@ class Ewok(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     ip_address = db.Column(db.String(15))
     endpoint = db.Column(db.String(254))
     status_code = db.Column(db.Integer)
@@ -519,7 +517,7 @@ class Sentry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     ip_address = db.Column(db.String(15))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id')) #
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     endpoint = db.Column(db.String(254))
     status_code = db.Column(db.Integer)
     status_message = db.Column(db.String(100))
