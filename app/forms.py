@@ -676,3 +676,64 @@ class VideoPostForm(FlaskForm):
                 raise ValidationError('LINKEDIN: Please make sure your account is authenticated before trying to post.')
             elif len(caption.data) > 700:
                 raise ValidationError("LINKEDIN: Caption can't be more than 700 characters long.")
+
+class SaleForm(FlaskForm):
+    client_name = StringField('Client name', validators=[DataRequired(), Length(max=100)])
+    client_street_address = StringField('Street address', validators=[DataRequired(), Length(max=100)])
+    client_city = StringField('City', validators=[DataRequired(), Length(max=60)])
+    client_state = SelectField('State', choices=[
+        ('Alabama','Alabama'),
+        ('Alaska', 'Alaska'),
+        ('Arizona', 'Arizona'),
+        ('Arkansas', 'Arkansas'),
+        ('California', 'California'),
+        ('Colorado', 'Colorado'),
+        ('Connecticut', 'Connecticut'),
+        ('District of Columbia', 'District of Columbia'),
+        ('Delaware', 'Delaware'),
+        ('Florida', 'Florida'),
+        ('Georgia', 'Georgia'),
+        ('Hawaii', 'Hawaii'),
+        ('Idaho', 'Idaho'),
+        ('Illinois', 'Illinois'),
+        ('Indiana', 'Indiana'),
+        ('Iowa', 'Iowa'),
+        ('Kansas', 'Kansas'),
+        ('Kentucky', 'Kentucky'),
+        ('Louisiana', 'Louisiana'),
+        ('Maine', 'Maine'),
+        ('Maryland', 'Maryland'),
+        ('Massachusetts', 'Massachusetts'),
+        ('Michigan', 'Michigan'),
+        ('Minnesota', 'Minnesota'),
+        ('Mississippi', 'Mississippi'),
+        ('Missouri', 'Missouri'),
+        ('Nebraska', 'Nebraska'),
+        ('Nevada', 'Nevada'),
+        ('New Jersey', 'New Jersey'),
+        ('New Mexico', 'New Mexico'),
+        ('New York', 'New York'),
+        ('North Carolina', 'North Carolina'),
+        ('North Dakota', 'North Dakota'),
+        ('Ohio', 'Ohio'),
+        ('Oklahoma', 'Oklahoma'),
+        ('Pennsylvania', 'Pennsylvania'),
+        ('Rhode Island', 'Rhode Island'),
+        ('South Carolina', 'South Carolina'),
+        ('South Dakota', 'South Dakota'),
+        ('Tennessee', 'Tennessee'),
+        ('Texas', 'Texas'),
+        ('Utah', 'Utah'),
+        ('Vermont', 'Vermont'),
+        ('Virginia', 'Virginia'),
+        ('Washington', 'Washington'),
+        ('West Virginia', 'West Virginia'),
+        ('Wisconsin', 'Wisconsin'),
+        ('Wyoming', 'Wyoming')
+    ],
+    validators=[DataRequired(), Length(max=50)])
+    client_zip = StringField('ZIP code', validators=[DataRequired(), Length(max=15)])
+    client_phone_number = StringField('Contact phone number', validators=[DataRequired(), Length(min=10, max=10), phone_check])
+    client_email = StringField('Contact email', validators=[DataRequired(), Email(), Length(max=120)])
+    quantity = StringField('Quantity sold', validators=[DataRequired(), phone_check])
+    submit = SubmitField('Submit')
