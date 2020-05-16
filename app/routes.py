@@ -1422,3 +1422,7 @@ def create_invoice(sale_id):
     input_file = os.path.join(basedir, 'app', 'static', 'agreements', 'client_invoice_template.pdf')
     output_file = os.path.join(basedir, 'app', 'static', 'records', 'invoices', '{}.pdf'.format(sale_id))
     fill_pdf_template(input_path=input_file, output_path=output_file, data_dict=data_dict)
+    domain = Domain(activation_code=activation_code)
+    db.session.add(domain)
+    db.session.commit()
+    return send_from_directory(os.path.join(basedir, 'app', 'static', 'records', 'invoices'), '{}.pdf'.format(sale_id), as_attachment=True)
