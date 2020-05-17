@@ -130,6 +130,7 @@ class UserRegistrationForm(FlaskForm):
 
 class ContractorRegistrationForm(FlaskForm):
     icyfire_region = SelectField('What state are you in?', choices=[
+        ('00', 'Not applicable. I am the Country Lead.'),
         ('SOUTH', 'Alabama'),
         ('PACIFIC', 'Alaska'),
         ('PACIFIC', 'Arizona'),
@@ -183,7 +184,7 @@ class ContractorRegistrationForm(FlaskForm):
         ('FRONTIER', 'Wyoming')], validators=[DataRequired()])
 
     icyfire_team = SelectField('What is the name of your team?', choices=[
-        ('00', 'Not applicable'),
+        ('00', 'Not applicable. I am a Region Lead.'),
         ('ALPHA', 'Team Alpha'),
         ('BRAVO', 'Team Bravo'),
         ('CHARLIE', 'Team Charlie'),
@@ -196,7 +197,7 @@ class ContractorRegistrationForm(FlaskForm):
         ('JULIET', 'Team Juliet')], validators=[DataRequired()])
 
     icyfire_agent = SelectField("What is your agent number?", choices=[
-        ('00', 'Not applicable'),
+        ('00', 'Not applicable. I am a Team Lead.'),
         ('01', '1'),
         ('02', '2'),
         ('03', '3'),
