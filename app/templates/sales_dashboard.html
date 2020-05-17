@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+
+<h1>{{ title }}</h1>
+
+{% if subs is not none %}
+    <br>
+    <h2>Your support team</h2>
+    <button type="button" class="collapsible">Your support team</button>
+    <div class="content">
+        <table>
+            <tr>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>CRTA code</th>
+                <th>Total sales</th>
+                <th>Phone number</th>
+            </tr>
+            {% for sub in subs %}
+                <tr>
+                    <td>{{ sub.first_name }}</td>
+                    <td>{{ sub.last_name }}</td>
+                    <td>{{ sub.crta_code }}</td>
+                    <td>{{ sub.sales|length }}</td>
+                    <td>{{ sub.phone_number }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
+<br>
+<h2>Your sales this month</h2>
+<button type="button" class="collapsible">Your sales this month</button>
+<div class="content">
+    <table>
+        <tr>
+            <th>Progress</th>
+            <th>Expectation</th>
+        </tr>
+        {% if label == 'agent' %}
+            {% if sales|length < 2 %}
+                <td class="bad">{{ sales|length }}</td>
+                <td>2</td>
+            {% elif sales|length == 2 %}
+                <td class="ok">{{ sales|length }}</td>
+                <td>2</td>
+            {% else %}
+                <td class="good">{{ sales|length }}</td>
+                <td>2</td>
+            {% endif %}
+        {% elif label == 'team_lead' %}
+            {% if sales|length < 30 %}
+                <td class="bad">{{ sales|length }}</td>
+                <td>30</td>
+            {% elif sales|length == 30 %}
+                <td class="ok">{{ sales|length }}</td>
+                <td>30</td>
+            {% else %}
+                <td class="good">{{ sales|length }}</td>
+                <td>30</td>
+            {% endif %}
+        {% elif label == 'region_lead' %}
+            {% if sales|length < 300 %}
+                <td class="bad">{{ sales|length }}</td>
+                <td>300</td>
+            {% elif sales|length == 300 %}
+                <td class="ok">{{ sales|length }}</td>
+                <td>300</td>
+            {% else %}
+                <td class="good">{{ sales|length }}</td>
+                <td>30</td>
+            {% endif %}
+        {% elif label == 'country_lead' %}
+            {% if sales|length < 1500 %}
+                <td class="bad">{{ sales|length }}</td>
+                <td>1500</td>
+            {% elif sales|length == 1500 %}
+                <td class="ok">{{ sales|length }}</td>
+                <td>1500</td>
+            {% else %}
+                <td class="good">{{ sales|length }}</td>
+                <td>30</td>
+            {% endif %}
+        {% endif %}
+    </table>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>Client name</th>
+            <th>Client phone</th>
+            <th>Client email</th>
+            <th>Product quantity sold</th>
+            <th>Transaction subtotal</th>
+        </tr>
+        {% for sale in sales %}
+            <tr>
+                <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                <td>{{ sale.client_name }}</td>
+                <td>{{ sale.client_phone_number }}</td>
+                <td>{{ sale.client_email }}</td>
+                <td>{{ sale.quantity }} x {{ sale.unit_price }}</td>
+                <td>{{ sale.subtotal }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+<br>
+<h2>Your earnings this month</h2>
+<button type="button" class="collapsible">Your earnings this month</button>
+<div class="content">
+    {% if label == 'agent' %}
+        <table>
+            <tr>
+                <th>Sale timestamp</th>
+                <th>Your commission</th>
+            </tr>
+            {% for sale in sales %}
+                <tr>
+                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                    <td>$2,500.00</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <table>
+            <tr>
+                <td>Total commission</td>
+                <td>{{ sales|length * 2500 }}
+            </tr>
+        </table>
+    {% elif label == 'team_lead' %}
+        <table>
+            <tr>
+                <th>Sale timestamp</th>
+                <th>Your commission</th>
+            </tr>
+            {% for sale in sales %}
+                <tr>
+                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                    <td>$250.00</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <table>
+            <tr>
+                <td>Total commission</td>
+                <td>{{ sales|length * 250 }}
+            </tr>
+        </table>
+    {% elif label == 'region_lead' %}
+        <table>
+            <tr>
+                <th>Sale timestamp</th>
+                <th>Your commission</th>
+            </tr>
+            {% for sale in sales %}
+                <tr>
+                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                    <td>$150.00</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <table>
+            <tr>
+                <td>Total commission</td>
+                <td>{{ sales|length * 150 }}
+            </tr>
+        </table>
+    {% elif label == 'country_lead' %}
+        <table>
+            <tr>
+                <th>Sale timestamp</th>
+                <th>Your commission</th>
+            </tr>
+            {% for sale in sales %}
+                <tr>
+                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                    <td>$100.00</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <table>
+            <tr>
+                <td>Total commission</td>
+                <td>{{ sales|length * 100 }}
+            </tr>
+        </table>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -39,3 +39,15 @@
 .normal {
   background-color: green;
 }
+
+.bad {
+  background-color: #ff6666;
+}
+
+.ok {
+  background-color: #ffff66;
+}
+
+.good {
+  background-color: #85e085;
+}

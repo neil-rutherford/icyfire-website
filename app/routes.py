@@ -6,7 +6,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 import logging
-from datetime import datetime
+from datetime import datetime, date
 import uuid
 import pdfrw
 import os
@@ -1426,3 +1426,51 @@ def create_invoice(sale_id):
     db.session.add(domain)
     db.session.commit()
     return send_from_directory(os.path.join(basedir, 'app', 'static', 'records', 'invoices'), '{}.pdf'.format(sale_id), as_attachment=True)
+
+@app.route('/sales/dashboard')
+@login_required
+def sales_dashboard():
+    crta = current_user.icyfire_crta
+    country = str(current_user.icyfire_crta).split('-')[0]
+    region = str(current_user.icyfire_crta).split('-')[1]
+    team = str(current_user.icyfire_crta).split('-')[2]
+    agent = str(current_user.icyfire_crta).split('-')[3]
+    start = date(year={}, month={}, day=1).format(datetime.utcnow().strftime('%Y'), datetime.utcnow().strftime('%m'))
+    if crta is None:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/sales/dashboard', status_code=403, status_message='Permission denied.')
+        flash("You don't have permission to do that.")
+        return redirect(url_for('dashboard'))
+    # Country lead
+    if country != '00' and region == '00' and team == '00' and agent == '00':
+        country_lead = CountryLead.query.filter_by(crta_code=crta).first()
+        sales = Sale.query.filter_by(country_lead_id=country_lead.id).filter(Sale.timestamp >= start)
+        subs = country_lead.region_leads
+        label = 'country_lead'
+        title = 'Dashboard - {} Country Lead'.format(country)
+    # Region lead
+    elif country != '00' and region != '00' and team == '00' and agent == '00':
+        region_lead = RegionLead.query.filter_by(crta_code=crta).first()
+        sales = Sale.query.filter_by(region_lead_id=region_lead.id).filter(Sale.timestamp >= start)
+        subs = region_lead.team_leads
+        label = 'region_lead'
+        title = 'Dashboard - {} Region Lead'.format(region)
+    # Team lead
+    elif country != '00' and region != '00' and team != '00' and agent == '00':
+        team_lead = TeamLead.query.filter_by(crta_code=crta).first()
+        sales = Sale.query.filter_by(team_lead_id=team_lead.id).filter(Sale.timestamp >= start)
+        subs = team_lead.agents
+        label = 'team_lead'
+        title = 'Dashboard - {} Team Lead'.format(team)
+    # Agent
+    elif country != '00' and region != '00' and team != '00' and agent != '00':
+        agent = Agent.query.filter_by(crta_code=crta).first()
+        sales = Sale.query.filter_by(agent_id=agent.id).filter(Sale.timestamp >= start)
+        subs = None
+        label = 'agent'
+        title = 'Dashboard - Agent {}'.format(agent)
+    # Else??
+    else:
+        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/sales/dashboard', status_code=400, status_message='Malformed request; content not found.')
+        flash("ERROR: Couldn't process that request.")
+        return redirect(url_for('dashboard'))
+    return render_template('sales_dashboard.html', sales=sales, subs=subs, title=title, label=label)
