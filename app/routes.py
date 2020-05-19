@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify, Response, send_from_directory
 from app import app, db
-from app.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ContractorRegistrationForm, ShortTextPostForm, LongTextPostForm, ImagePostForm, VideoPostForm, SaleForm
+from app.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ContractorRegistrationForm, ShortTextPostForm, LongTextPostForm, ImagePostForm, VideoPostForm, SaleForm, GenerateIcaForm
 from app.models import Domain, User, FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost, Ewok, Sentry, CountryLead, RegionLead, TeamLead, Agent
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
@@ -1402,6 +1402,8 @@ def create_invoice(sale_id):
     basedir = os.path.abspath(os.path.dirname(__file__))
     data_dict = {
         'invoice_date': sale.timestamp.strftime('%Y-%d-%m'),
+        'icyfire_address1': '6558 S Cook Way',
+        'icyfire_address2': 'CENTENNIAL, COLORADO, USA 80121',
         'agent_name': '{} {}'.format(agent.first_name.upper(), agent.last_name.upper()),
         'agent_email': user.email,
         'agent_phone': '+{}-({})-{}-{}'.format(agent.phone_country, str(agent.phone_number)[0:3], str(agent.phone_number)[3:6], str(agent.phone_number)[6:10]),
@@ -1474,3 +1476,72 @@ def sales_dashboard():
         flash("ERROR: Couldn't process that request.")
         return redirect(url_for('dashboard'))
     return render_template('sales_dashboard.html', sales=sales, subs=subs, title=title, label=label)
+
+@app.route('/legal/user/privacy-policy', methods=['GET'])
+def privacy_policy():
+    if current_user.is_authenticated:
+        domain = Domain.query.filter_by(id=current_user.domain_id).first()
+        user = User.query.filter_by(id=current_user.id).first()
+        incidents = Sentry.query.filter_by(user_id=current_user.id).all()
+        crta = current_user.icyfire_crta
+        country = str(current_user.icyfire_crta).split('-')[0]
+        region = str(current_user.icyfire_crta).split('-')[1]
+        team = str(current_user.icyfire_crta).split('-')[2]
+        agent = str(current_user.icyfire_crta).split('-')[3]
+        if crta is None:
+            contractor = None
+            sales = None
+        elif country != '00' and region == '00' and team == '00' and agent == '00':
+            contractor = CountryLead.query.filter_by(crta_code=crta).first()
+            sales = Sale.query.filter_by(country_lead_id=contractor.id).all()
+        elif country != '00' and region != '00' and team == '00' and agent == '00':
+            contractor = RegionLead.query.filter_by(crta_code=crta).first()
+            sales = Sale.query.filter_by(region_lead_id=contractor.id).all()
+        elif country != '00' and region != '00' and team != '00' and agent == '00':
+            contractor = TeamLead.query.filter_by(crta_code=crta).first()
+            sales = Sale.query.filter_by(team_lead_id=contractor.id).all()
+        elif country != '00' and region != '00' and team != '00' and agent != '00':
+            contractor = Agent.query.filter_by(crta_code=crta).first()
+            sales = Sale.query.filter_by(agent_id=contractor.id).all()
+    return render_template('privacy_policy.html', domain=domain, user=user, contractor=contractor, sales=sales, incidents=incidents, title='Privacy Policy')
+
+@app.route('/legal/user/cookie-policy', methods=['GET'])
+def cookie_policy():
+    return render_template('cookie_policy.html', title='Cookie Policy')
+
+@app.route('/legal/user/terms-of-service', methods=['GET'])
+def terms_of_service():
+    return render_template('terms_of_service.html', title='Terms of Service')
+
+@app.route('/legal/contractor/ica', methods=['GET'])
+@login_required
+def independent_contractor_agreement():
+    form = GenerateIcaForm()
+    if form.validate_on_submit():
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        data_dict = {
+            'contract_day': datetime.utcnow().strftime('%d'),
+            'contract_month': datetime.utcnow().strftime('%B'),
+            'contract_year': datetime.utcnow().strftime('%Y'),
+            'contractor_name1': '{} {}'.format(str(form.first_name.data), str(form.last_name.data)),
+            'client_address1': '6558 S Cook Way',
+            'client_address2': 'Centennial, Colorado 80121',
+            'contractor_address1': '{}'.format(str(form.street_address.data)),
+            'contractor_address2': '{}, {} {}'.format(str(form.city.data), str(form.state.data), str(form.zip_code.data)),
+            'contract_date': datetime.utcnow().strftime('%Y-%m-%d')
+            'contractor_name2': '{} {}'.format(str(form.first_name.data), str(form.last_name.data))
+        }
+        if str(form.contractor_type.data) == 'agent':
+            input_path = os.path.join(basedir, 'app', 'static', 'agreements', 'agent_ica.pdf')
+            output_path = os.path.join(basedir, 'app', 'static', 'records', 'contracts', '{}_ica.pdf'.format(str(form.last_name.data)))
+            fill_pdf_template(input_path=input_path, output_path=output_path, data_dict=data_dict)
+        elif str(form.contractor_type.data) == 'team_lead':
+            input_path = os.path.join(basedir, 'app', 'static', 'agreements', 'team_lead_ica.pdf')
+            output_path = os.path.join(basedir, 'app', 'static', 'records', 'contracts', '{}_ica.pdf'.format(str(form.last_name.data)))
+            fill_pdf_template(input_path=input_path, output_path=output_path, data_dict=data_dict)
+        elif str(form.contractor_type.data) == 'region_lead':
+            input_path = os.path.join(basedir, 'app', 'static', 'agreements', 'region_lead_ica.pdf')
+            output_path = os.path.join(basedir, 'app', 'static', 'records', 'contracts', '{}_ica.pdf'.format(str(form.last_name.data)))
+            fill_pdf_template(input_path=input_path, output_path=output_path, data_dict=data_dict)
+        return send_from_directory(os.path.join(basedir, 'app', 'static', 'records', 'contracts', '{}_ica.pdf'.format(str(form.last_name.data)))
+    return render_template('independent_contractor_agreement.html', title='Generate Independent Contractor Agreement', form=form)

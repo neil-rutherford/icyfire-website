@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Privacy policy</h1>
+    <br>
+    <h2>Introduction to CCPA</h2>
+    <p>In 2018, a regulation was passed in California called the California Consumer Privacy Act (CCPA). The intentions of the Act were to provide California residents with the right to:</p>
+    <ul>
+        <li>Know what personal data is being collected about them.</li>
+        <li>Know whether their personal data is sold or disclosed and to whom.</li>
+        <li>Say no to the sale of personal data.<li>
+        <li>Access their personal data.</li>
+        <li>Request a business to delete any personal information about a consumer collected from that consumer.</li>
+        <li>Not be discriminated against for exercising their privacy rights.<li>
+    </ul>
+    <p>At IcyFire, we believe that privacy is a fundamental human right that should not depend on where you live. We will honor the CCPA for all users, even if you do not live in California.</p>
+    <br>
+    <h2>Introduction to GDPR</h2>
+    <p>In 2016, a regulation was passed in the European Union called the General Data Protection Regulation (GDPR). It was intended to give individuals control over their personal information and encourage businesses to take appropriate steps to safeguard consumer data.</p>
+    <p>Under the GDPR, you have the following rights:</p>
+    <ul>
+        <li>Transparency and modalities</li>
+        <li>Information and access</li>
+        <li>Rectification and erasure</li>
+        <li>Right to object against automated decisions</li> 
+    </ul>
+    <p>Additionally, we have the following obligations:</p>
+    <ul>
+        <li>Pseudonymization</li>
+        <li>Records of processing activities</li>
+        <li>Security of personal data</li>
+        <li>Data protection officer</li>
+    </ul>
+    <p>At IcyFire, we believe that privacy is a fundamental human right that should not depend on where you live. We will honor the GDPR for all users, even if you do not live in the European Union.</p>
+    <br>
+    <h2>The data we collect</h2>
+    <h3>Domain information</h3>
+    <table>
+        <tr>
+            <th>What we collect</th>
+            <th>Why we collect it</th>
+        </tr>
+        <tr>
+            <td>Domain name</td>
+            <td>This helps personalize the IcyFire user experience for everyone on your team.<br>This is chosen by the domain admin during domain registration.</td>
+        </tr>
+        <tr>
+            <td>Activation code</td>
+            <td>We use this to make sure you have paid for the service when you register a new domain.<br>IcyFire generated this code when the sale was finalized.</td>
+        </tr>
+        <tr>
+            <td>Social media credentials</td>
+            <td>We use this data to interact programmatically with social media sites.<br>The domain admin provided this information during domain registration. IcyFire encrypted the data before it was stored in our database.</td>
+        </tr>
+    </table>
+
+    <h3>User information</h3>
+    <table>
+        <tr>
+            <th>What we collect</th>
+            <th>Why we collect it</th>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>This is your email address. This allows you to sign in and allows us to communicate with you (e.g. if you forget your password).<br>You provided this when you registered for an account.</td>
+        </tr>
+        <tr>
+            <td>Password</td>
+            <td>This is an encrypted version of your password. It helps authenticate your account during sign in.<br>You provided this information when you registered for an account. IcyFire encrypted the data before it was stored in our database.</td>
+        </tr>
+        <tr>
+            <td>Domain ID</td>
+            <td>This is a link to your domain. It allows you and other team members to create social media posts for your domain.<br>You provided this information when you registered for an account.</td>
+        </tr>
+        <tr>
+            <td>Post count</td>
+            <td>This is a count of all social media posts you have contributed to. It allows domain admins to assess your performance.<br>This number started at zero and increments every time you contribute (create or edit) a post.</td>
+        </tr>
+        <tr>
+            <td>Permissions</td>
+            <td>This is a list of permissions that your user account has. It allows domain admins to control your activity on the site (e.g. can this person delete posts?).<br>For security reasons, your domain admin is in control of your permissions.</td>
+        </tr>
+        <tr>
+            <td>CRTA code</td>
+            <td>This is applicable to IcyFire contractors only. It symbolizes a rank in the sales hierarchy.<br>If you are an employee or contractor, IcyFire generated this for you when you were onboarded. Otherwise, this is blank.</td>
+        </tr>
+    </table>
+
+    <h3>Social media posts</h3>
+    <table>
+        <tr>
+            <th>What we collect</th>
+            <th>Why we collect it</th>
+        </tr>
+        <tr>
+            <td>Domain ID</td>
+            <td>This is a link to your domain. It allows you and other team members to create social media posts for your domain.</td>
+        </tr>
+        <tr>
+            <td>User ID</td>
+            <td>This is a link to your user account. We use it to see who last edited the post.<br>This is recorded when you create or edit a post.</td>
+        </tr>
+        <tr>
+            <td>Timestamp</td>
+            <td>We use this to sort things in chronological order.<br>This is recorded when you create or edit a post.</td>
+        </tr>
+        <tr>
+            <td>Post sub-components</td>
+            <td>This allows us to post the social media post on your domain's behalf.<br>These are recorded when you create or edit a post.</td>
+        </tr>
+    </table>
+
+    <h3>Internal employee/contractor information</h3>
+    <table>
+        <tr>
+            <th>What we collect</th>
+            <th>Why we collect it</th>
+        </tr>
+        <tr>
+            <td>User ID</td>
+            <td>This is a link to a contractor's user account. It allows a contractor to sign in and interact with the website.</td>
+        </tr>
+        <tr>
+            <td>First and last name</td>
+            <td>We like to refer to our contractors by their name, not by their CRTA code. This is not used for any other purpose besides individualization.<br>This is provided when a sales account is made.</td>
+        </tr>
+        <tr>
+            <td>Phone number</td>
+            <td>This is so we can contact a contactor if needed.<br>This is provided when a sales account is made.</td>
+        </tr>
+        <tr>
+            <td>CRTA code</td>
+            <td>This represents a contractor's position in the IcyFire sales hierarchy.<br>IcyFire generated this for the individual when they were onboarded.</td>
+        </tr>
+        <tr>
+            <td>Sales</td>
+            <td>This is how many sales have occurred in a contractor's jurisdiction. We use this data to calculate their commissions.<br>This number started at zero and is incremented every time a sale is made in their jurisdiction.</td>
+        </tr>
+    </table>
+
+    <h3>Internal sales information</h3>
+    <table>
+        <tr>
+            <th>What we collect</th>
+            <th>Why we collect it</th>
+        </tr>
+        <tr>
+            <td>Individuals involved with the sale</td>
+            <td>We collect this information to perform sales analytics and calculate commissions for our contractors.<br>We infer this from who is reporting the sale.</td>
+        </tr>
+        <tr>
+            <td>Timestamp</td>
+            <td>We use this to sort things in chronological order.<br>This is recorded when sales are reported.</td>
+        </tr>
+        <tr>
+            <td>Client name</td>
+            <td>We like to refer to our clients by their name, not by their invoice number. This is used for individualization and to make invoices.<br>This is provided by the sales contractor when the sale is reported.</td>
+        </tr>
+        <tr>
+            <td>Client address</td>
+            <td>This is used to make invoices and to contact clients by snail mail if necessary.<br>This is provided by the sales contractor when the sale is reported.</td>
+        </tr>
+        <tr>
+            <td>Client phone number</td>
+            <td>This is used to make invoices and to contact clients by phone if necessary.<br>This is provided by the sales contractor when the sale is reported.</td>
+        </tr>
+        <tr>
+            <td>Client email address</td>
+            <td>This is used to make invoices and to contact clients by email if necessary.<br>This is provided by the sales contractor when the sale is reported.</td>
+        </tr>
+        <tr>
+            <td>Sales data</td>
+            <td>This includes unit price, quantity sold, subtotal, sales tax, and total. We use this to make invoices and for internal accounting.<br>This is provided by the sales contractor when the sale is reported.</td>
+        </tr>
+    </table>
+
+    <h3>Internal security information</h3>
+    <table>
+        <tr>
+            <th>What we collect</th>
+            <th>Why we collect it</th>
+        </tr>
+        <tr>
+            <td>User ID</td>
+            <td>This is a link to a user account. If an account is hacked, we use this to tell the domain admin so they can shut it down.</td>
+        </tr>
+        <tr>
+            <td>Timestamp</td>
+            <td>We use this to sort things in chronological order.<br>This is recorded as incidents occur.</td>
+        </tr>
+        <tr>
+            <td>Geolocation data</td>
+            <td>We use this to where do you usually log in from, raise the alarm if someone tries to log in from another continent, and block access attempts if necessary.<br>This is provided in your HTTP request headers.</td>
+        </tr>
+        <tr>
+            <td>Endpoints</td>
+            <td>We use this to see what hackers are trying to get into.<br>This is recorded as incidents occur.</td>
+        </tr>
+        <tr>
+            <td>Status codes</td>
+            <td>We use this to see how far hackers are getting.<br>These status logs are generated by the IcyFire website.</td>
+        </tr>
+        <tr>
+            <td>Status details</td>
+            <td>We use this for additional details about what the hackers are doing.<br>These status messages are generated by the IcyFire website.</td>
+        </tr>
+    </table>
+
+    <h2>Is my data being sold?</h2>
+    <p>No. All of your data is used internally and is not sold. We also promise not to spam your email with marketing emails.</p>
+
+    {% if current_user.is_authenticated %}
+        <h2>Access your data</h2>
+        <button type="button" class="collapsible">Domain information</button>
+        <div class="content">
+            <table>
+                <tr>
+                    <td>Domain name</td>
+                    <td>{{ domain.domain_name }}</td>
+                </tr>
+                <tr>
+                    <td>Activation code</td>
+                    <td>{{ domain.activation_code }}</td>
+                </tr>
+                <tr>
+                    <td>Facebook credentials</td>
+                    <td>Encrypted access token: {{ domain.facebook_token }}</td>
+                </tr>
+                <tr>
+                    <td>Twitter credentials</td>
+                    <td>Encrypted access token: {{ domain.twitter_token }}<br>Encrypted secret token: {{ domain.twitter_secret }}</td>
+                </tr>
+                <tr>
+                    <td>Tumblr credentials</td>
+                    <td>Encrypted access token: {{ domain.tumblr_token }}<br>Encrypted secret token: {{ domain.tumblr_secret }}</td>
+                </tr>
+                <tr>
+                    <td>Reddit credentials</td>
+                    <td>Subreddit: {{ domain.reddit_subreddit }}<br>Encrypted username: {{ domain.reddit_username }}<br>Encrypted password: {{ domain.reddit_password }}</td>
+                </tr>
+                <tr>
+                    <td>YouTube credentials</td>
+                    <td>Encrypted refresh token: {{ domain.youtube_refresh }}<br>Encrypted access token: {{ domain.youtube_access }}</td>
+                </tr>
+                <tr>
+                    <td>LinkedIn credentials</td>
+                    <td>Encrypted account URN: {{ domain.linkedin_author }}<br>Encrypted user token: {{ domain.linkedin_token }}<br>Encrypted user secret: {{ domain.linkedin_secret }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <button type="button" class="collapsible">User information</button>
+        <div class="content">
+            <table>
+                <tr>
+                    <td>Email</td>
+                    <td>{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <td>Encrypted password</td>
+                    <td>{{ user.password_hash }}</td>
+                </tr>
+                <tr>
+                    <td>Domain ID</td>
+                    <td>{{ user.domain_id }}</td>
+                </tr>
+                <tr>
+                    <td>Post count</td>
+                    <td>{{ user.post_count }}</td>
+                </tr>
+                <tr>
+                    <td>Admin permission</td>
+                    <td>{{ user.is_admin }}</td>
+                <tr>
+                    <td>Create permission</td>
+                    <td>{{ user.is_create }}
+                </tr>
+                <tr>
+                    <td>Read permission</td>
+                    <td>{{ user.is_read }}</td>
+                </tr>
+                <tr>
+                    <td>Update permission</td>
+                    <td>{{ user.is_update }}</td>
+                </tr>
+                <tr>
+                    <td>Delete permission</td>
+                    <td>{{ user.is_delete }}</td>
+                </tr>
+                <tr>
+                    <td>IcyFire CRTA</td>
+                    <td>{{ user.icyfire_crta }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <button type="button" class="collapsible">Social media posts</button>
+        <div class="content">
+            {% if current_user.icyfire_crta is none %}
+                <p><a href="{{ url_for('dashboard') }}">Your domain's social media posts are accessible here.</a></p>
+            {% else %}
+                <p>This section is blank because we have detected that you are an IcyFire contractor or employee. This is not part of your user experience.</p>
+            {% endif %}
+        </div>
+
+        <button type="button" class="collapsible">Internal employee/contractor information</button>
+        <div class="content">
+            {% if current_user.icyfire_crta is none %}
+                <p>This section is blank because we have detected that you are not an IcyFire contractor or employee. This is not part of your user experience.</p>
+            {% else %}
+                <table>
+                    <tr>
+                        <td>User ID</td>
+                        <td>{{ contractor.id }}</td>
+                    </tr>
+                    <tr>
+                        <td>First and last name</td>
+                        <td>{{ contractor.first_name }} {{ contractor.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Phone number</td>
+                        <td>{{ contractor.phone_country }}-{{ contractor.phone_number }}</td>
+                    </tr>
+                    <tr>
+                        <td>CRTA code</td>
+                        <td>{{ contractor.crta_code }}</td>
+                    </tr>
+                    <tr>
+                        <td>Sales</td>
+                        <td>{{ contractor.sales|length }}</td>
+                    </tr>
+                </table>
+            {% endif %}
+        </div>
+
+        <button type="button" class="collapsible">Internal sales information</button>
+        <div class="content">
+            {% if current_user.icyfire_crta is none %}
+                <p>This section is blank because we have detected that you are not an IcyFire contractor or employee. All of the sales data we collected about your domain is on your invoice. Please contact us by email if you would like another copy of your invoice.</p>
+            {% else %}
+                <table>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Client name</th>
+                        <th>Client address</th>
+                        <th>Client phone number</th>
+                        <th>Client email</th>
+                        <th>Sale details</th>
+                    </tr>
+                    {% for sale in sales %}
+                        <tr>
+                            <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                            <td>{{ sale.client_name }}</td>
+                            <td>{{ sale.client_street_address }}<br>{{ sale.client_city }}, {{ sale.client_state }}, {{ sale.client_country }} {{ sale.client_zip }}</td>
+                            <td>{{ sale.client_phone_country }}-{{ sale.client_phone_number }}</td>
+                            <td>{{ sale.client_email }}</td>
+                            <td>Unit price: ${{ sale.unit_price }}<br>Quantity: {{ sale.quantity }}<br>Subtotal: ${{ sale.subtotal }}<br>Sales tax: ${{ sale.sales_tax }}<br>Total: ${{ sale.total }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+
+        <button type="button" class="collapsible">Internal security information</button>
+        <div class="content">
+            <table>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>IP address</th>
+                    <th>Endpoint</th>
+                    <th>Status code</th>
+                    <th>Status details</th>
+                </tr>
+                {% for incident in incidents %}
+                    <tr>
+                        <td>{{ moment(incident.timestamp).format('LLL') }}</td>
+                        <td>{{ incident.ip_address }}</td>
+                        <td>{{ incident.endpoint }}</td>
+                        <td>{{ incident.status_code }}</td>
+                        <td>{{ incident.status_message }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% else %}
+        <h2>Access your data</h2>
+        <p>Please <a href="{{ url_for('login') }}">log in</a> to access your data.</p>
+    {% endif %}
+
+    <h2>Rectification and erasure</h2>
+    <p>The GDPR states that IcyFire must respect several key rules in regard to data processing:</p>
+    <ul>
+        <li><b>Lawfulness, fairness, and transparency:</b> Personal data must be processed in a lawful and transparent manner, ensuring fairness towards the individuals whose personal data is being processed.</li>
+        <li><b>Purpose limitation:</b> There must be specific purposes for processing the data and the company must indicate those purposes to individuals when collecting their personal data. A company can’t simply collect personal data for undefined purposes.</li>
+        <li><b>Data minimization:</b> The company must collect and process only the personal data that is necessary to fulfill that purpose.</li>
+        <li><b>Accuracy:</b> The company must ensure the personal data is accurate and up-to-date, having regard to the purposes for which it is processed, and correct it if not.</li>
+        <li><b>Compatibility:</b> The company can’t further use the personal data for other purposes that aren’t compatible with the original purpose.</li>
+        <li><b>Storage limitation:</b> The company must ensure that personal data is stored for no longer than necessary for the purposes for which it was collected.</li>
+        <li><b>Integrity and confidentiality:</b> The company must install appropriate technical and organizational safeguards that ensure the security of the personal data, including protection against unauthorized or unlawful processing and against accidental loss, destruction or damage, using appropriate technology.</li>
+    </ul>
+    <p>Article 21 of the GDPR gives individuals the right to object to the processing of their personal data at any time. An objection may be in relation to all of the personal data we hold about an individual or only to certain information. It may also only relate to a particular purpose we are processing the data for.</p>
+    <p>If you would like to request that we stop processing your data and/or delete your data, please contact us by email at <a href="mailto:gdpr@icy-fire.com">gdpr@icy-fire.com</a>. In your email, please explain your reasoning and what you guideline(s) you believe have been infringed upon. Please also specify what particular data points you would like us to take action on.</p>
+    <p>In accordance with the GDPR, IcyFire reserves the right to refuse to comply with an objection (wholly or partially) if we find that it is manifestly unfounded or excessive. We reserve the right to consider each objection on a case-by-case basis.</p>
+    <p>If your request is denied, you have the right to an explanation of our decision, the right to make a complaint to a supervisory authority, and the right to seek to enforce this right through a judicial remedy.</p>
+
+    <h2>Pseudonymization</h2>
+    <p>Pseudonymization is a process for stored data that transforms personal data in such a way that the resulting data cannot be attributed to a specific data subject without the use of additional information. We achieve this in the following ways:</p>
+    <ul>
+        <li>Encryption of social media credentials.</li>
+        <li>Hashing of passwords.</li>
+        <li>Use of SQL foreign keys instead of personal information as identifiers.</li>
+    </ul>
+
+    <h2>Records of processing activities</h2>
+    <p>According to Article 30 of the GDPR, records of processing activities must be maintained that include purposes of the processing, categories involved, and envisaged time limits. The records must be made available to the supervisory authority on request.</p>
+    <p>We achieve this level of transparency on this page by detailing what data is collected and why. We keep user and domain data for as long as an account is active. We keep social media data until it has been posted. We keep sales data indefinitely.</p>
+
+    <h2>Security of personal data</h2>
+    <p>Our security system, Sentry, is designed to establish a baseline for each user, monitor unusual behavior, and detect threats in real-time. Our extensive security data collection supports and enables this.</p>
+    <p>As stated previously, we collect data that includes timestamps, geolocation data, user reference, endpoints, status codes, and status messages. Using this information, we can infer a great deal and detect intrusions and malicious behavior.</p>
+    <p>We will do our best to prevent client data. If there is a breach, we will report it to the relevant authorities and individuals within 72 hours.</p>
+
+    <h2>Data protection officer (DPO)</h2>
+    <p>We have appointed an internal DPO that is knowledgable about our data collection practices and security systems. There is no conflict of interest in other roles or interest that our DPO holds. Our DPO and GDPR compliance officer can be reached at <a href="mailto:gdpr@icy-fire.com">gdpr@icy-fire.com</a>.</p>
+{% endblock %}
