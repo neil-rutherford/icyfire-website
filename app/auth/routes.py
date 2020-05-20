@@ -182,7 +182,7 @@ def register_contractor():
             db.session.commit()
         flash("As a security precaution, new users have limited permissions by default. This will change once your domain admin gives your account the all clear.")
         return redirect(url_for('main.dashboard'))
-    return render_template('auth/register_sales.html', title='New Contractor Registration', form=form)
+    return render_template('auth/register_contractor.html', title='New Contractor Registration', form=form)
 
 # Not finished
 @bp.route('/register/link-social')
