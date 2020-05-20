@@ -23,6 +23,7 @@ class Domain(db.Model):
 
     [id]                    : int  : Primary key.
     [domain_name]           : str  : Name for this domain.
+    [sale_id]               : int  : Foreign key that corresponds to the sale.
     [activation_code]       : str  : UUID generated when payment is received.
     [requested_time_slots]  : text : Set-up information for IcyFire server administrators.
     [users]                 : rel  : List of all users linked to this domain. 
@@ -472,33 +473,6 @@ class Sale(db.Model):
         return 'Sale {}'.format(self.timestamp)
 
 
-class Ewok(db.Model):
-    '''
-    Ewok is an early warning security system that logs failed access attempts.
-    Ewok provides intelligence about the enemies at the gate; Sentry tracks them once they breach.
-
-    [id]                : int      : Primary key.
-    [timestamp]         : datetime : Date and time this occurred, in UTC.
-    [ip_address]        : str      : IP address the request came from.
-    [endpoint]          : str      : What resource was the individual trying to access?
-    [user_id]           : int      : Foreign key. The user account associated with this incident.
-    [status_code]       : int      : HTTP status code.
-    [status_message]    : str      : More details about what happened.
-    '''
-    __tablename__ = 'ewok'
-
-    id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    ip_address = db.Column(db.String(15))
-    endpoint = db.Column(db.String(254))
-    status_code = db.Column(db.Integer)
-    status_message = db.Column(db.String(100))
-
-    def __repr__(self):
-        return 'Ewok {}'.format(self.timestamp)
-
-
 class Sentry(db.Model):
     '''
     Sentry is a security system that logs successful access attempts. Sentry data is available to domain admins.
@@ -508,6 +482,7 @@ class Sentry(db.Model):
     [timestamp]         : datetime : Date and time this occurred, in UTC.
     [ip_address]        : str      : IP address the request came from.
     [user_id]           : int      : Foreign key. The user account associated with this incident.
+    [domain_id]         : int      : Foreign key. The domain associated with this incident.
     [endpoint]          : str      : What resource did the individual access?
     [status_code]       : int      : HTTP status code.
     [status_message]    : str      : More details about what happened.
@@ -518,6 +493,7 @@ class Sentry(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     ip_address = db.Column(db.String(15))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
     endpoint = db.Column(db.String(254))
     status_code = db.Column(db.Integer)
     status_message = db.Column(db.String(100))
