@@ -28,15 +28,15 @@ def dashboard():
     users = User.query.filter_by(domain_id=current_user.domain_id).order_by(User.id.desc()).all()
     return render_template('admin/dashboard.html', title='User Control Panel', users=users)
 
-# GRANT PERMISSION PROCESS
+# GRANT PERMISSION
 @bp.route('/admin/<user_id>/+<permission>', methods=['GET', 'POST'])
 @login_required
 def grant_permission(user_id, permission):
     '''
     - Sentry logs:
-        + 200 = `is_admin` is True AND target's domain == perpetrator's domain
-        + 403 = `is_admin` is False OR target's domain != perpetrator's domain
-        + 400 = permission doesn't exist
+        + 200 = `is_admin` is True AND target's domain == perpetrator's domain (`status_message` = user_id|permission)
+        + 403 = `is_admin` is False OR target's domain != perpetrator's domain (`status_message` = user_id|permission|description)
+        + 400 = permission doesn't exist (`status_message` = user_id|permission)
     - If target's domain != perpetrator's domain, the target's domain ID is recorded in `domain_id` instead of the perpetrator. This is so that the target domain's admin is notified.
     - "c" = create
     - "r" = read
@@ -85,15 +85,15 @@ def grant_permission(user_id, permission):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.grant_permission', status_code=400, status_message='{}|{}|Not a valid permission.'.format(int(user_id), str(permission)))
         return redirect(url_for('admin.dashboard'))
 
-# REVOKE PERMISSION PAGE
+# REVOKE PERMISSION
 @bp.route('/admin/<user_id>/-<permission>')
 @login_required
 def revoke_permission(user_id, permission):
     '''
     - Sentry logs:
-        + 200 = `is_admin` is True AND target's domain == perpetrator's domain
-        + 403 = `is_admin` is False OR target's domain != perpetrator's domain
-        + 400 = permission doesn't exist
+        + 200 = `is_admin` is True AND target's domain == perpetrator's domain (`status_message` = user_id|permission)
+        + 403 = `is_admin` is False OR target's domain != perpetrator's domain (`status_message` = user_id|permission|description)
+        + 400 = permission doesn't exist (`status_message` = user_id|permission)
     - If target's domain != perpetrator's domain, the target's domain ID is recorded in `domain_id` instead of the perpetrator. This is so that the target domain's admin is notified.
     - "c" = create
     - "r" = read

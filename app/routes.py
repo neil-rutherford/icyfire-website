@@ -137,61 +137,6 @@ def fill_pdf_template(input_path, output_path, data_dict):
                     )
     pdfrw.PdfWriter().write(output_path, template_pdf)
 
-# User control and permissions
-
-# Not done
-
-@app.route('/admin/<user_id>/-<permission>', methods=['GET', 'POST'])
-@login_required
-def revoke_permission(user_id, permission):
-    user = User.query.filter_by(id=int(user_id)).first()
-    if current_user.is_admin is False:
-        flash("ERROR: You don't have permission to do that.")
-        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=403, status_message='Admin permission denied.')
-        return redirect(url_for('admin'))
-    elif current_user.domain_id != user.domain_id:
-        flash("ERROR: That user isn't part of your domain.")
-        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=403, status_message='User not in domain.')
-        return redirect(url_for('admin'))
-    elif str(permission) == 'c':
-        user.is_create = False
-        db.session.add(user)
-        db.session.commit()
-        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Create.')
-        flash("Create permission revoked.")
-        return redirect(url_for('admin'))
-    elif str(permission) == 'r':
-        user.is_read = False
-        db.session.add(user)
-        db.session.commit()
-        flash("Read permission revoked.")
-        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Read.')
-        return redirect(url_for('admin'))
-    elif str(permission) == 'u':
-        user.is_update = False
-        db.session.add(user)
-        db.session.commit()
-        flash("Update permission revoked.")
-        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Update.')
-        return redirect(url_for('admin'))
-    elif str(permission) == 'd':
-        user.is_delete = False
-        db.session.add(user)
-        db.session.commit()
-        flash('Delete permission revoked.')
-        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='Permission revoked: Delete.')
-        return redirect(url_for('admin'))
-    elif str(permission) == 'kill':
-        db.session.delete(user)
-        db.session.commit()
-        flash('User deleted.')
-        make_sentry(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=200, status_message='User deleted.')
-        return(redirect(url_for('admin')))
-    else:
-        flash('ERROR: Not a valid permission.')
-        make_ewok(user_id=current_user.id, ip_address=request.remote_addr, endpoint='/{}/-{}'.format(user_id, permission), status_code=400, status_message='Not a valid permission.')
-        return redirect(url_for('admin'))
-
 # Post management
 
 @app.route('/dashboard', methods=['GET'])
@@ -289,7 +234,7 @@ def create_long_text():
     return render_template('create_long_text.html', title='New Long Text Post', form=form)
 
 @app.route('/create/image', methods=['GET', 'POST'])
-#@login_required
+@login_required
 def create_image():
     #if current_user.is_create is False:
         #flash("You don't have permission to do that.")
@@ -871,209 +816,6 @@ def get_image(filename):
 def get_video(filename):
     return send_from_directory(os.path.join(app.instance_path, 'videos'), filename, as_attachment=True)
 
-# API
-
-@app.route('/api/_r/<domain_id>/<platform>/auth=<read_token>', methods=['GET'])
-def api_read(domain_id, platform, read_token):
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if str(read_token) == app.config['READ_TOKEN']:
-        if str(platform) == 'facebook':
-            post = FacebookPost.query.filter_by(domain_id=int(domain_id)).order_by(FacebookPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
-        elif str(platform) == 'twitter':
-            post = TwitterPost.query.filter_by(domain_id=int(domain_id)).order_by(TwitterPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
-        elif str(platform) == 'tumblr':
-            post = TumblrPost.query.filter_by(domain_id=int(domain_id)).order_by(TumblrPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
-        elif str(platform) == 'reddit':
-            post = RedditPost.query.filter_by(domain_id=int(domain_id)).order_by(RedditPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url), 200
-        elif str(platform) == 'youtube':
-            post = YoutubePost.query.filter_by(domain_id=int(domain_id)).order_by(YoutubePost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
-                return jsonify(timestamp=post.timestamp, multimedia_url=post.multimedia_url, title=post.title, caption=post.caption, tags=post.tags, category=post.category), 200
-        elif str(platform) == 'linkedin':
-            post = LinkedinPost.query.filter_by(domain_id=int(domain_id)).order_by(LinkedinPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=200, status_message='Accessed post.')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, caption=post.caption, multimedia_url=post.multimedia_url, link_url=post.link_url, tags=post.tags), 200
-        else:
-            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/?'.format(domain_id), status_code=400, status_message='Malformed request; platform not found.')
-            return jsonify(endpoint='api/_r', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
-    else:
-        make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/{}'.format(domain_id, platform), status_code=403, status_message='Incorrect read token: {}'.format(str(read_token)))
-        return jsonify(endpoint='api/_r', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
-
-@app.route('/api/_d/<domain_id>/<platform>/auth=<read_token>&<delete_token>', methods=['GET'])
-def api_delete(domain_id, platform, read_token, delete_token):
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if str(read_token) == app.config['READ_TOKEN'] and str(delete_token) == app.config['DELETE_TOKEN']:
-        if str(platform) == 'facebook':
-            post = FacebookPost.query.filter_by(domain_id=int(domain_id)).order_by(FacebookPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'twitter':
-            post = TwitterPost.query.filter_by(domain_id=int(domain_id)).order_by(TwitterPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'tumblr':
-            post = TumblrPost.query.filter_by(domain_id=int(domain_id)).order_by(TumblrPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'reddit':
-            post = RedditPost.query.filter_by(domain_id=int(domain_id)).order_by(RedditPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'youtube':
-            post = YoutubePost.query.filter_by(domain_id=int(domain_id)).order_by(YoutubePost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'linkedin':
-            post = LinkedinPost.query.filter_by(domain_id=int(domain_id)).order_by(LinkedinPost.timestamp.asc()).first()
-            if post is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=404, status_message='Post not found.')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=204, status_message='Post deleted.')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        else:
-            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/?'.format(domain_id), status_code=400, status_message='Malformed request; platform not found.')
-            return jsonify(endpoint='api/_d', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
-    else:
-        make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_d/{}/{}'.format(domain_id, platform), status_code=403, status_message='{}/{}'.format(str(read_token), str(delete_token)))
-        return jsonify(endpoint='api/_d', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
-
-@app.route('/api/_p/<domain_id>/<platform>/auth=<read_token>&<delete_token>&<permission_token>', methods=['GET'])
-def api_permission(domain_id, platform, read_token, delete_token, permission_token):
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if str(read_token) == app.config['READ_TOKEN'] and str(delete_token) == app.config['DELETE_TOKEN'] and str(permission_token) == app.config['PERMISSION_TOKEN']:
-        domain = Domain.query.filter_by(id=int(domain_id)).first()
-        if str(platform) == 'facebook':
-            facebook_token = domain.facebook_token
-            if facebook_token is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/facebook'.format(domain_id), status_code=404, status_message='Credential not found.')
-                return jsonify(endpoint='/api/_p/facebook', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/facebook'.format(domain_id), status_code=200, status_message='Credential accessed.')
-                return jsonify(facebook_token=facebook_token), 200
-        elif str(platform) == 'twitter':
-            twitter_token = domain.twitter_token
-            twitter_secret = domain.twitter_secret
-            if twitter_token is None or twitter_secret is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/twitter'.format(domain_id), status_code=404, status_message='Credential not found.')
-                return jsonify(endpoint='/api/_p/twitter', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/twitter'.format(domain_id), status_code=200, status_message='Credentials accessed.')
-                return jsonify(twitter_token=twitter_token, twitter_secret=twitter_secret), 200
-        elif str(platform) == 'tumblr':
-            tumblr_blog_name = domain.tumblr_blog_name
-            tumblr_token = domain.tumblr_token
-            tumblr_secret = domain.tumblr_secret
-            if tumblr_blog_name is None or tumblr_token is None or tumblr_secret is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/tumblr'.format(domain_id), status_code=404, status_message='Credential not found.')
-                return jsonify(endpoint='/api/_p/tumblr', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/tumblr'.format(domain_id), status_code=200, status_message='Credentials accessed.')
-                return jsonify(tumblr_blog_name=tumblr_blog_name, tumblr_token=tumblr_token, tumblr_secret=tumblr_secret), 200
-        elif str(platform) == 'reddit':
-            reddit_subreddit = domain.reddit_subreddit
-            reddit_username = domain.reddit_username
-            reddit_password = domain.reddit_password
-            if reddit_subreddit is None or reddit_username is None or reddit_password is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/reddit'.format(domain_id), status_code=404, status_message='Credential not found.')
-                return jsonify(endpoint='/api/_p/reddit', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/tumblr'.format(domain_id), status_code=200, status_message='Credentials accessed.')
-                return jsonify(reddit_subreddit=reddit_subreddit, reddit_username=reddit_username, reddit_password=reddit_password), 200
-        elif str(platform) == 'youtube':
-            youtube_refresh = domain.youtube_refresh
-            youtube_access = domain.youtube_access
-            if youtube_refresh is None or youtube_access is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/youtube'.format(domain_id), status_code=404, status_message='Credential not found.')
-                return jsonify(endpoint='/api/_p/youtube', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/youtube'.format(domain_id), status_code=200, status_message='Credentials accessed.')
-                return jsonify(youtube_refresh=youtube_refresh, youtube_access=youtube_access), 200
-        elif str(platform) == 'linkedin':
-            linkedin_author = domain.linkedin_author
-            linkedin_token = domain.linkedin_token
-            linkedin_secret = domain.linkedin_secret
-            if linkedin_author is None or linkedin_token is None or linkedin_secret is None:
-                make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/linkedin'.format(domain_id), status_code=404, status_message='Credential not found.')
-                return jsonify(endpoint='/api/_p/linkedin', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api/_p/{}/youtube'.format(domain_id), status_code=200, status_message='Credentials accessed.')
-                return jsonify(linkedin_author=linkedin_author, linkedin_token=linkedin_token, linkedin_secret=linkedin_secret), 200
-        else:
-            make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_r/{}/?'.format(domain_id), status_code=400, status_message='Malformed request; platform not found.')
-            return jsonify(endpoint='api/_d', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
-    else:
-        make_ewok(user_id=None, ip_address=request.remote_addr, endpoint='/api/_p/{}/{}'.format(domain_id, platform), status_code=403, status_message='{}/{}/{}'.format(str(read_token), str(delete_token), str(permission_token)))
-        return jsonify(endpoint='api/_p', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
-
 # Help
 
 @app.route('/help')
@@ -1305,7 +1047,7 @@ def independent_contractor_agreement():
             'client_address2': 'Centennial, Colorado 80121',
             'contractor_address1': '{}'.format(str(form.street_address.data)),
             'contractor_address2': '{}, {} {}'.format(str(form.city.data), str(form.state.data), str(form.zip_code.data)),
-            'contract_date': datetime.utcnow().strftime('%Y-%m-%d')
+            'contract_date': datetime.utcnow().strftime('%Y-%m-%d'),
             'contractor_name2': '{} {}'.format(str(form.first_name.data), str(form.last_name.data))
         }
         if str(form.contractor_type.data) == 'agent':

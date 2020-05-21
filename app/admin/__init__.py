@@ -1,5 +1,5 @@
 from flask import Blueprint
 
-bp = Blueprint('auth', __name__)
+bp = Blueprint('admin', __name__)
 
 from app.admin import routes
