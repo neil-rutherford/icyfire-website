@@ -5,7 +5,7 @@ from app import db
 
 # HELPER FUNCTION
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
-    activity = Sentry(ip_address=str(ip_address), user_id=int(user_id), endpoint=str(endpoint), status_code=int(status_code), status_message=str(status_message), domain_id=int(domain_id))
+    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id)
     db.session.add(activity)
     db.session.commit()
 
