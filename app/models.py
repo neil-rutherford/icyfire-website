@@ -445,6 +445,7 @@ class Sale(db.Model):
     [subtotal]              : float    : [unit_price] * [quantity]
     [sales_tax]             : float    : If applicable, [subtotal] * state sales tax rate
     [total]                 : float    : [subtotal] + [sales_tax]
+    [invoice_url]           : str      : A link to download the invoice for this particular sale.
     '''
     __tablename__='sale'
 
@@ -468,6 +469,7 @@ class Sale(db.Model):
     subtotal = db.Column(db.Float)
     sales_tax = db.Column(db.Float)
     total = db.Column(db.Float)
+    invoice_url = db.Columnt(db.String(300))
 
     def __repr__(self):
         return 'Sale {}'.format(self.timestamp)

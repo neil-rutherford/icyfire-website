@@ -2,6 +2,7 @@ from flask import request, jsonify
 from datetime import datetime
 from app.models import FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost, Sentry
 from app import db
+from app.api import bp
 
 # HELPER FUNCTION
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):

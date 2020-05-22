@@ -1,11 +1,13 @@
 from flask import render_template, flash, redirect, url_for, request, send_from_directory
-from app import app, db
+from app import db
 from app.models import Sentry, FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost
 from app.main.forms import ShortTextPostForm, LongTextPostForm, ImagePostForm, VideoPostForm
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 import os
 import uuid
+from app.main import bp
+from datetime import datetime, date
 
 # HELPER FUNCTIONS
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
@@ -751,7 +753,7 @@ def update_video(platform, post_id):
     elif platform == 'linkedin':
         post = LinkedinPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='linkedin|{}'.format(int(post_id)
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='linkedin|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     else:
