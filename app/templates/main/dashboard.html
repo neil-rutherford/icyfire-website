@@ -15,10 +15,10 @@
         <th>New Video</th>
     </tr>
     <tr>
-        <td><a href="{{ url_for('create_short_text') }}"><span class="material-icons">short_text</span></a></td>
-        <td><a href="{{ url_for('create_long_text') }}"><span class="material-icons">format_align_left</span></a></td>
-        <td><a href="{{ url_for('create_image') }}"><span class="material-icons">insert_photo</span></a></td>
-        <td><a href="{{ url_for('create_video') }}"><span class="material-icons">movie</span></a></td>
+        <td><a href="{{ url_for('main.create_short_text') }}"><span class="material-icons">short_text</span></a></td>
+        <td><a href="{{ url_for('main.create_long_text') }}"><span class="material-icons">format_align_left</span></a></td>
+        <td><a href="{{ url_for('main.create_image') }}"><span class="material-icons">insert_photo</span></a></td>
+        <td><a href="{{ url_for('main.create_video') }}"><span class="material-icons">movie</span></a></td>
 </table>
 <br>
 <h2>Facebook Queue</h2>
@@ -52,15 +52,15 @@
                 <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
                 <td>{{ post.tags }}</td>
                 {% if post.post_type|int == 1 %}
-                    <td><a href="{{ url_for('update_short_text', platform='facebook', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_short_text', platform='facebook', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 2 %}
-                    <td><a href="{{ url_for('update_long_text', platform='facebook', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_long_text', platform='facebook', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 3 %}
-                    <td><a href="{{ url_for('update_image', platform='facebook', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_image', platform='facebook', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 4 %}
-                    <td><a href="{{ url_for('update_video', platform='facebook', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_video', platform='facebook', post_id=post.id) }}">Update</a></td>
                 {% endif %}
-                <td><a href="{{ url_for('delete_post', platform='facebook', post_id=post.id) }}">Delete</a></td>
+                <td><a href="{{ url_for('main.delete_post', platform='facebook', post_id=post.id) }}">Delete</a></td>
             </tr>
         {% endfor %}
     </table>
@@ -97,15 +97,15 @@
                 <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
                 <td>{{ post.tags }}</td>
                 {% if post.post_type|int == 1 %}
-                    <td><a href="{{ url_for('update_short_text', platform='twitter', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_short_text', platform='twitter', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 2 %}
-                    <td><a href="{{ url_for('update_long_text', platform='twitter', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_long_text', platform='twitter', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 3 %}
-                    <td><a href="{{ url_for('update_image', platform='twitter', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_image', platform='twitter', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 4 %}
-                    <td><a href="{{ url_for('update_video', platform='twitter', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_video', platform='twitter', post_id=post.id) }}">Update</a></td>
                 {% endif %}
-                <td><a href="{{ url_for('delete_post', platform='twitter', post_id=post.id) }}">Delete</a></td>
+                <td><a href="{{ url_for('main.delete_post', platform='twitter', post_id=post.id) }}">Delete</a></td>
             </tr>
         {% endfor %}
     </table>
@@ -146,15 +146,15 @@
                 <td>{{ post.tags }}</td>
                 <td>{{ post.caption }}</td>
                 {% if post.post_type|int == 1 %}
-                    <td><a href="{{ url_for('update_short_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_short_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 2 %}
-                    <td><a href="{{ url_for('update_long_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_long_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 3 %}
-                    <td><a href="{{ url_for('update_image', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_image', platform='tumblr', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 4 %}
-                    <td><a href="{{ url_for('update_video', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_video', platform='tumblr', post_id=post.id) }}">Update</a></td>
                 {% endif %}
-                <td><a href="{{ url_for('delete_post', platform='tumblr', post_id=post.id) }}">Delete</a></td>
+                <td><a href="{{ url_for('main.delete_post', platform='tumblr', post_id=post.id) }}">Delete</a></td>
             </tr>
         {% endfor %}
     </table>
@@ -193,15 +193,15 @@
                 <td><a href="{{ post.image_url }}">Image URL</a></td>
                 <td><a href="{{ post.video_url }}">Video URL</a></td>
                 {% if post.post_type|int == 1 %}
-                    <td><a href="{{ url_for('update_short_text', platform='reddit', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_short_text', platform='reddit', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 2 %}
-                    <td><a href="{{ url_for('update_long_text', platform='reddit', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_long_text', platform='reddit', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 3 %}
-                    <td><a href="{{ url_for('update_image', platform='reddit', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_image', platform='reddit', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 4 %}
-                    <td><a href="{{ url_for('update_video', platform='reddit', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_video', platform='reddit', post_id=post.id) }}">Update</a></td>
                 {% endif %}
-                <td><a href="{{ url_for('delete_post', platform='reddit', post_id=post.id) }}">Delete</a></td>
+                <td><a href="{{ url_for('main.delete_post', platform='reddit', post_id=post.id) }}">Delete</a></td>
             </tr>
         {% endfor %}
     </table>
@@ -296,8 +296,8 @@
                     <td>Trailers</td>
                 {% endif %}
                 </td>
-                <td><a href="{{ url_for('update_video', platform='youtube', post_id=post.id) }}">Update</a></td>
-                <td><a href="{{ url_for('delete_post', platform='youtube', post_id=post.id) }}">Delete</a></td>
+                <td><a href="{{ url_for('main.update_video', platform='youtube', post_id=post.id) }}">Update</a></td>
+                <td><a href="{{ url_for('main.delete_post', platform='youtube', post_id=post.id) }}">Delete</a></td>
             </tr>
         {% endfor %}
     </table>
@@ -336,15 +336,15 @@
                 <td><a href="{{ post.link_url }}">Link URL</a></td>
                 <td><a href="{{ post.multimedia_url }}">Multimedia URL</a></td>
                 {% if post.post_type|int == 1 %}
-                    <td><a href="{{ url_for('update_short_text', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_short_text', platform='linkedin', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 2 %}
-                    <td><a href="{{ url_for('update_long_text', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_long_text', platform='linkedin', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 3 %}
-                    <td><a href="{{ url_for('update_image', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_image', platform='linkedin', post_id=post.id) }}">Update</a></td>
                 {% elif post.post_type|int == 4 %}
-                    <td><a href="{{ url_for('update_video', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                    <td><a href="{{ url_for('main.update_video', platform='linkedin', post_id=post.id) }}">Update</a></td>
                 {% endif %}
-                <td><a href="{{ url_for('delete_post'), platform='linkedin', post_id=post.id) }}">Delete</a></td>
+                <td><a href="{{ url_for('main.delete_post'), platform='linkedin', post_id=post.id) }}">Delete</a></td>
             </tr>
         {% endfor %}
     </table>

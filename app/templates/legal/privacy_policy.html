@@ -298,7 +298,7 @@
         <button type="button" class="collapsible">Social media posts</button>
         <div class="content">
             {% if current_user.icyfire_crta is none %}
-                <p><a href="{{ url_for('dashboard') }}">Your domain's social media posts are accessible here.</a></p>
+                <p><a href="{{ url_for('main.dashboard') }}">Your domain's social media posts are accessible here.</a></p>
             {% else %}
                 <p>This section is blank because we have detected that you are an IcyFire contractor or employee. This is not part of your user experience.</p>
             {% endif %}
@@ -385,7 +385,7 @@
         </div>
     {% else %}
         <h2>Access your data</h2>
-        <p>Please <a href="{{ url_for('login') }}">log in</a> to access your data.</p>
+        <p>Please <a href="{{ url_for('auth.login') }}">log in</a> to access your data.</p>
     {% endif %}
 
     <h2>Rectification and erasure</h2>

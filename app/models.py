@@ -469,7 +469,7 @@ class Sale(db.Model):
     subtotal = db.Column(db.Float)
     sales_tax = db.Column(db.Float)
     total = db.Column(db.Float)
-    invoice_url = db.Columnt(db.String(300))
+    invoice_url = db.Column(db.String(300))
 
     def __repr__(self):
         return 'Sale {}'.format(self.timestamp)

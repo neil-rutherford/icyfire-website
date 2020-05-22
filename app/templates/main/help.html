@@ -2,9 +2,9 @@
 {% block app_content %}
 	<h1>Help Page</h1>
 	<h2>Creating a new post</h2>
-	<p>At the top of <a href="{{ url_for('index') }}">your dashboard</a>, there is a text box. Type your social media post in the box, select which social networks you would like it to be posted to, and click "Post" when you are finished. After you click "Post", you should see your social media post added to the light yellow part of the queue. Text posts are limited to 280 characters, and non-text media are not supported at this time (we're working on it though!).</p>
+	<p>At the top of <a href="{{ url_for('main.dashboard') }}">your dashboard</a>, there is a text box. Type your social media post in the box, select which social networks you would like it to be posted to, and click "Post" when you are finished. After you click "Post", you should see your social media post added to the light yellow part of the queue. Text posts are limited to 280 characters, and non-text media are not supported at this time (we're working on it though!).</p>
 	<h2>Seeing your queued posts</h2>
-	<p>Below the text box on <a href="{{ url_for('index') }}">your dashboard</a>, there is a chart with light yellow, green, and light blue rows. Here's what the colors mean:</p>
+	<p>Below the text box on <a href="{{ url_for('main.dashboard') }}">your dashboard</a>, there is a chart with light yellow, green, and light blue rows. Here's what the colors mean:</p>
 	<table>
 		<tr>
 			<th>Key</th>
