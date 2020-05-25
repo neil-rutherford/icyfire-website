@@ -101,7 +101,7 @@ def create_short_text():
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='facebook')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Facebook')
         if form.is_twitter.data is True:
             if form.tags.data is not None:
                 tags = str(form.tags.data).split(', ')
@@ -110,17 +110,17 @@ def create_short_text():
             else:
                 tagline = None
             make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='twitter')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Twitter')
         if form.is_tumblr.data is True:
             if form.tags.data is not None:
                 tags = str(form.tags.data).split(', ')
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='tumblr')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Tumblr')
         if form.is_reddit.data is True:
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='reddit')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Reddit')
         if form.is_linkedin.data is True:
             if form.tags.data is not None:
                 tags = str(form.tags.data).split(', ')
@@ -129,7 +129,7 @@ def create_short_text():
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='linkedin')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='LinkedIn')
         flash('Successfully queued!')
         return redirect(url_for('main.dashboard'))
     return render_template('main/create_short_text.html', title='New Short Text Post', form=form)
@@ -164,17 +164,17 @@ def create_long_text():
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='facebook')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Facebook')
         if form.is_tumblr.data is True:
             if form.tags.data is not None:
                 tags = str(form.tags.data).split(', ')
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='tumblr')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Tumblr')
         if form.is_reddit.data is True:
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='reddit')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Reddit')
         if form.is_linkedin.data is True:
             if form.tags.data is not None:
                 tags = str(form.tags.data).split(', ')
@@ -183,7 +183,7 @@ def create_long_text():
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='linkedin')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='LinkedIn')
         flash('Successfully queued!')
         return redirect(url_for('main.dashboard'))
     return render_template('main/create_long_text.html', title='New Long Text Post', form=form)
@@ -228,7 +228,7 @@ def create_image():
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_image', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='facebook')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Facebook')
         if form.is_twitter.data is True:
             filename = secure_filename('twitter-{}.{}'.format(image_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'images', filename))
@@ -239,7 +239,7 @@ def create_image():
             else:
                 tagline = None
             make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_image', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='twitter')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Twitter')
         if form.is_tumblr.data is True:
             filename = secure_filename('tumblr-{}.{}'.format(image_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'images', filename))
@@ -248,12 +248,12 @@ def create_image():
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('main.get_image', filename), tags=tags, caption=str(form.caption.data))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='tumblr')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Tumblr')
         if form.is_reddit.data is True:
             filename = secure_filename('reddit-{}.{}'.format(image_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'images', filename))
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=url_for('main.get_image', filename), video_url=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='reddit')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Reddit')
         if form.is_linkedin.data is True:
             filename = secure_filename('linkedin-{}.{}'.format(image_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'images', filename))
@@ -264,7 +264,7 @@ def create_image():
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('main.get_image', filename), link_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='linkedin')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='LinkedIn')
         flash('Successfully queued!')
         return redirect(url_for('main.dashboard'))
     return render_template('main/create_image.html', title='New Image Post', form=form)
@@ -309,7 +309,7 @@ def create_video():
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_video', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='facebook')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Facebook')
         if form.is_twitter.data is True:
             filename = secure_filename('twitter-{}.{}'.format(video_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'videos', filename))
@@ -320,7 +320,7 @@ def create_video():
             else:
                 tagline = None
             make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_video', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='twitter')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Twitter')
         if form.is_tumblr.data is True:
             filename = secure_filename('tumblr-{}.{}'.format(video_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'videos', filename))
@@ -329,12 +329,12 @@ def create_video():
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('main.get_video', filename), tags=tags, caption=str(form.caption.data))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='tumblr')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Tumblr')
         if form.is_reddit.data is True:
             filename = secure_filename('reddit-{}.{}'.format(video_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'videos', filename))
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=None, video_url=url_for('main.get_video', filename))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='reddit')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Reddit')
         if form.is_youtube.data is True:
             filename = secure_filename('youtube-{}.{}'.format(video_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'videos', filename))
@@ -345,7 +345,7 @@ def create_video():
             else:
                 tagline = None
             make_youtube(domain_id=current_user.domain_id, user_id=current_user.id, multimedia_url=url_for('main.get_video', filename), title=str(form.title.data), caption=str(form.caption.data), tags=tagline, category=int(form.category.data))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='youtube')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='YouTube')
         if form.is_linkedin.data is True:
             filename = secure_filename('linkedin-{}.{}'.format(video_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'videos', filename))
@@ -356,7 +356,7 @@ def create_video():
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('main.get_video', filename), link_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='linkedin')
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='LinkedIn')
         flash('Successfully queued!')
         return redirect(url_for('main.dashboard'))
     return render_template('main/create_video.html', title='New Video Post', form=form)
@@ -384,31 +384,31 @@ def update_short_text(platform, post_id):
     if platform == 'facebook':
         post = FacebookPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'twitter':
         post = TwitterPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='twitter|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='Twitter|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'tumblr':
         post = TumblrPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'reddit':
         post = RedditPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'linkedin':
         post = LinkedinPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=404, status_message='LinkedIn|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     else:
@@ -432,7 +432,7 @@ def update_short_text(platform, post_id):
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'twitter':
@@ -443,7 +443,7 @@ def update_short_text(platform, post_id):
             else:
                 tagline = None
             make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='twitter|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Twitter|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'tumblr':
@@ -452,12 +452,12 @@ def update_short_text(platform, post_id):
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'reddit':
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'linkedin':
@@ -468,7 +468,7 @@ def update_short_text(platform, post_id):
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='LinkedIn|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
     return render_template('main/update_short_text.html', title='Update Short Text Post', form=form)
@@ -496,25 +496,25 @@ def update_long_text(platform, post_id):
     if platform == 'facebook':
         post = FacebookPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'tumblr':
         post = TumblrPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'reddit':
         post = RedditPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'linkedin':
         post = LinkedinPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=404, status_message='LinkedIn|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     else:
@@ -538,7 +538,7 @@ def update_long_text(platform, post_id):
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'tumblr':
@@ -547,12 +547,12 @@ def update_long_text(platform, post_id):
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'reddit':
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'linkedin':
@@ -563,7 +563,7 @@ def update_long_text(platform, post_id):
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), caption=None, multimedia_url=None, link_url=str(form.link_url.data), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='LinkedIn|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
     return render_template('main/update_long_text.html', title='Update Long Text Post', form=form)
@@ -593,31 +593,31 @@ def update_image(platform, post_id):
     if platform == 'facebook':
         post = FacebookPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'twitter':
         post = TwitterPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='twitter|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Twitter|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'tumblr':
         post = TumblrPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'reddit':
         post = RedditPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'linkedin':
         post = LinkedinPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='LinkedIn|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     else:
@@ -649,7 +649,7 @@ def update_image(platform, post_id):
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_image', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'twitter':
@@ -662,7 +662,7 @@ def update_image(platform, post_id):
             else:
                 tagline = None
             make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_image', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='twitter|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Twitter|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'tumblr':
@@ -673,14 +673,14 @@ def update_image(platform, post_id):
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('main.get_image', filename), tags=tags, caption=str(form.caption.data))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'reddit':
             filename = secure_filename('reddit-{}.{}'.format(image_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'images', filename))
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=url_for('main.get_image', filename), video_url=None)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'linkedin':
@@ -693,7 +693,7 @@ def update_image(platform, post_id):
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('main.get_image', filename), link_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='LinkedIn|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
     return render_template('main/update_image.html', title='Update Image Post', form=form)
@@ -723,37 +723,37 @@ def update_video(platform, post_id):
     if platform == 'facebook':
         post = FacebookPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'twitter':
         post = TwitterPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='twitter|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Twitter|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'tumblr':
         post = TumblrPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'reddit':
         post = RedditPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'youtube':
         post = YoutubePost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='youtube|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='YouTube|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     elif platform == 'linkedin':
         post = LinkedinPost.query.filter_by(id=int(post_id)).first()
         if post is None:
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='LinkedIn|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
     else:
@@ -785,7 +785,7 @@ def update_video(platform, post_id):
             else:
                 tagline = None
             make_facebook(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_video', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='facebook|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'twitter':
@@ -798,7 +798,7 @@ def update_video(platform, post_id):
             else:
                 tagline = None
             make_twitter(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=url_for('main.get_video', filename), tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='twitter|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Twitter|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'tumblr':
@@ -809,14 +809,14 @@ def update_video(platform, post_id):
             else:
                 tags = None
             make_tumblr(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, link_url=None, multimedia_url=url_for('main.get_video', filename), tags=tags, caption=str(form.caption.data))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='tumblr|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'reddit':
             filename = secure_filename('reddit-{}.{}'.format(video_name, file_type))
             f.save(os.path.join(basedir, 'app', 'static', 'assets', 'videos', filename))
             make_reddit(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=None, video_url=url_for('main.get_video', filename))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='reddit|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'youtube':
@@ -829,7 +829,7 @@ def update_video(platform, post_id):
             else:
                 tagline = None
             make_youtube(domain_id=current_user.domain_id, user_id=current_user.id, multimedia_url=url_for('main.get_video', filename), title=str(form.title.data), caption=str(form.caption.data), tags=tagline, category=int(form.category.data))
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='youtube|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='YouTube|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
         elif platform == 'linkedin':
@@ -842,7 +842,7 @@ def update_video(platform, post_id):
             else:
                 tagline = None
             make_linkedin(domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, caption=str(form.caption.data), multimedia_url=url_for('main.get_video', filename), link_url=None, tags=tagline)
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='linkedin|{}'.format(int(post_id)))
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='LinkedIn|{}'.format(int(post_id)))
             flash('Successfully edited!')
             return redirect(url_for('main.dashboard'))
     return render_template('main/update_video.html', title='Update Video Post', form=form)
@@ -866,11 +866,11 @@ def delete_post(platform, post_id):
             if post.domain_id == current_user.domain_id:
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='facebook|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Facebook|{}'.format(int(post_id)))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='facebook|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Facebook|{}'.format(int(post_id)))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
         elif platform == 'twitter':
@@ -878,11 +878,11 @@ def delete_post(platform, post_id):
             if post.domain_id == current_user.domain_id:
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='twitter|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Twitter|{}'.format(int(post_id)))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='twitter|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Twitter|{}'.format(int(post_id)))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
         elif platform == 'tumblr':
@@ -890,11 +890,11 @@ def delete_post(platform, post_id):
             if post.domain_id == current_user.domain_id:
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='tumblr|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Tumblr|{}'.format(int(post_id)))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='tumblr|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Tumblr|{}'.format(int(post_id)))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
         elif platform == 'reddit':
@@ -902,11 +902,11 @@ def delete_post(platform, post_id):
             if post.domain_id == current_user.domain_id:
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='reddit|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Reddit|{}'.format(int(post_id)))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='reddit|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Reddit|{}'.format(int(post_id)))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
         elif platform == 'youtube':
@@ -914,11 +914,11 @@ def delete_post(platform, post_id):
             if post.domain_id == current_user.domain_id:
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='youtube|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='YouTube|{}'.format(int(post_id)))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='youtube|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='YouTube|{}'.format(int(post_id)))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
         elif platform == 'linkedin':
@@ -926,11 +926,11 @@ def delete_post(platform, post_id):
             if post.domain_id == current_user.domain_id:
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='linkedin|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='LinkedIn|{}'.format(int(post_id)))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='linkedin|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='LinkedIn|{}'.format(int(post_id)))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
         else:

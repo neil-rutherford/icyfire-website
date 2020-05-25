@@ -478,7 +478,6 @@ class Sale(db.Model):
 class Sentry(db.Model):
     '''
     Sentry is a security system that logs successful access attempts. Sentry data is available to domain admins.
-    Ewok provides intelligence about the enemies at the gate; Sentry tracks them once they breach.
 
     [id]                : int      : Primary key.
     [timestamp]         : datetime : Date and time this occurred, in UTC.
@@ -488,6 +487,7 @@ class Sentry(db.Model):
     [endpoint]          : str      : What resource did the individual access?
     [status_code]       : int      : HTTP status code.
     [status_message]    : str      : More details about what happened.
+    [flag]              : bool     : Has this been reported to the IcyFire CISO for review?
     '''
     __tablename__='sentry'
 
@@ -499,6 +499,7 @@ class Sentry(db.Model):
     endpoint = db.Column(db.String(254))
     status_code = db.Column(db.Integer)
     status_message = db.Column(db.String(100))
+    flag = db.Column(db.Boolean)
 
     def __repr__(self):
         return 'Sentry {}'.format(self.timestamp)

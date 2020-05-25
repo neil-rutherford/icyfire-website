@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>SENTRY - Failed Creds Access</h1>
+
+    <p>These are your domain's CREDS-403 logs for the past 14 days. They are created when a user attempts unsuccessfully to change your domain's social media credentials.</p>
+    <p>Clicking the link in the "User ID" column will bring you to a page where you can review the user's activity and/or change their permissions.</p>
+    <p>If you see something that isn't right and you can't control, such as a user you don't recognize changing your credentials, please let us know by escalating it to the IcyFire CISO.</p>
+
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>User ID</th>
+            <th>IP Address</th>
+            <th>Something wrong?</th>
+        </tr>
+        {% for post in creds %}
+            {% set var = {{ post.status_message }}.split('|') %}
+                <tr>
+                    <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                    {% if current_user.id != post.user_id %}
+                        <td><a href="{{ url_for('get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    {% else %}
+                        <td>You</td>
+                    {% endif %}
+                    <td>{{ post.ip_address }}</td>
+                    <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

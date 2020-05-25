@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>SENTRY - Successful Creates</h1>
+
+    <p>These are your domain's CREATE-200 logs for the past 14 days. They are created when a user successfully creates a new post.</p>
+    <p>Clicking the link in the "User ID" column will bring you to a page where you can review the user's activity and/or change their permissions.</p>
+    <p>If you see something that isn't right and you can't control, such as a user you don't recognize creating posts, please let us know by escalating it to the IcyFire CISO.</p>
+
+    <h2>Short text posts</h2>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>User ID</th>
+            <th>IP address</th>
+            <th>Platform</th>
+            <th>Something wrong?</th>
+        </tr>
+        {% for post in short_texts %}
+            <tr>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                {% if current_user.id != post.user_id %}
+                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                {% else %}
+                    <td>You</td>
+                {% endif %}
+                <td>{{ post.ip_address }}</td>
+                <td>{{ post.status_code }}</td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+                
+    <h2>Long text posts</h2>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>User ID</th>
+            <th>IP address</th>
+            <th>Platform</th>
+            <th>Something wrong?</th>
+        </tr>
+        {% for post in long_texts %}
+            <tr>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                <td>{{ post.ip_address }}</td>
+                <td>{{ post.status_code }}</td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Image posts</h2>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>User ID</th>
+            <th>IP address</th>
+            <th>Platform</th>
+            <th>Something wrong?</th>
+        </tr>
+        {% for post in images %}
+            <tr>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                <td>{{ post.ip_address }}</td>
+                <td>{{ post.status_code }}</td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Video posts</h2>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>User ID</th>
+            <th>IP address</th>
+            <th>Platform</th>
+            <th>Something wrong?</th>
+        </tr>
+        {% for post in videos %}
+            <tr>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                <td>{{ post.ip_address }}</td>
+                <td>{{ post.status_code }}</td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
