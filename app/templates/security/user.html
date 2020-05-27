@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>User Profile</h1>
+
+    <h2>Information</h2>
+    <p><b>ID:</b> {{ user.id }}</p>
+    <p><b>Email:</b> {{ user.email }}</p>
+    <p><b>Domain ID:</b> <a href="{{ url_for('security.sort_by_domain', domain_id={{ user.domain_id }}) }}">{{ user.domain_id }}</a></p>
+    <p><b>Post count:</b> {{ user.post_count }}</p>
+    <p><b>Admin:</b> {{ user.is_admin }}</p>
+    <p><b>Create:</b> {{ user.is_create }}</p>
+    <p><b>Read:</b> {{ user.is_read }}</p>
+    <p><b>Update:</b> {{ user.is_update }}</p>
+    <p><b>Delete:</b> {{ user.is_delete }}</p>
+    <p><b>CRTA:</b> {{ user.icyfire_crta }}</p>
+
+    <h2>Activity</h2>
+    <table>
+        <tr>
+            <th>Incident ID</th>
+            <th>Timestamp</th>
+            <th>IP address</th>
+            <th>Domain ID</th>
+            <th>Endpoint</th>
+            <th>Status code</th>
+            <th>Status message</th>
+        </tr>
+        {% for post in activity %}
+            <tr>
+                <td>{{ post.id }}</td>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td><a href="{{ url_for('security.sort_by_ip', ip_address={{ post.ip_address }}) }}">{{ post.ip_address }}</td>
+                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ post.domain_id }}) }}">{{ post.domain_id }}</a></td>
+                <td>{{ post.endpoint }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ post.status_code }}) }}">{{ post.status_code }}</td>
+                <td>{{ post.status_message }}</td>
+            </tr>
+        {% endfor %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Flagged Incidents</h1>
+
+    <table>
+        <tr>
+            <th>Incident ID</th>
+            <th>Timestamp</th>
+            <th>IP address</th>
+            <th>User ID</th>
+            <th>Domain ID</th>
+            <th>Endpoint</th>
+            <th>Status code</th>
+            <th>Status message</th>
+        </tr>
+        {% for flag in flags %}
+            <tr>
+                <td>{{ flag.id }}</td>
+                <td>{{ moment(flag.timestamp).format('LLL') }}</td>
+                <td><a href="{{ url_for('security.sort_by_ip', ip_address={{ flag.ip_address }}) }}">{{ flag.ip_address }}</td>
+                <td><a href="{{ url_for('security.sort_by_user', user_id={{ flag.user_id }}) }}">{{ flag.user_id }}</a></td>
+                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ flag.domain_id }}) }}">{{ flag.domain_id }}</a></td>
+                <td>{{ flag.endpoint }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ flag.status_code }}) }}">{{ flag.status_code }}</td>
+                <td>{{ flag.status_message }}</td>
+            </tr>
+        {% endfor %}
+{% endblock %}

@@ -53,8 +53,8 @@ def create_app(config_class=Config):
     #from app.promo import bp as promo_bp
     #app.register_blueprint(promo_bp)
 
-    #from app.security import bp as security_bp
-    #app.register_blueprint(security_bp)
+    from app.security import bp as security_bp
+    app.register_blueprint(security_bp)
 
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>IP Address Profile</h1>
+
+    <h2>Information</h2>
+    <p><b>IP address:</b> {{ ip_address }}</p>
+
+    <h2>Activity</h2>
+    <table>
+        <tr>
+            <th>Incident ID</th>
+            <th>Timestamp</th>
+            <th>Domain ID</th>
+            <th>User ID</th>
+            <th>Endpoint</th>
+            <th>Status code</th>
+            <th>Status message</th>
+        </tr>
+        {% for post in activity %}
+            <tr>
+                <td>{{ post.id }}</td>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ post.domain_id }}) ">{{ post.domain_id }}</a></td>
+                <td><a href="{{ url_for('security.sort_by_user', user_id={{ post.user_id }}) }}">{{ post.user_id }}</a></td>
+                <td>{{ post.endpoint }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ post.status_code }}) }}">{{ post.status_code }}</a></td>
+                <td>{{ post.status_message }}</td>
+            </tr>
+        {% endfor %}
+{% endblock %}
