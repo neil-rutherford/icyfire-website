@@ -14,6 +14,7 @@ API RESOURCES:
     - Tumblr: https://github.com/tumblr/pytumblr
     - Reddit: https://praw.readthedocs.io/en/latest/
     - YouTube: https://github.com/googleapis/google-api-python-client/
+    - YouTube tutorial: https://developers.google.com/youtube/v3/guides/uploading_a_video
     - LinkedIn: https://github.com/ozgur/python-linkedin
 '''
 

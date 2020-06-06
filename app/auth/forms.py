@@ -3,6 +3,8 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Selec
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo, Length
 from app.models import User, Domain
 from flask_login import current_user
+from flask import url_for
+import twitter
 
 def password_check(form, field):
     '''
@@ -219,3 +221,98 @@ class ContractorRegistrationForm(FlaskForm):
         icyfire_crta = User.query.filter_by(icyfire_crta=crta).first()
         if icyfire_crta is not None:
             raise ValidationError('A user already exists with that CRTA code. Please contact your administrator.')
+
+# CREDS SPLASH
+class CredsSpash(FlaskForm):
+    is_facebook = BooleanField('Connect Facebook account?')
+    is_twitter = BooleanField('Connect Twitter account?')
+    is_tumblr = BooleanField('Connect Tumblr account?')
+    is_reddit = BooleanField('Connect Reddit account?')
+    is_youtube = BooleanField('Connect YouTube account?')
+    is_linkedin = BooleanField('Connect LinkedIn account?')
+    submit = SubmitField('Get started')
+
+# FACEBOOK
+class FacebookCreds(FlaskForm):
+    access_token = StringField('Access token', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def check_creds(self, access_token):
+        try:
+            graph = facebook.GraphAPI(access_token=access_token.data)
+            graph.put_object(parent_object='me', connection_name='feed', message='How many tickles does it take to get an octopus to laugh?\n\nTen-ticles.')
+        except:
+            raise ValidationError("Can't verify your credentials. Please try again.")
+
+# TWITTER
+class TwitterCreds(FlaskForm):
+    consumer_key = StringField('Consumer key', validators=[DataRequired()])
+    consumer_secret = StringField('Consumer secret', validators=[DataRequired()])
+    access_token_key = StringField('Access token key', validators=[DataRequired()])
+    access_token_secret = StringField('Access token secret', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def check_creds(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
+        try:
+            api = twitter.Api(consumer_key=consumer_key.data, consumer_secret=consumer_secret.data, access_token_key=access_token_key.data, access_token_secret=access_token_secret.data)
+            api.PostUpdate("What's the difference between bird flu and swine flu?\n\nOne requires tweetment and the other an oinkment.")
+        except:
+            raise ValidationError("Can't verify your credentials. Please try again.")
+
+# TUMBLR
+class TumblrCreds(FlaskForm):
+    consumer_key = StringField('Consumer key', validators=[DataRequired()])
+    consumer_secret = StringField('Consumer secret', validators=[DataRequired()])
+    oauth_token = StringField('OAuth token', validators=[DataRequired()])
+    oauth_secret = StringField('OAuth secret', validators=[DataRequired()])
+    blog_name = StringField('URL for your blog', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def check_creds(self, consumer_key, consumer_secret, oauth_token, oauth_secret, blog_name):
+        try:
+            client = pytumblr.TumblrRestClient(consumer_key.data, consumer_secret.data, oauth_token.data, oauth_secret.data)
+            client.create_text(blog_name.data, state='published', title='Why did the bike fall over?', body='It was two tired.')
+        except:
+            raise ValidationError("Can't verify your credentials. Please try again.")
+
+# REDDIT
+class RedditCreds(FlaskForm):
+    target_subreddit = StringField('URL for your subreddit', validators=[DataRequired()])
+    client_id = StringField('Client ID', validators=[DataRequired()])
+    client_secret = StringField('Client secret', validators=[DataRequired()])
+    user_agent = StringField('User agent', validators=[DataRequired()])
+    username = StringField('Reddit username', validators=[DataRequired()])
+    password = PasswordField('Reddit password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def check_creds(self, client_id, client_secret, user_agent, username, password):
+        try:
+            reddit = praw.Reddit(client_id=client_id.data, client_secret=client_secret.data, user_agent=user_agent.data, username=username.data, password=password.data)
+            reddit.subreddit(target_subreddit.data).submit('What do cows most like to read?', selftext='Cattle-logs.')
+        except:
+            raise ValidationError("Can't verify your credentials. Please try again.")
+
+# YOUTUBE
+class YoutubeCreds(FlaskForm):
+    client_id = StringField('Client ID', validators=[DataRequired()])
+    client_secret = StringField('Client secret', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def check_creds(self, client_id, client_secret):
+        
+
+# LINKEDIN
+class LinkedinCreds(FlaskForm):
+    consumer_key = StringField('Consumer key', validators=[DataRequired()])
+    consumer_secret = StringField('Consumer secret', validators=[DataRequired()])
+    user_token = StringField('User token', validators=[DataRequired()])
+    user_secret = StringField('User secret', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def check_creds(self, consumer_key, consumer_secret, user_token, user_secret):
+        try:
+            authentication = linkedin.LinkedInDeveloperAuthentication(consumer_key.data, consumer_secret.data, user_token.data, user_secret.data, url_for('promo.home'), linkedin.PERMISSIONS.enums.values())
+            application = linkedin.LinkedInApplication(authentication)
+            application.submit_share(comment='Why did the employee get fired from the calendar factory?\n\nHe took a day off.')
+        except:
+            raise ValidationError("Can't verify your credentials. Please try again.")
