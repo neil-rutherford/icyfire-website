@@ -15,6 +15,7 @@ def make_error(endpoint, status, error_details, code):
 
 
 # READ API
+# TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
 @bp.route('/api/_r/<timeslot_id>/auth=<read_token>&<cred_token>')
 def read(timeslot_id, read_token, cred_token):
     if read_token == 'read' and cred_token == 'cred':
@@ -80,6 +81,7 @@ def read(timeslot_id, read_token, cred_token):
 
 
 # DELETE API
+# TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
 @bp.route('/api/_d/<timeslot_id>/auth=<read_token>&<delete_token>')
 def delete(timeslot_id, read_token, delete_token):
     if read_token == 'read' and delete_token == 'delete':
@@ -154,6 +156,7 @@ def delete(timeslot_id, read_token, delete_token):
 
 
 # SECURITY API
+# TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
 @bp.route('/api/_rs/auth=<read_token>&<security_token>/query=<argument>:<data>')
 def read_sentry(read_token, security_token, argument, data):
     #if read_token == current_app.config['READ_TOKEN'] and security_token == current_app.config['SECURITY_TOKEN']:
