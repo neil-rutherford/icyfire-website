@@ -64,7 +64,7 @@
     <ul>
         <li><b>User ID:</b> This is a link to a contractor's user account. It allows a contractor to sign in and interact with the website.</li>
         <li><b>First and last name:</b> We like to refer to our contractors by their name, not by their CRTA code. This is not used for any other purpose besides individualization. This is provided when a contractor account is made.</li>
-        <li><b>Phone number:</b> This is so we can contact a contactor if needed. This is provided when a sales account is made.</li>
+        <li><b>Phone number:</b> This is so we can contact a contactor if needed. This is provided when a contractor account is made.</li>
         <li><b>CRTA code:</b> This represents a contractor's position in the IcyFire sales hierarchy. IcyFire generated this for the individual when they were onboarded.</li>
         <li><b>Sales:</b> This is how many sales have occurred in a contractor's jurisdiction. We use this data to calculate their commissions. This number started at zero and is incremented every time a sale is made in their jurisdiction.</li>
     </ul>
@@ -73,11 +73,11 @@
     <ul>
         <li><b>Individuals involved with the sale:</b> We collect this information to perform sales analytics and calculate commissions for our contractors. We infer this from who is reporting the sale.</li>
         <li><b>Timestamp:</b> We use this to sort things in chronological order. This is recorded when sales are reported.</li>
-        <li><b>Client name:</b> We like to refer to our clients by their name, not by their invoice number. This is used for individualization and to make invoices. This is provided by the sales contractor when the sale is reported.</li>
-        <li><b>Client address:</b> This is used to make invoices and to contact clients by snail mail if necessary. This is provided by the sales contractor when the sale is reported.</li>
-        <li><b>Client phone number:</b> This is used to make invoices and to contact clients by phone if necessary. This is provided by the sales contractor when the sale is reported.</li>
-        <li><b>Client email address:</b> This is used to make invoices and to contact clients by email if necessary. This is provided by the sales contractor when the sale is reported.</li>
-        <li><b>Sales data:</b> This includes unit price, quantity sold, subtotal, sales tax, and total. We use this to make invoices and for internal accounting. This is provided by the sales contractor when the sale is reported.</li>
+        <li><b>Client name:</b> We like to refer to our clients by their name, not by their invoice number. This is used for individualization and to make receipts. This is provided by the sales contractor when the sale is reported.</li>
+        <li><b>Client address:</b> This is used to make receipts and to contact clients by snail mail if necessary. This is provided by the sales contractor when the sale is reported.</li>
+        <li><b>Client phone number:</b> This is used to make receipts and to contact clients by phone if necessary. This is provided by the sales contractor when the sale is reported.</li>
+        <li><b>Client email address:</b> This is used to make receipts and to contact clients by email if necessary. This is provided by the sales contractor when the sale is reported.</li>
+        <li><b>Sales data:</b> This includes unit price, quantity sold, subtotal, sales tax, and total. We use this to make receipts and for internal accounting. This is provided by the sales contractor when the sale is reported.</li>
     </ul>
 
     <h3>Internal security information</h3>
@@ -91,7 +91,7 @@
     </ul>
 
     <h2>Is my data being sold?</h2>
-    <p>No. All of your data is used internally and is not sold. We also promise not to spam your email with marketing emails.</p>
+    <p>No. All of your data is used internally and is not sold. We also promise not to spam your email with marketing emails. We may send you occasional emails about some new projects we're working on, though.</p>
 
     {% if current_user.is_authenticated %}
         <h2>Your data</h2>
