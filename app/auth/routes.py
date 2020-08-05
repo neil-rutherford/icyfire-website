@@ -113,6 +113,7 @@ def register_domain():
         user.is_read = True
         user.is_update = True
         user.is_delete = True
+        user.email_opt_in = form.email_opt_in.data
         domain.domain_name = str(form.domain_name.data)
         db.session.add(user)
         db.session.add(domain)
@@ -148,6 +149,7 @@ def register_user():
         user.is_read = False
         user.is_update = False
         user.is_delete = False
+        user.email_opt_in = form.email_opt_in.data
         db.session.add(user)
         db.session.commit()
         login_user(user, remember=True)
@@ -186,6 +188,7 @@ def register_contractor():
         user.is_read = False
         user.is_update = False
         user.is_delete = False
+        user.email_opt_in = True
         user.icyfire_crta = 'USA-' + str(form.icyfire_region.data) + '-' + str(form.icyfire_team.data) + '-' + str(form.icyfire_agent.data)
         db.session.add(user)
         db.session.commit()

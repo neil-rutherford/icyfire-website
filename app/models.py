@@ -164,6 +164,7 @@ class User(UserMixin, db.Model):
     [is_read]           : bool : Can the user read existing posts? (Default False until admin says otherwise.)
     [is_update]         : bool : Can the user update existing posts? (Default False until admin says otherwise.)
     [is_delete]         : bool : Can the user delete existing posts? (Default False until admin says otherwise.)
+    [email_opt_in]      : bool : Is the user subscribed to our marketing emails?
     [icyfire_crta]      : str  : IcyFire Country-Region-Team-Agent code, if applicable.
     '''
     __tablename__ = 'user'
@@ -178,6 +179,7 @@ class User(UserMixin, db.Model):
     is_read = db.Column(db.Boolean)
     is_update = db.Column(db.Boolean)
     is_delete = db.Column(db.Boolean)
+    email_opt_in = db.Column(db.Boolean)
     icyfire_crta = db.Column(db.String(20))
 
     def __repr__(self):

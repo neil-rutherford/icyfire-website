@@ -85,3 +85,14 @@ def vulnerability_disclosure_program():
 @bp.route('/legal/report-vulnerability')
 def report_vulnerability():
     return redirect('https://docs.google.com/forms/d/e/1FAIpQLSdz9635l_yBfSXg9-a3aXOejkOqVQcVCQf-3svF8VEdQekmNw/viewform?usp=sf_link')
+
+@bp.route('/legal/user/email-opt-out/<email>')
+def email_opt_out(email):
+    var = User.query.filter_by(email=email).first()
+    if not email:
+        flash("Sorry, we can't find that email address.")
+        return redirect(url_for('promo.home'))
+    var.email_opt_in = False
+    db.session.add(var)
+    db.session.commit()
+    return render_template('legal/email_opt_out.html', title='Email opt-out successful!', email=email)

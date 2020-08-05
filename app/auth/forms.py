@@ -58,6 +58,7 @@ class DomainRegistrationForm(FlaskForm):
     verify_password = PasswordField('Verify password', validators=[DataRequired(), password_check])
     domain_name = StringField('Choose a name for your domain', validators=[DataRequired(), Length(max=120)])
     activation_code = StringField('Activation code', validators=[DataRequired()])
+    email_opt_in = BooleanField("Want to receive email updates about new products we're developing? (No spam, we promise.)")
     submit = SubmitField('Register')
 
     def validate_email(self, email):
@@ -93,6 +94,7 @@ class UserRegistrationForm(FlaskForm):
     password = PasswordField('Password (8 characters minimum)', validators=[DataRequired(), Length(min=8)])
     verify_password = PasswordField('Verify password', validators=[DataRequired(), password_check])
     domain_name = StringField('Domain name')
+    email_opt_in = BooleanField("Want to receive email updates about new products we're developing? (No spam, we promise.)")
     submit = SubmitField('Register')
 
     def validate_email(self, email):
