@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+{% block app_content %}    
+    <center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Facebook.svg/800px-Facebook.svg.png" width=50% height="auto"></center>
+    <hr>
+    <h1>Connect a Facebook account</h1>
+    <h2>Housekeeping</h2>
+    <ul>
+        <li>If you're confused, everything you need to know is in the <a href="{{ url_for('auth.send_literature', document_name='facebook_setup') }}">set-up instructions</a>.</li>
+        <li><mark>Remember, times are in UTC!</mark> Just for reference, the time in UTC was <b>{{ time }}</b> when you loaded this page.</li>
+        <li>Use of Facebook's logo does not imply that IcyFire is sponsored by, affiliated with, endorsed by, or otherwise connected with Facebook.</li>
+    </ul>
+    <br>
+    <hr>
+    <h2>Account and scheduling</h2>
+    <div class="row">
+		<div class="col-md-4">
+			{{ wtf.quick_form(form) }}
+		</div>
+	</div>
+{% endblock %}

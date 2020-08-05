@@ -1,14 +1,13 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>SENTRY - Failed Deletes</h1>
+    <h1>Attempted Deletions</h1>
 
     <p>These are your domain's DELETE-403 logs for the past 14 days. These are created when a user tries to delete a post but doesn't have permission. These are also created when someone from another domain tries to delete something from your domain.</p>
     <p>Clicking the link in the "User ID" column will bring you to a page where you can review the user's activity and/or change their permissions.</p>
     <p>If you see something that isn't right and you can't control, such as a user you don't recognize deleting your posts, please let us know by escalating it to the IcyFire CISO.</p>
 
-    <table>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -18,18 +17,18 @@
             <th>Something wrong?</th>
         </tr>
         {% for post in deletes %}
-            {% set var = {{ post.status_message }}.split('|') %}
+            {% set var = post.status_message.split('|') %}
                 <tr>
                     <td>{{ moment(post.timestamp).format('LLL') }}</td>
                     {% if current_user.id != post.user_id %}
-                        <td><a href="{{ url_for('get_user_info', user_id={{ read.user_id }}) }}">User {{ post.user_id }}</a></td>
+                        <td><a href="{{ url_for('get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                     {% else %}
                         <td>You</td>
                     {% endif %}
                     <td>{{ post.ip_address }}</td>
                     <td>{{ var[0] }}</td>
                     <td>{{ var[1] }}</td>
-                    <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                    <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
                 </tr>
         {% endfor %}
     </table>

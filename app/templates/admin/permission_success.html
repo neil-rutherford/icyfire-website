@@ -1,17 +1,16 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>SENTRY - Successful Permission Changes</h1>
+    <h1>Successful Permission Changes</h1>
 
     <p>These are your domain's PERMISSION-200 logs for the past 14 days. They are created when a user's permissions are successfully changed.</p>
     <p>Clicking the link in the "User ID" columns will bring you to a page where you can review the user's activity and/or change their permissions.</p>
     <p>"Changer" is the user who changed the permission. "Target" is the user whose permissions were changed.</p>
-    <p>"C" is CREATE, "R" is READ, "U" is UPDATE, "D" is DELETE, and "KILL" is remove the user.</p>
+    <p>"c" is CREATE, "r" is READ, "u" is UPDATE, "d" is DELETE, and "kill" is remove the user.</p>
     <p>If you see something that isn't right and you can't control, such as a user you don't recognize changing permissions, please let us know by escalating it to the IcyFire CISO.</p>
 
     <h2>Permissions granted</h2>
-    <table>
+    <table width=100%>
         <tr>   
             <th>Timestamp</th>
             <th>IP address</th>
@@ -21,28 +20,28 @@
             <th>Something wrong?</th>
         </tr>
         {% for grant in grants %}
-            {% set var = {{ grant.status_message }}.split('|') %}
+            {% set var = grant.status_message.split('|') %}
                 <tr>
                     <td>{{ moment(grant.timestamp).format('LLL') }}</td>
                     <td>{{ grant.ip_address }}</td>
                     {% if grant.user_id == current_user.id %}
                         <td>You</td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.get_user_info', user_id={{ grant.user_id }}) }}">User {{ grant.user_id }}</a></td>
+                        <td><a href="{{ url_for('admin.get_user_info', user_id=grant.user_id) }}">User {{ grant.user_id }}</a></td>
                     {% endif %}
                     {% if var[0] == current_user.id %}
                         <td>You</td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.get_user_info', user_id={{ var[0] }}) }}">User {{ var[0] }}</a></td>
+                        <td><a href="{{ url_for('admin.get_user_info', user_id=var[0]) }}">User {{ var[0] }}</a></td>
                     {% endif %}
                     <td>{{ var[1] }}</td>
-                    <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ grant.id }}) }}">Escalate to IcyFire CISO</a></td>
+                    <td><a href="{{ url_for('admin.escalate_ciso', post_id=grant.id) }}">Escalate to IcyFire CISO</a></td>
                 </tr>
             {% endfor %}
     </table>
 
     <h2>Permissions revoked</h2>
-    <table>
+    <table width=100%>
         <tr>   
             <th>Timestamp</th>
             <th>IP address</th>
@@ -52,22 +51,22 @@
             <th>Something wrong?</th>
         </tr>
         {% for revoke in revokes %}
-            {% set var = {{ revoke.status_message }}.split('|') %}
+            {% set var = revoke.status_message.split('|') %}
                 <tr>
                     <td>{{ moment(revoke.timestamp).format('LLL') }}</td>
                     <td>{{ revoke.ip_address }}</td>
                     {% if revoke.user_id == current_user.id %}
                         <td>You</td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.get_user_info', user_id={{ revoke.user_id }}) }}">User {{ revoke.user_id }}</a></td>
+                        <td><a href="{{ url_for('admin.get_user_info', user_id=revoke.user_id) }}">User {{ revoke.user_id }}</a></td>
                     {% endif %}
                     {% if var[0] == current_user.id %}
                         <td>You</td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.get_user_info', user_id={{ var[0] }}) }}">User {{ var[0] }}</a></td>
+                        <td><a href="{{ url_for('admin.get_user_info', user_id=var[0]) }}">User {{ var[0] }}</a></td>
                     {% endif %}
                     <td>{{ var[1] }}</td>
-                    <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ revoke.id }}) }}">Escalate to IcyFire CISO</a></td>
+                    <td><a href="{{ url_for('admin.escalate_ciso', post_id=revoke.id) }}">Escalate to IcyFire CISO</a></td>
                 </tr>
             {% endfor %}
     </table>

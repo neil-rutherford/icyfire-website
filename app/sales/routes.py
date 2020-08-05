@@ -10,8 +10,8 @@ from datetime import datetime, date
 import pdfrw
 
 # HELPER FUNCTIONS
-def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
-    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id)
+def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
+    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id, flag=flag)
     db.session.add(activity)
     db.session.commit()
 
@@ -46,19 +46,20 @@ def dashboard():
     - Shows sales data for that individual's domain, as well as contact info for their subordinates
     '''
     crta = current_user.icyfire_crta
+    if crta is None:
+        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=403, status_message='Permission denied.')
+        flash("ERROR: You don't have permission to do that.")
+        return redirect(url_for('main.dashboard'))
     country = str(current_user.icyfire_crta).split('-')[0]
     region = str(current_user.icyfire_crta).split('-')[1]
     team = str(current_user.icyfire_crta).split('-')[2]
     agent = str(current_user.icyfire_crta).split('-')[3]
     start = date(year={}, month={}, day=1).format(datetime.utcnow().strftime('%Y'), datetime.utcnow().strftime('%m'))
-    if crta is None:
-        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=403, status_message='Permission denied.')
-        flash("You don't have permission to do that.")
-        return redirect(url_for('main.dashboard'))
     # Country lead
     if country != '00' and region == '00' and team == '00' and agent == '00':
         country_lead = CountryLead.query.filter_by(crta_code=crta).first()
-        sales = Sale.query.filter_by(country_lead_id=country_lead.id).filter(Sale.timestamp >= start)
+        #sales = Sale.query.filter_by(country_lead_id=country_lead.id).filter(Sale.timestamp >= start)
+        sales = Sale.query.filter(Sale.country_lead_id == country_lead.id, Sale.timestamp >= start).all()
         subs = country_lead.region_leads
         label = 'country_lead'
         title = 'Dashboard - {} Country Lead'.format(country)
@@ -66,7 +67,8 @@ def dashboard():
     # Region lead
     elif country != '00' and region != '00' and team == '00' and agent == '00':
         region_lead = RegionLead.query.filter_by(crta_code=crta).first()
-        sales = Sale.query.filter_by(region_lead_id=region_lead.id).filter(Sale.timestamp >= start)
+        #sales = Sale.query.filter_by(region_lead_id=region_lead.id).filter(Sale.timestamp >= start)
+        sales = Sale.query.filter(Sale.region_lead_id == region_lead.id, Sale.timestamp >= start).all()
         subs = region_lead.team_leads
         label = 'region_lead'
         title = 'Dashboard - {} Region Lead'.format(region)
@@ -74,7 +76,8 @@ def dashboard():
     # Team lead
     elif country != '00' and region != '00' and team != '00' and agent == '00':
         team_lead = TeamLead.query.filter_by(crta_code=crta).first()
-        sales = Sale.query.filter_by(team_lead_id=team_lead.id).filter(Sale.timestamp >= start)
+        #sales = Sale.query.filter_by(team_lead_id=team_lead.id).filter(Sale.timestamp >= start)
+        sales = Sale.query.filter(Sale.team_lead_id == team_lead.id, Sale.timestamp >= start).all()
         subs = team_lead.agents
         label = 'team_lead'
         title = 'Dashboard - {} Team Lead'.format(team)
@@ -82,7 +85,8 @@ def dashboard():
     # Agent
     elif country != '00' and region != '00' and team != '00' and agent != '00':
         agent = Agent.query.filter_by(crta_code=crta).first()
-        sales = Sale.query.filter_by(agent_id=agent.id).filter(Sale.timestamp >= start)
+        #sales = Sale.query.filter_by(agent_id=agent.id).filter(Sale.timestamp >= start)
+        sales = Sale.query.filter(Sale.agent_id == agent.id, Sale.timestamp >= start).all()
         subs = None
         label = 'agent'
         title = 'Dashboard - Agent {}'.format(agent)
@@ -106,7 +110,7 @@ def create_sale():
     '''
     if current_user.icyfire_crta is None or str(current_user.icyfire_crta).split('-')[3] == '00':
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.create_sale', status_code=403, status_message='Permission denied.')
-        flash("Only IcyFire agents are able to create sales.")
+        flash("ERROR: Only IcyFire agents are able to create sales.")
         return redirect(url_for('sales.dashboard'))
     form = SaleForm()
     if form.validate_on_submit():
@@ -192,8 +196,8 @@ def create_sale():
         basedir = os.path.abspath(os.path.dirname(__file__))
         data_dict = {
             'invoice_date': datetime.utcnow().strftime('%Y-%d-%m'),
-            'icyfire_address1': '6558 S COOK WAY',
-            'icyfire_address2': 'CENTENNIAL, COLORADO, USA 80121',
+            'icyfire_address1': '6058 S HILL ST',
+            'icyfire_address2': 'LITTLETON, COLORADO, USA 80120',
             'agent_name': '{} {}'.format(agent.first_name, agent.last_name),
             'agent_email': current_user.email,
             'agent_phone': '+{}-({})-{}-{}'.format(agent.phone_country, str(agent.phone_number)[0:3], str(agent.phone_number)[3:6], str(agent.phone_number)[6:10]),

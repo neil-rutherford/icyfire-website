@@ -1,8 +1,20 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <table>
+    <h1>Manage user permissions</h1>
+    <p>As domain admin, you are responsible for managing user permissions. You may grant or revoke permissions to any user registered to your domain, including yourself.</p>
+    <p>For security purposes, new users have no permissions by default. In other words, you need to grant permission before they can begin using this service.</p>
+    <ul style="list-style-type:none;">
+        <li><b><u>EMAIL:</b></u> The email address that the user used to register. Click the link to get more information about the user.</li>
+        <li><b><u>POST COUNT:</b></u> How many posts has this user created and/or edited?</li>
+        <li><b><u>CREATE:</b></u> This permission allows a user to create new social media posts. (Recommended for team members and content creators.)</li>
+        <li><b><u>READ:</b></u> This permission allows a user to see all of the posts in your domain's social media queues. (Recommended for everyone in your organization.)</li>
+        <li><b><u>UPDATE:</b></u> This permission allows a user to edit your domain's social media posts. (Recommended for managers and trusted team members.)</li>
+        <li><b><u>DELETE:</b></u> This permission allows a user to delete your domain's social media posts. (Recommended for managers and trusted team members.)</li>
+        <li><b><u>REMOVE:</b></u> This action permanently deletes a user's account and cannot be undone. Don't perform this action on your own account. (Recommended for terminated employees or malicious actors attempting to access your domain.)</li>
+    </ul>
+
+    <table width=100%>
         <tr>
             <th>Email</th>
             <th>Post Count</th>
@@ -14,42 +26,111 @@
         </tr>
         {% for user in users %}
             {% if user.is_create == false and user.is_read == false and user.is_update == false and user.is_delete == false %}
-                <tr class="action-needed">
-                    <td>{{ user.email }}</td>
+                <tr>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=user.id) }}">{{ user.email }}</a></td>
                     <td>{{ user.post_count }}</td>
-                    <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='c') }}">Grant</a></td>
-                    <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='r') }}">Grant</a></td>
-                    <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='u') }}">Grant</a></td>
-                    <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='d') }}">Grant</a></td>
-                    <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='kill') }}">Kill</a></td>
+                    <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='c') }}">Grant</a></td>
+                    <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='r') }}">Grant</a></td>
+                    <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='u') }}">Grant</a></td>
+                    <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='d') }}">Grant</a></td>
+                    <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='kill') }}">Remove</a></td>
                 </tr>
             {% else %}
-                <tr class="normal">
-                    <td>{{ user.email }}</td>
+                <tr>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=user.id) }}">{{ user.email }}</a></td>
                     <td>{{ user.post_count }}</td>
                     {% if user.is_create == false %}
-                        <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='c') }}">Grant</a></td>
+                        <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='c') }}">Grant</a></td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='c') }}">Revoke</a></td>
+                        <td style="background-color:#aed581"><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='c') }}">Revoke</a></td>
                     {% endif %}
                     {% if user.is_read == false %}
-                        <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='r') }}">Grant</a></td>
+                        <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='r') }}">Grant</a></td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='r') }}">Revoke</a></td>
+                        <td style="background-color:#aed581"><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='r') }}">Revoke</a></td>
                     {% endif %}
                     {% if user.is_update == false %}
-                        <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='u') }}">Grant</a></td>
+                        <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='u') }}">Grant</a></td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='u') }}">Revoke</a></td>
+                        <td style="background-color:#aed581"><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='u') }}">Revoke</a></td>
                     {% endif %}
                     {% if user.is_delete == false %}
-                        <td><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='d') }}">Grant</a></td>
+                        <td style="background-color:#F08080"><a href="{{ url_for('admin.grant_permission', user_id=user.id, permission='d') }}">Grant</a></td>
                     {% else %}
-                        <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='d') }}">Revoke</a></td>
+                        <td style="background-color:#aed581"><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='d') }}">Revoke</a></td>
                     {% endif %}
-                    <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='kill') }}">Kill</a></td>
+                    <td><a href="{{ url_for('admin.revoke_permission', user_id=user.id, permission='kill') }}">Remove</a></td>
                 </tr>
             {% endif %}
         {% endfor %}
     </table>
+    <hr>
+    
+    <article class="row p-5">
+        <h1>Social media accounts and posting schedule</h1>
+        <p>Add new social media accounts. Delete old social media accounts. Manage your posting schedule.</p>
+        <center>
+        <form action="{{ url_for('auth.link_social') }}">
+            <input type="submit" value="Manage accounts and scheduling">
+        </form>
+        </center>
+    </article>
+    
+    <hr>
+
+    <h1>Recent domain activity</h1>
+    <p>As domain admin, you are also responsible for monitoring activity on your domain and reporting anything suspicious you see to our security team. The data below is from the last 14 days.</p>
+    <ul style="list-style-type:none;">
+        <li><i>"Successful"</i> means that a user has succeeded in doing an action. For malicious actors, this means that they have gained access and are doing damage.</li><br>
+        <li><i>"Attempted"</i> means that a user has failed in doing an action, generally because they lack the needed permissions. For malicious actors, this means that they are trying to gain access but have not succeeded yet.</li>
+    </ul>
+    <hr>
+    <h2>Post creations</h2>
+    <p>Activity concerning users creating new social media posts.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_create_success') }}">Successful creations</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_create_fail') }}">Attempted creations</a></h3></li>
+    </ul>
+    <hr>
+    <h2>Post reads</h2>
+    <p>Activity concerning users viewing your domain's social media queues.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_read_success') }}">Successful reads</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_read_fail') }}">Attempted reads</a></h3></li>
+    </ul>
+    <hr>
+    <h2>Post updates</h2>
+    <p>Activity concerning users editing existing social media posts.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_update_success') }}">Successful updates</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_update_fail') }}">Attempted updates</a></h3></li>
+    </ul>
+    <hr>
+    <h2>Post deletions</h2>
+    <p>Activity concerning users deleting existing social media posts.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_delete_success') }}">Successful deletions</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_delete_fail') }}">Attempted deletions</a></h3></li>
+    </ul>
+    <hr>
+    <h2>Permissions</h2>
+    <p>Activity concerning granting/revoking user permissions.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_permission_success') }}">Successful permission changes</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_permission_fail') }}">Attempted permission changes</a></h3></li>
+    </ul>
+    <hr>
+    <h2>Admin console</h2>
+    <p>Activity concerning access to this control panel.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_admin_success') }}">Successful console access</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_admin_fail') }}">Attempted console access</a></h3></li>
+    </ul>
+    <hr>
+    <h2>Credentials</h2>
+    <p>Activity concerning your domain's social media credentials.</p>
+    <ul style="list-style-type:none;">
+        <li><h3><a href="{{ url_for('admin.sentry_creds_success') }}">Successful credential access</a></h3></li>
+        <li><h3><a href="{{ url_for('admin.sentry_creds_fail') }}">Attempted credential access</a></h3></li>
+    </ul>
 {% endblock %}

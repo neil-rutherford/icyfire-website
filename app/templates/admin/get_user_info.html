@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <h1>User {{ user.id }}</h1>
 
-    <h2>User information<h2>
+    <h2>User information</h2>
     <p><b>Email:</b> {{ user.email }}</p>
     {% if user.domain_id == current_user.domain_id %}
         <p><b>Domain:</b> Part of your domain.</p>
@@ -12,32 +11,32 @@
         <p><b>Domain: </b>Not part of your domain.</p>
     {% endif %}
     <p><b>Post count:</b> {{ user.post_count }}</p>
-    <p><b>Admin:</p> {{ user.is_admin }}</p>
+    <p><b>Admin:</b> {{ user.is_admin }}</p>
 
     <h2>User permissions</h2>
     {% if user.is_create == true %}
-        <p><b>CREATE:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='c', user_id={{ user.id }}) }}">Revoke</a></p>
+        <p><b>CREATE:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='c', user_id=user.id) }}">Revoke</a></p>
     {% else %}
-        <p><b>CREATE:</b> False | <a href="{{ url_for('admin.grant_permission', permission='c', user_id={{ user.id }}) }}">Grant</a></p>
+        <p><b>CREATE:</b> False | <a href="{{ url_for('admin.grant_permission', permission='c', user_id=user.id) }}">Grant</a></p>
     {% endif %}
     {% if user.is_read == true %}
-        <p><b>READ:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='r', user_id={{ user.id }}) }}">Revoke</a></p>
+        <p><b>READ:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='r', user_id=user.id) }}">Revoke</a></p>
     {% else %}
-        <p><b>READ:</b> False | <a href="{{ url_for('admin.grant_permission', permission='r', user_id={{ user.id }}) }}">Grant</a></p>
+        <p><b>READ:</b> False | <a href="{{ url_for('admin.grant_permission', permission='r', user_id=user.id) }}">Grant</a></p>
     {% endif %}
     {% if user.is_update == true %}
-        <p><b>UPDATE:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='u', user_id={{ user.id }}) }}">Revoke</a></p>
+        <p><b>UPDATE:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='u', user_id=user.id) }}">Revoke</a></p>
     {% else %}
-        <p><b>UPDATE:</b> False | <a href="{{ url_for('admin.grant_permission', permission='u', user_id={{ user.id }}) }}">Grant</a></p>
+        <p><b>UPDATE:</b> False | <a href="{{ url_for('admin.grant_permission', permission='u', user_id=user.id) }}">Grant</a></p>
     {% endif %}
     {% if user.is_delete == true %}
-        <p><b>DELETE:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='d', user_id={{ user.id }}) }}">Revoke</a></p>
+        <p><b>DELETE:</b> True | <a href="{{ url_for('admin.revoke_permission', permission='d', user_id=user.id) }}">Revoke</a></p>
     {% else %}
-        <p><b>DELETE:</b> False | <a href="{{ url_for('admin.grant_permission', permission='d', user_id={{ user.id }}) }}">Grant</a></p>
+        <p><b>DELETE:</b> False | <a href="{{ url_for('admin.grant_permission', permission='d', user_id=user.id) }}">Grant</a></p>
     {% endif %}
 
-    <h2>Activity in domain over the past 14 days</h2>
-    <table>
+    <h2>Recent activity in your domain</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>IP address</th>

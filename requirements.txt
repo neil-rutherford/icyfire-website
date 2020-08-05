@@ -7,3 +7,13 @@ flask-login
 flask-bootstrap
 flask-moment
 pdfrw
+flask-mail
+pyjwt
+facebook-sdk
+python-twitter
+pytumblr
+praw
+cryptography
+boto3
+flask-testing
+markdown

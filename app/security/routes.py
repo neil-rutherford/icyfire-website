@@ -5,8 +5,8 @@ from app.security import bp
 from app.models import User, Sentry, Domain
 from datetime import datetime, timedelta
 
-def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
-    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id)
+def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
+    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id, flag=flag)
     db.session.add(activity)
     db.session.commit()
 
@@ -133,7 +133,7 @@ def view_blueprint(blueprint_name):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=403, status_message='{}'.format(blueprint_name))
         flash("You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
-    granted = Sentry.query.filter(Sentry.endpoint.split('.')[0] == blueprint_name.lower() and Sentry.status_code == 200).all()
-    denied = Sentry.query.filter(Sentry.endpoint.split('.')[0] == blueprint_name.lower() and Sentry.status_code == 403).all()
+    granted = Sentry.query.filter(Sentry.endpoint.split('.')[0] == blueprint_name.lower(), Sentry.status_code == 200).all()
+    denied = Sentry.query.filter(Sentry.endpoint.split('.')[0] == blueprint_name.lower(), Sentry.status_code == 403).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='{}'.format(blueprint_name))
     return render_template('security/view_blueprint.html', title='SENTRY - {}'.format(str(blueprint_name).upper()), granted=granted, denied=denied, blueprint_name=blueprint_name.upper())

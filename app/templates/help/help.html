@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Help Topics</h1>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='api') }}">Application Programming Interface (API)</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='admin') }}">Domain Admin Portal</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='errors') }}">Error Messages</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='legal') }}">Legal Agreements</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='maintenance') }}">Maintenance Portal</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='promo') }}">Promotional Pages</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='auth') }}">Registration and Log In</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='sales') }}">Sales Portal</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='security') }}">Security Portal</a></h2>
+    <hr>
+    <h2><a href="{{ url_for('main.help_topic', topic='main') }}">Social Media Scheduling Tool</a></h2>
+{% endblock %}

@@ -1,0 +1,328 @@
+<h2>Facebook Queue</h2>
+<button type="button" class="collapsible">Facebook</button>
+<div class="content">
+    <table class="facebook">
+        <tr>
+            <th>Post Type</th>
+            <th>Timestamp</th>
+            <th>Body</th>
+            <th>Link URL</th>
+            <th>Multimedia URL</th>
+            <th>Tags</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for post in facebook_queue %}
+            <tr>
+                {% if post.post_type|int == 1 %}
+                    <td>Short Text</td>
+                {% elif post.post_type|int == 2 %}
+                    <td>Long Text</td>
+                {% elif post.post_type|int == 3 %}
+                    <td>Image</td>
+                {% elif post.post_type|int == 4 %}
+                    <td>Video</td>
+                {% endif %}
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td>{{ post.body }}</td>
+                <td><a href="{{ post.link_url }}">Link URL</a></td>
+                <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                <td>{{ post.tags }}</td>
+                {% if post.post_type|int == 1 %}
+                    <td><a href="{{ url_for('main.update_short_text', platform='facebook', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 2 %}
+                    <td><a href="{{ url_for('main.update_long_text', platform='facebook', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 3 %}
+                    <td><a href="{{ url_for('main.update_image', platform='facebook', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 4 %}
+                    <td><a href="{{ url_for('main.update_video', platform='facebook', post_id=post.id) }}">Update</a></td>
+                {% endif %}
+                <td><a href="{{ url_for('main.delete_post', platform='facebook', post_id=post.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>Twitter Queue</h2>
+<button type="button" class="collapsible">Twitter</button>
+<div class="content">
+    <table class="twitter">
+        <tr>
+            <th>Post Type</th>
+            <th>Timestamp</th>
+            <th>Body</th>
+            <th>Link URL</th>
+            <th>Multimedia URL</th>
+            <th>Tags</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for post in twitter_queue %}
+            <tr>
+                {% if post.post_type|int == 1 %}
+                    <td>Short Text</td>
+                {% elif post.post_type|int == 2 %}
+                    <td>Long Text</td>
+                {% elif post.post_type|int == 3 %}
+                    <td>Image</td>
+                {% elif post.post_type|int == 4 %}
+                    <td>Video</td>
+                {% endif %}
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td>{{ post.body }}</td>
+                <td><a href="{{ post.link_url }}">Link URL</a></td>
+                <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                <td>{{ post.tags }}</td>
+                {% if post.post_type|int == 1 %}
+                    <td><a href="{{ url_for('main.update_short_text', platform='twitter', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 2 %}
+                    <td><a href="{{ url_for('main.update_long_text', platform='twitter', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 3 %}
+                    <td><a href="{{ url_for('main.update_image', platform='twitter', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 4 %}
+                    <td><a href="{{ url_for('main.update_video', platform='twitter', post_id=post.id) }}">Update</a></td>
+                {% endif %}
+                <td><a href="{{ url_for('main.delete_post', platform='twitter', post_id=post.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>Tumblr Queue</h2>
+<button type="button" class="collapsible">Tumblr</button>
+<div class="content">
+    <table class="tumblr">
+        <tr>
+            <th>Post Type</th>
+            <th>Timestamp</th>
+            <th>Title</th>
+            <th>Post Body</th>
+            <th>Link URL</th>
+            <th>Multimedia URL</th>
+            <th>Tags</th>
+            <th>Caption</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for post in tumblr_queue %}
+            <tr>
+                {% if post.post_type|int == 1 %}
+                    <td>Short Text</td>
+                {% elif post.post_type|int == 2 %}
+                    <td>Long Text</td>
+                {% elif post.post_type|int == 3 %}
+                    <td>Image</td>
+                {% elif post.post_type|int == 4 %}
+                    <td>Video</td>
+                {% endif %}
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td>{{ post.title }}</td>
+                <td>{{ post.body }}</td>
+                <td><a href="{{ post.link_url }}">Link URL</a></td>
+                <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                <td>{{ post.tags }}</td>
+                <td>{{ post.caption }}</td>
+                {% if post.post_type|int == 1 %}
+                    <td><a href="{{ url_for('main.update_short_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 2 %}
+                    <td><a href="{{ url_for('main.update_long_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 3 %}
+                    <td><a href="{{ url_for('main.update_image', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 4 %}
+                    <td><a href="{{ url_for('main.update_video', platform='tumblr', post_id=post.id) }}">Update</a></td>
+                {% endif %}
+                <td><a href="{{ url_for('main.delete_post', platform='tumblr', post_id=post.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>Reddit Queue</h2>
+<button type="button" class="collapsible">Reddit</button>
+<div class="content">
+    <table class="reddit">
+        <tr>
+            <th>Post Type</th>
+            <th>Timestamp</th>
+            <th>Title</th>
+            <th>Body</th>
+            <th>Link URL</th>
+            <th>Image URL</th>
+            <th>Video URL</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for post in reddit_queue %}
+            <tr>
+                {% if post.post_type|int == 1 %}
+                    <td>Short Text</td> 
+                {% elif post.post_type|int == 2 %}
+                    <td>Long Text</td>
+                {% elif post.post_type|int == 3 %}
+                    <td>Image</td>
+                {% elif post.post_type|int == 4 %}
+                    <td>Video</td>
+                {% endif %}
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td>{{ post.title }}</td>
+                <td>{{ post.body }}</td>
+                <td><a href="{{ post.link_url }}">Link URL</a></td>
+                <td><a href="{{ post.image_url }}">Image URL</a></td>
+                <td><a href="{{ post.video_url }}">Video URL</a></td>
+                {% if post.post_type|int == 1 %}
+                    <td><a href="{{ url_for('main.update_short_text', platform='reddit', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 2 %}
+                    <td><a href="{{ url_for('main.update_long_text', platform='reddit', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 3 %}
+                    <td><a href="{{ url_for('main.update_image', platform='reddit', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 4 %}
+                    <td><a href="{{ url_for('main.update_video', platform='reddit', post_id=post.id) }}">Update</a></td>
+                {% endif %}
+                <td><a href="{{ url_for('main.delete_post', platform='reddit', post_id=post.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>YouTube Queue</h2>
+<button type="button" class="collapsible">YouTube</button>
+<div class="content">
+    <table class="youtube">
+        <tr>
+            <th>Post Type</th>
+            <th>Timestamp</th>
+            <th>Title</th>
+            <th>Caption</th>
+            <th>Video URL</th>
+            <th>Tags</th>
+            <th>Category</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for post in youtube_queue %}
+            <tr>
+                <td>Video</td>
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td>{{ post.title }}</td>
+                <td>{{ post.caption }}</td>
+                <td><a href="{{ post.multimedia_url }}">Video URL</a></td>
+                <td>{{ post.tags }}</a>
+                {% if post.category|int == 1 %}
+                    <td>Film & Animation</td>
+                {% elif post.category|int == 2 %}
+                    <td>Autos & Vehicles</td>
+                {% elif post.category|int == 10 %}
+                    <td>Music</td>
+                {% elif post.category|int == 15 %}
+                    <td>Pets & Animals</td>
+                {% elif post.category|int == 17 %}
+                    <td>Sports</td>
+                {% elif post.category|int == 18 %}
+                    <td>Short Movies</td>
+                {% elif post.category|int == 19 %}
+                    <td>Travel & Events</td>
+                {% elif post.category|int == 20 %}
+                    <td>Gaming</td>
+                {% elif post.category|int == 21 %}
+                    <td>Videoblogging</td>
+                {% elif post.category|int == 22 %}
+                    <td>People & Blogs</td>
+                {% elif post.category|int == 23 %}
+                    <td>Comedy</td>
+                {% elif post.category|int == 24 %}
+                    <td>Entertainment</td>
+                {% elif post.category|int == 25 %}
+                    <td>News & Politics</td>
+                {% elif post.category|int == 26 %}
+                    <td>Howto & Style</td>
+                {% elif post.category|int == 27 %}
+                    <td>Education</td>
+                {% elif post.category|int == 28 %}
+                    <td>Science & Technology</td>
+                {% elif post.category|int == 29 %}
+                    <td>Nonprofits & Activism</td>
+                {% elif post.category|int == 30 %}
+                    <td>Movies</td>
+                {% elif post.category|int == 31 %}
+                    <td>Anime/Animation</td>
+                {% elif post.category|int == 32 %}
+                    <td>Action/Adventure</td>
+                {% elif post.category|int == 33 %}
+                    <td>Classics</td>
+                {% elif post.category|int == 34 %}
+                    <td>Comedy</td>
+                {% elif post.category|int == 35 %}
+                    <td>Documentary</td>
+                {% elif post.category|int == 36 %}
+                    <td>Drama</td>
+                {% elif post.category|int == 37 %}
+                    <td>Family</td>
+                {% elif post.category|int == 38 %}
+                    <td>Foreign</td>
+                {% elif post.category|int == 39 %}
+                    <td>Horror</td>
+                {% elif post.category|int == 40 %}
+                    <td>Sci-Fi/Fantasy</td>
+                {% elif post.category|int == 41 %}
+                    <td>Thriller</td>
+                {% elif post.category|int == 42 %}
+                    <td>Shorts</td>
+                {% elif post.category|int == 43 %}
+                    <td>Shows</td>
+                {% elif post.category|int == 44 %}
+                    <td>Trailers</td>
+                {% endif %}
+                </td>
+                <td><a href="{{ url_for('main.update_video', platform='youtube', post_id=post.id) }}">Update</a></td>
+                <td><a href="{{ url_for('main.delete_post', platform='youtube', post_id=post.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+
+<h2>LinkedIn Queue</h2>
+<button type="button" class="collapsible">LinkedIn</button>
+<div class="content">
+    <table class="linkedin">
+        <tr>
+            <th>Post Type</th>
+            <th>Timestamp</th>
+            <th>Title</th>
+            <th>Body</th>
+            <th>Caption</th>
+            <th>Link URL</th>
+            <th>Multimedia URL</th>
+            <th>Update</th>
+            <th>Delete</th>
+        </tr>
+        {% for post in linkedin_queue %}
+            <tr>
+                    {% if post.post_type|int == 1 %}
+                        <td>Short Text</td>
+                    {% elif post.post_type|int == 2 %}
+                        <td>Long Text</td>
+                    {% elif post.post_type|int == 3 %}
+                        <td>Image</td>
+                    {% elif post.post_type|int == 4 %}
+                        <td>Video</td>
+                    {% endif %}
+                <td>{{ moment(post.timestamp).format('LLL') }}</td>
+                <td>{{ post.title }}</td>
+                <td>{{ post.body }}</td>
+                <td>{{ post.caption }}</td>
+                <td><a href="{{ post.link_url }}">Link URL</a></td>
+                <td><a href="{{ post.multimedia_url }}">Multimedia URL</a></td>
+                {% if post.post_type|int == 1 %}
+                    <td><a href="{{ url_for('main.update_short_text', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 2 %}
+                    <td><a href="{{ url_for('main.update_long_text', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 3 %}
+                    <td><a href="{{ url_for('main.update_image', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                {% elif post.post_type|int == 4 %}
+                    <td><a href="{{ url_for('main.update_video', platform='linkedin', post_id=post.id) }}">Update</a></td>
+                {% endif %}
+                <td><a href="{{ url_for('main.delete_post'), platform='linkedin', post_id=post.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>

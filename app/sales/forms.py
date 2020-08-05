@@ -67,10 +67,11 @@ class SaleForm(FlaskForm):
         ('Wisconsin', 'Wisconsin'),
         ('Wyoming', 'Wyoming')
     ],
-    validators=[DataRequired(), Length(max=50)])
+    validators=[DataRequired()])
     client_zip = StringField('ZIP code', validators=[DataRequired(), Length(max=15)])
     client_phone_number = StringField('Contact phone number', validators=[DataRequired(), Length(min=10, max=10), phone_check])
     client_email = StringField('Contact email', validators=[DataRequired(), Email(), Length(max=120)])
-    quantity = StringField('Quantity sold', validators=[DataRequired(), phone_check])
+    payment_reference = StringField('Payment reference code', validators=[DataRequired(), Length(max=100)])
+    #quantity = StringField('Quantity sold', validators=[DataRequired(), phone_check])
     submit = SubmitField('Submit')
 

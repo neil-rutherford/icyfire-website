@@ -2,5 +2,119 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <p>Link social place holder</p>
+    <h1>{{ domain.domain_name }}'s social media accounts</h1>
+    <h3>Housekeeping</h3>
+    <ul>
+        <li><mark>We use <a href="https://en.wikipedia.org/wiki/Coordinated_Universal_Time">UTC time</a> for scheduling posts.</mark> This helps us keep everyone on the same page, especially when daylight savings comes into effect. Keep that in mind when you schedule posts.</li>
+        <li>For your safety, we do not show OAuth credentials or time slots on this page. If you would like that information, please click the "Edit" link.</li>
+        <li>We recommend 1 post/day/account, but if you would like to post more often than that, you are free to do so. Click "Connect a new ... account", use the same account credentials, and choose additional times.</li>
+        <li>Be courteous and don't spam. You will receive a warning if we suspect you are abusing our platform. If you fail to heed the warning, IcyFire reserves the right to take action against your domain account as we see fit.</li>
+    </ul>
+    <hr>
+    <h2>Facebook</h2>
+    <h3>New account</h3>
+    <ul>
+        <li><a href="{{ url_for('auth.send_literature', document_name='facebook_about') }}">New to Facebook? Start here.</a></li>
+        <li><a href="{{ url_for('auth.send_literature', document_name='facebook_setup') }}">IcyFire set-up instructions</a></li>
+        <li><a href="{{ url_for('auth.link_facebook') }}">Connect a new Facebook account</a></li>
+    </ul>
+    <h3>Existing account(s)</h3>
+    <table width=100%>
+        <tr>
+            <th>Alias</th>
+            <th>Time slots per week</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        {% for cred in facebook_creds %}
+            <tr>
+                <td>{{ cred.alias }}</td>
+                <td>{{ cred.time_slots|length }}</td>
+                <td><a href="{{ url_for('auth.edit_cred', platform='facebook', cred_id=cred.id) }}">Edit</a></td>
+                <td><a href="{{ url_for('auth.delete_cred', platform='facebook', cred_id=cred.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+    <h2>Twitter</h2>
+    <h3>New account</h3>
+    <ul>
+        <li><a href="{{ url_for('auth.send_literature', document_name='twitter_about') }}">New to Twitter? Start here.</a></li>
+        <li><a href="{{ url_for('auth.send_literature', document_name='twitter_setup') }}">IcyFire set-up instructions</a></li>
+        <li><a href="{{ url_for('auth.link_twitter') }}">Connect a new Twitter account</a></li>
+    </ul>
+    <h3>Existing account(s)</h3>
+    <table width=100%>
+        <tr>
+            <th>Alias</th>
+            <th>Time slots per week</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        {% for cred in twitter_creds %}
+            <tr>
+                <td>{{ cred.alias }}</td>
+                <td>{{ cred.time_slots|length }}</td>
+                <td><a href="{{ url_for('auth.edit_cred', platform='twitter', cred_id=cred.id) }}">Edit</a></td>
+                <td><a href="{{ url_for('auth.delete_cred', platform='twitter', cred_id=cred.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+    <h2>Tumblr</h2>
+    <h3>New account</h3>
+    <ul>
+        <li><a href="{{ url_for('auth.send_literature', document_name='tumblr_about') }}">New to Tumblr? Start here.</a></li>
+        <li><a href="{{ url_for('auth.send_literature', document_name='tumblr_setup') }}">IcyFire set-up instructions</a></li>
+        <li><a href="{{ url_for('auth.link_tumblr') }}">Connect a new Tumblr account</a></li>
+    </ul>
+    <h3>Existing account(s)</h3>
+    <table width=100%>
+        <tr>
+            <th>Alias</th>
+            <th>Blog name</th>
+            <th>Time slots per week</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        {% for cred in tumblr_creds %}
+            <tr>
+                <td>{{ cred.alias }}</td>
+                <td>{{ cred.blog_name }}</td>
+                <td>{{ cred.time_slots|length }}</td>
+                <td><a href="{{ url_for('auth.edit_cred', platform='tumblr', cred_id=cred.id) }}">Edit</a></td>
+                <td><a href="{{ url_for('auth.delete_cred', platform='tumblr', cred_id=cred.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <hr>
+    <h2>Reddit</h2>
+    <h3>New account</h3>
+    <ul>
+        <li><a href="{{ url_for('auth.send_literature', document_name='reddit_about') }}">New to Reddit? Start here.</a></li>
+        <li><a href="{{ url_for('auth.send_literature', document_name='reddit_setup') }}">IcyFire set-up instructions</a></li>
+        <li><a href="{{ url_for('auth.link_reddit') }}">Connect a new Reddit account</a></li>
+    </ul>
+    <h3>Existing account(s)</h3>
+    <table width=100%>
+        <tr>
+            <th>Alias</th>
+            <th>Target subreddit</th>
+            <th>Time slots per week</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        {% for cred in reddit_creds %}
+            <tr>
+                <td>{{ cred.alias }}</td>
+                <td>{{ cred.target_subreddit }}</td>
+                <td>{{ cred.time_slots|length }}</td>
+                <td><a href="{{ url_for('auth.edit_cred', platform='reddit', cred_id=cred.id) }}">Edit</a></td>
+                <td><a href="{{ url_for('auth.delete_cred', platform='reddit', cred_id=cred.id) }}">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

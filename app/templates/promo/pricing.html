@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <img src="{{ url_for('promo.random_image', image_type='scenic') }}" width=100% height="auto">
+    <hr>
+    <h1>IcyFire Social Media Automation</h1>
+    <h2>Pricing</h2>
+    <p><b>Our one-time fee of $3000 (not including applicable taxes) includes:</b></p>
+    <ul>
+        <li>Unlimited queue length.</li>
+        <li>Unlimited number of team members.</li>
+        <li>Constantly improving software.</li>
+        <li>A promise to post on your behalf for as long as the company is in existence.</li>
+        <li>Unrivaled ownership and transparency.</li>
+        <li>Security that you are in control of.</li>
+        <li>No limits on branding or use of custom URLs.</li>
+    </ul>
+
+    <h2>How we stack up</h2>
+    <p>We get it. $3,000 is a lot to pay all at once. But just for fun, let's see how we compare to our competition.</p>
+    <br>
+    <p>Later Brand Account:</p>
+    <ul>
+        <li>5 team members</li>
+        <li><strong>5.1 years</strong> to break even</li>
+    </ul>
+    <hr>
+    <p>Loomly Standard Account:<p>
+    <ul>
+        <li>6 team members</li>
+        <li>Limits on branding</li>
+        <li>Limits on collaboration and permissions</li>
+        <li><strong>4.3 years</strong> to break even</li>
+    </ul>
+    <hr>
+    <p>Buffer Premium Account:</p>
+    <ul>
+        <li>2 team members</li>
+        <li>Limited queue limit</li>
+        <li><strong>3.8 years</strong> to break even</li>
+    </ul>
+    <hr>
+    <p>HootSuite Team Plan:</p>
+    <ul>
+        <li>3 team members</li>
+        <li>Limits on branding</li>
+        <li>Security infrastructure that is purposely withheld if you don't upgrade your account</li>
+        <li><strong>1.9 years</strong> to break even</li>
+    </ul>
+    <hr>
+    <p>Agorapulse Large Account:</p>
+    <ul>
+        <li>4 team members</li>
+        <li><strong>1.6 years</strong> to break even</li>
+    </ul>
+    <hr>
+    <p>Sprout Social Standard Account:</p>
+    <ul>
+        <li>3 team members</li>
+        <li><strong>0.8 years</strong> to break even</li>
+    </ul>
+
+    <h2>Still have questions?</h2>
+    <p>We would love to talk with you and see how IcyFire could fit your company's needs.</p>
+    <p>Here's the contact info for one of our representatives. To learn more, feel free to reach out at a reasonable time!</p>
+    <button type="button" class="collapsible">Contact Info</button>
+    <div class="content">
+        <p><b>Name:</b> {{ name }}<br>
+        <b>Phone:</b> {{ phone_number }}<br>
+        <b>Email:</b> {{ email }}
+        </p>
+    </div>
+{% endblock %}

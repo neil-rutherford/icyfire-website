@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
-#from flask_babel import Babel, lazy_gettext as _l
+from flask_mail import Mail
 import os
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
@@ -14,11 +14,9 @@ db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'auth.login'
-#login.login_message = _l('Please log in to access this page.')
-#mail = Mail()
+mail = Mail()
 bootstrap = Bootstrap()
 moment = Moment()
-#babel = Babel()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -27,10 +25,9 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
     login.init_app(app)
-    #mail.init_app(app)
+    mail.init_app(app)
     bootstrap.init_app(app)
     moment.init_app(app)
-    #babel.init_app(app)
 
     from app.main import bp as main_bp
     app.register_blueprint(main_bp)
@@ -50,8 +47,8 @@ def create_app(config_class=Config):
     from app.sales import bp as sales_bp
     app.register_blueprint(sales_bp)
 
-    #from app.promo import bp as promo_bp
-    #app.register_blueprint(promo_bp)
+    from app.promo import bp as promo_bp
+    app.register_blueprint(promo_bp)
 
     from app.security import bp as security_bp
     app.register_blueprint(security_bp)

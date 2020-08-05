@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Sorry, you don't have permission to do that.</h1>
+
+    <h2>What's this?</h2>
+    <p>You are seeing this page because you tried to access your dashboard but you don't have read permission. We apologize for the inconvenience, but we are trying to keep your company's social media accounts safe.</p>
+
+    <h2>Excuse me?</h2>
+    <p>By default, all new users have no permissions on this platform until approved by the domain admin. This is to prevent malicious actors from manipulating your company's social media messaging.</p>
+
+    <h2>Okay...so what do I do now?</h2>
+    <p>We have alerted your domain admin that you need read access. If you know the identity of your domain admin, you can probably expedite the process by asking them in-person or by email. Otherwise, hang tight and wait patiently!</p>
+{% endblock %}

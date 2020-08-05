@@ -24,23 +24,28 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">IcyFire</a>
+                <a class="navbar-brand" href="{{ url_for('promo.home') }}">IcyFire</a>
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+                    <li><a href="{{ url_for('promo.home') }}">Home</a></li>
                     <li><a href="{{ url_for('main.help') }}">Help</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_anonymous %}
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-		    <li><a href="{{ url_for('auth.register_user') }}">New User Registration</a></li>
-            <li><a href="{{ url_for('auth.register_domain') }}">New Domain Registration</a></li>
+		            <li><a href="{{ url_for('auth.register_user') }}">New User Registration</a></li>
+                    <li><a href="{{ url_for('auth.register_domain') }}">New Domain Registration</a></li>
                     {% else %}
+                    <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('main.create_short_text') }}"> + Short Text</a></li>
+                    <li><a href="{{ url_for('main.create_long_text') }}"> + Long Text</a></li>
+                    <li><a href="{{ url_for('main.create_image') }}"> + Image</a></li>
+                    <li><a href="{{ url_for('main.create_video') }}"> + Video</a></li>
                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                     {% endif %}
                     {% if current_user.is_admin == true %}
-                    <li><a href="{{ url_for('admin.dashboard') }}">Control Panel</a></li>
+                    <li><a href="{{ url_for('admin.dashboard') }}">Admin Console</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -49,6 +54,7 @@
 {% endblock %}
 
 {% block content %}
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <div class="container">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -60,5 +66,36 @@
 
         {# application content needs to be provided in the app_content block #}
         {% block app_content %}{% endblock %}
+        <br><br>
+        <hr>
+        <footer>
+            <table width=100%>
+                <tr>
+                    <th><b>PRODUCT</b></th>
+                    <th><b>COMPANY</b></th>
+                    <th><b>SECURITY</b></th>
+                </tr>
+                <tr>
+                    <td><ul class="list-unstyled"><li><a href="{{ url_for('auth.register_domain') }}">Register your domain</a></li>
+                    <li><a href="{{ url_for('promo.products') }}">Product information</a></li>
+                    <li><a href="{{ url_for('promo.landing', audience='general') }}">Success stories</a></li>
+                    <li><a href="{{ url_for('promo.pricing') }}">Pricing</a></li>
+                    <li><a href="mailto:service@icy-fire.com">Contact us</a></li>
+                    <li><a href="{{ url_for('promo.make_product_suggestion') }}">Feedback</a></li></ul></td>
+
+                    <td><ul class="list-unstyled"><li><a href="{{ url_for('promo.about') }}">About us</a></li>
+                    <li><a href="{{ url_for('promo.blog') }}">Blog</a></li>
+                    <li><a href="{{ url_for('legal.cookie_policy') }}">Cookie policy</a></li>
+                    <li><a href="{{ url_for('legal.privacy_policy') }}">Privacy policy</a></li>
+                    <li><a href="{{ url_for('legal.terms_of_service') }}">Terms of service</a></li>
+                    <li><a href="{{ url_for('auth.register_contractor') }}">Employee registration</a></li>
+                    <li><a href="#">Careers</a></li></ul></td>
+
+                    <td><ul class="list-unstyled"><li><a href="{{ url_for('legal.vulnerability_disclosure_program') }}">Vulnerability disclosure program</a></li>
+                    <li><a href="{{ url_for('legal.report_vulnerability') }}">Report a vulnerability</a></li>
+                    <li><a href="mailto:security@icy-fire.com">Contact security</a></li></ul></td>
+                </tr>
+            </table>
+        </footer>
     </div>
 {% endblock %}

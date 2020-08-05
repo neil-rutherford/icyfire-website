@@ -1,16 +1,15 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>SENTRY - Failed Admin Console Access</h1>
+    <h1>Attempted Admin Console Access</h1>
 
-    <p>These are your domain's ADMIN-403 logs for the past 14 days. They are created when a user tries unsuccessfully accesses the admin console.</p>
+    <p>These are your domain's ADMIN-403 logs for the past 14 days. They are created when a user tries unsuccessfully to access the admin console.</p>
     <p>Clicking the link in the "User ID" column will bring you to a page where you can review the user's activity and/or change their permissions.</p>
     <p>"Viewer" is the user who attempted to view the user's information. "Target" is the user whose information would have been viewed.</p>
     <p>If you see something that isn't right and you can't control, such as a user you don't recognize accessing your console, please let us know by escalating it to the IcyFire CISO.</p>
 
     <h2>Admin dashboard</h2>
-    <table>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -23,16 +22,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Get user info" page</h2>
-    <table>
+    <h2>"Get user info" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>Viewer ID</th>
@@ -46,17 +45,17 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
-                <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.status_message }}) }}">User {{ post.status_message }}</a></td>
+                <td><a href="{{ url_for('admin.get_user_info', user_id=post.status_message) }}">User {{ post.status_message }}</a></td>
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Create success" page</h2>
-    <table>
+    <h2>"Successful creations" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -69,16 +68,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Create fail" page</h2>
-    <table>
+    <h2>"Attempted creations" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -91,16 +90,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Read success" page</h2>
-    <table>
+    <h2>"Successful reads" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -113,16 +112,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Read fail" page</h2>
-    <table>
+    <h2>"Attempted reads" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -135,16 +134,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Update success" page</h2>
-    <table>
+    <h2>"Successful updates" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -157,16 +156,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Update fail" page</h2>
-    <table>
+    <h2>"Attempted updates" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -179,16 +178,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Delete success" page</h2>
-    <table>
+    <h2>"Successful deletions" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -201,16 +200,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Delete fail" page</h2>
-    <table>
+    <h2>"Attempted deletions" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -223,16 +222,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Permission success" page</h2>
-    <table>
+    <h2>"Successful permission changes" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -245,16 +244,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Permission fail" page</h2>
-    <table>
+    <h2>"Attempted permission changes" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -267,16 +266,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Admin console success" page</h2>
-    <table>
+    <h2>"Successful console access" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -289,16 +288,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Admin console fail" page (this page)</h2>
-    <table>
+    <h2>"Attempted console access" page (this page)</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -311,16 +310,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Creds success" page</h2>
-    <table>
+    <h2>"Successful credential access" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -333,16 +332,16 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>
 
-    <h2>"SENTRY - Creds fail" page</h2>
-    <table>
+    <h2>"Attempted credential access" page</h2>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -355,10 +354,10 @@
                 {% if post.user_id == current_user.id %}
                     <td>You</td>
                 {% else %}
-                    <td><a href="{{ url_for('admin.get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>

@@ -5,6 +5,10 @@ from app.models import User, Domain
 from flask_login import current_user
 from flask import url_for
 import twitter
+import pytumblr
+import facebook
+import praw
+from flask import request
 
 def password_check(form, field):
     '''
@@ -113,7 +117,7 @@ class ContractorRegistrationForm(FlaskForm):
     New contractors, regardless of rank, register here.
     '''
     icyfire_region = SelectField('What state are you in?', choices=[
-        ('00', 'Not applicable. I am the Country Lead.'),
+        ('00', 'Not applicable. I am the Nation Lead.'),
         ('SOUTH', 'Alabama'),
         ('PACIFIC', 'Alaska'),
         ('PACIFIC', 'Arizona'),
@@ -222,97 +226,127 @@ class ContractorRegistrationForm(FlaskForm):
         if icyfire_crta is not None:
             raise ValidationError('A user already exists with that CRTA code. Please contact your administrator.')
 
-# CREDS SPLASH
-class CredsSpash(FlaskForm):
-    is_facebook = BooleanField('Connect Facebook account?')
-    is_twitter = BooleanField('Connect Twitter account?')
-    is_tumblr = BooleanField('Connect Tumblr account?')
-    is_reddit = BooleanField('Connect Reddit account?')
-    is_youtube = BooleanField('Connect YouTube account?')
-    is_linkedin = BooleanField('Connect LinkedIn account?')
-    submit = SubmitField('Get started')
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Request password reset')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+    verify_password = PasswordField('Verify password', validators=[DataRequired(), password_check])
+    submit = SubmitField('Submit')
 
 # FACEBOOK
 class FacebookCreds(FlaskForm):
+    alias = StringField('Account alias (e.g. Facebook-1)', validators=[DataRequired(), Length(max=50)])
     access_token = StringField('Access token', validators=[DataRequired()])
+    schedule_monday = SelectField('Schedule post on Mondays', coerce=int, validators=[DataRequired()])
+    schedule_tuesday = SelectField('Schedule post on Tuesdays', coerce=int, validators=[DataRequired()])
+    schedule_wednesday = SelectField('Schedule post on Wednesdays', coerce=int, validators=[DataRequired()])
+    schedule_thursday = SelectField('Schedule post on Thursdays', coerce=int, validators=[DataRequired()])
+    schedule_friday = SelectField('Schedule post on Fridays', coerce=int, validators=[DataRequired()])
+    schedule_saturday = SelectField('Schedule post on Saturdays', coerce=int, validators=[DataRequired()])
+    schedule_sunday = SelectField('Schedule post on Sundays', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def check_creds(self, access_token):
+        if request.endpoint == 'auth.edit_cred':
+            pass
         try:
             graph = facebook.GraphAPI(access_token=access_token.data)
             graph.put_object(parent_object='me', connection_name='feed', message='How many tickles does it take to get an octopus to laugh?\n\nTen-ticles.')
         except:
             raise ValidationError("Can't verify your credentials. Please try again.")
+    
+    def check_time_slot(self, schedule_monday, schedule_tuesday, schedule_wednesday, schedule_thursday, schedule_friday, schedule_saturday, schedule_sunday):
+        if schedule_monday.data == '0' and schedule_tuesday.data == '0' and schedule_wednesday.data == '0' and schedule_thursday.data == '0' and schedule_friday.data == '0' and schedule_saturday.data == '0' and schedule_sunday == '0':
+            raise ValidationError("No time slot chosen. Please try again.")
 
 # TWITTER
 class TwitterCreds(FlaskForm):
+    alias = StringField('Account alias (e.g. Twitter-1)', validators=[DataRequired(), Length(max=50)])
     consumer_key = StringField('Consumer key', validators=[DataRequired()])
     consumer_secret = StringField('Consumer secret', validators=[DataRequired()])
     access_token_key = StringField('Access token key', validators=[DataRequired()])
     access_token_secret = StringField('Access token secret', validators=[DataRequired()])
+    schedule_monday = SelectField('Schedule post on Mondays', coerce=int, validators=[DataRequired()])
+    schedule_tuesday = SelectField('Schedule post on Tuesdays', coerce=int, validators=[DataRequired()])
+    schedule_wednesday = SelectField('Schedule post on Wednesdays', coerce=int, validators=[DataRequired()])
+    schedule_thursday = SelectField('Schedule post on Thursdays', coerce=int, validators=[DataRequired()])
+    schedule_friday = SelectField('Schedule post on Fridays', coerce=int, validators=[DataRequired()])
+    schedule_saturday = SelectField('Schedule post on Saturdays', coerce=int, validators=[DataRequired()])
+    schedule_sunday = SelectField('Schedule post on Sundays', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def check_creds(self, consumer_key, consumer_secret, access_token_key, access_token_secret):
+        if request.endpoint == 'auth.edit_cred':
+            pass
         try:
             api = twitter.Api(consumer_key=consumer_key.data, consumer_secret=consumer_secret.data, access_token_key=access_token_key.data, access_token_secret=access_token_secret.data)
             api.PostUpdate("What's the difference between bird flu and swine flu?\n\nOne requires tweetment and the other an oinkment.")
         except:
             raise ValidationError("Can't verify your credentials. Please try again.")
 
+    def check_time_slot(self, schedule_monday, schedule_tuesday, schedule_wednesday, schedule_thursday, schedule_friday, schedule_saturday, schedule_sunday):
+        if schedule_monday.data == '0' and schedule_tuesday.data == '0' and schedule_wednesday.data == '0' and schedule_thursday.data == '0' and schedule_friday.data == '0' and schedule_saturday.data == '0' and schedule_sunday == '0':
+            raise ValidationError("No time slot chosen. Please try again.")
+
 # TUMBLR
 class TumblrCreds(FlaskForm):
+    alias = StringField('Account alias (e.g. Tumblr-1)', validators=[DataRequired(), Length(max=50)])
     consumer_key = StringField('Consumer key', validators=[DataRequired()])
     consumer_secret = StringField('Consumer secret', validators=[DataRequired()])
     oauth_token = StringField('OAuth token', validators=[DataRequired()])
     oauth_secret = StringField('OAuth secret', validators=[DataRequired()])
     blog_name = StringField('URL for your blog', validators=[DataRequired()])
+    schedule_monday = SelectField('Schedule post on Mondays', coerce=int, validators=[DataRequired()])
+    schedule_tuesday = SelectField('Schedule post on Tuesdays', coerce=int, validators=[DataRequired()])
+    schedule_wednesday = SelectField('Schedule post on Wednesdays', coerce=int, validators=[DataRequired()])
+    schedule_thursday = SelectField('Schedule post on Thursdays', coerce=int, validators=[DataRequired()])
+    schedule_friday = SelectField('Schedule post on Fridays', coerce=int, validators=[DataRequired()])
+    schedule_saturday = SelectField('Schedule post on Saturdays', coerce=int, validators=[DataRequired()])
+    schedule_sunday = SelectField('Schedule post on Sundays', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def check_creds(self, consumer_key, consumer_secret, oauth_token, oauth_secret, blog_name):
+        if request.endpoint == 'auth.edit_cred':
+            pass
         try:
             client = pytumblr.TumblrRestClient(consumer_key.data, consumer_secret.data, oauth_token.data, oauth_secret.data)
             client.create_text(blog_name.data, state='published', title='Why did the bike fall over?', body='It was two tired.')
         except:
             raise ValidationError("Can't verify your credentials. Please try again.")
+    
+    def check_time_slot(self, schedule_monday, schedule_tuesday, schedule_wednesday, schedule_thursday, schedule_friday, schedule_saturday, schedule_sunday):
+        if schedule_monday.data == '0' and schedule_tuesday.data == '0' and schedule_wednesday.data == '0' and schedule_thursday.data == '0' and schedule_friday.data == '0' and schedule_saturday.data == '0' and schedule_sunday == '0':
+            raise ValidationError("No time slot chosen. Please try again.")
 
 # REDDIT
 class RedditCreds(FlaskForm):
+    alias = StringField('Account alias (e.g. Reddit-1)', validators=[DataRequired(), Length(max=50)])
     target_subreddit = StringField('URL for your subreddit', validators=[DataRequired()])
     client_id = StringField('Client ID', validators=[DataRequired()])
     client_secret = StringField('Client secret', validators=[DataRequired()])
     user_agent = StringField('User agent', validators=[DataRequired()])
     username = StringField('Reddit username', validators=[DataRequired()])
     password = PasswordField('Reddit password', validators=[DataRequired()])
+    schedule_monday = SelectField('Schedule post on Mondays', coerce=int, validators=[DataRequired()])
+    schedule_tuesday = SelectField('Schedule post on Tuesdays', coerce=int, validators=[DataRequired()])
+    schedule_wednesday = SelectField('Schedule post on Wednesdays', coerce=int, validators=[DataRequired()])
+    schedule_thursday = SelectField('Schedule post on Thursdays', coerce=int, validators=[DataRequired()])
+    schedule_friday = SelectField('Schedule post on Fridays', coerce=int, validators=[DataRequired()])
+    schedule_saturday = SelectField('Schedule post on Saturdays', coerce=int, validators=[DataRequired()])
+    schedule_sunday = SelectField('Schedule post on Sundays', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def check_creds(self, client_id, client_secret, user_agent, username, password):
+        if request.endpoint == 'auth.edit_cred':
+            pass
         try:
             reddit = praw.Reddit(client_id=client_id.data, client_secret=client_secret.data, user_agent=user_agent.data, username=username.data, password=password.data)
             reddit.subreddit(target_subreddit.data).submit('What do cows most like to read?', selftext='Cattle-logs.')
         except:
             raise ValidationError("Can't verify your credentials. Please try again.")
-
-# YOUTUBE
-class YoutubeCreds(FlaskForm):
-    client_id = StringField('Client ID', validators=[DataRequired()])
-    client_secret = StringField('Client secret', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-    def check_creds(self, client_id, client_secret):
-        
-
-# LINKEDIN
-class LinkedinCreds(FlaskForm):
-    consumer_key = StringField('Consumer key', validators=[DataRequired()])
-    consumer_secret = StringField('Consumer secret', validators=[DataRequired()])
-    user_token = StringField('User token', validators=[DataRequired()])
-    user_secret = StringField('User secret', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-    def check_creds(self, consumer_key, consumer_secret, user_token, user_secret):
-        try:
-            authentication = linkedin.LinkedInDeveloperAuthentication(consumer_key.data, consumer_secret.data, user_token.data, user_secret.data, url_for('promo.home'), linkedin.PERMISSIONS.enums.values())
-            application = linkedin.LinkedInApplication(authentication)
-            application.submit_share(comment='Why did the employee get fired from the calendar factory?\n\nHe took a day off.')
-        except:
-            raise ValidationError("Can't verify your credentials. Please try again.")
+    
+    def check_time_slot(self, schedule_monday, schedule_tuesday, schedule_wednesday, schedule_thursday, schedule_friday, schedule_saturday, schedule_sunday):
+        if schedule_monday.data == '0' and schedule_tuesday.data == '0' and schedule_wednesday.data == '0' and schedule_thursday.data == '0' and schedule_friday.data == '0' and schedule_saturday.data == '0' and schedule_sunday == '0':
+            raise ValidationError("No time slot chosen. Please try again.")

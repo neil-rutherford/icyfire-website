@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <center><img src='https://p0.pikrepo.com/preview/585/539/man-riding-horse-kicking-backwards-in-front-of-people-on-benches.jpg' width=50% height="auto"></center>
+    
+    <h1>Woah there!</h1>
+
+    <p>We've noticed some unusual activity, so we're not allowing any more login attempts today. Please try again tomorrow.</p>
+    
+    <!---
+    {% for attempt in login_attempts %}
+        <p>{{ attempt.ip_address }}</p>
+        <p>{{ attempt.endpoint }}</p>
+        <p>{{ attempt.status_code }}</p>
+        <p>{{ attempt.status_message }}</p>
+        <br>
+    {% endfor %}
+    --->
+
+    <p>If you've forgotten your password, you can always <a href="{{ url_for('auth.reset_password_request') }}">reset it here</a>.</p>
+{% endblock %}

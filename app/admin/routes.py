@@ -6,8 +6,8 @@ from app.models import User, Sentry, Domain
 from datetime import datetime, timedelta
 
 # HELPER FUNCTION
-def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
-    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id)
+def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
+    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id, flag=flag)
     db.session.add(activity)
     db.session.commit()
 
@@ -27,7 +27,7 @@ def dashboard():
         return redirect(url_for('main.dashboard'))
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.dashboard', status_code=200, status_message='Successful admin access.')
     users = User.query.filter_by(domain_id=current_user.domain_id).order_by(User.id.desc()).all()
-    return render_template('admin/dashboard.html', title='User Control Panel', users=users)
+    return render_template('admin/dashboard.html', title='Admin Console', users=users)
 
 # GRANT PERMISSION
 @bp.route('/admin/<user_id>/+<permission>', methods=['GET', 'POST'])
@@ -45,6 +45,10 @@ def grant_permission(user_id, permission):
     - "d" = delete
     '''
     user = User.query.filter_by(id=int(user_id)).first()
+    if user is None:
+        flash("ERROR: Can't find that user.")
+        make_sentry(user_id=current_user.id, domain_id=user.domain_id, ip_address=request.remote_addr, endpoint='admin.grant_permission', status_code=404, status_message='{}'.format(int(user_id)))
+        return redirect(url_for('admin.dashboard'))
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.grant_permission', status_code=403, status_message='{}|{}|Not an admin.'.format(int(user_id), str(permission)))
@@ -103,6 +107,10 @@ def revoke_permission(user_id, permission):
     - "kill" = delete user
     '''
     user = User.query.filter_by(id=int(user_id)).first()
+    if user is None:
+        flash("ERROR: Can't find that user.")
+        make_sentry(user_id=current_user.id, domain_id=user.domain_id, ip_address=request.remote_addr, endpoint='admin.revoke_permission', status_code=404, status_message='{}'.format(int(user_id)))
+        return redirect(url_for('admin.dashboard'))
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.revoke_permission', status_code=403, status_message='{}|{}|Not an admin.'.format(int(user_id), str(permission)))
@@ -158,6 +166,9 @@ def escalate_ciso(post_id):
     Looks up incident in Sentry table, sets the flag to true, and returns user to the admin dashboard.
     '''
     incident = Sentry.query.filter_by(id=int(post_id)).first()
+    if incident is None:
+        flash("ERROR: Can't find that incident.")
+        return redirect(url_for('admin.dashboard'))
     incident.flag = True
     db.session.add(incident)
     db.session.commit()
@@ -177,11 +188,15 @@ def get_user_info(user_id):
     Also shows what they have been doing over the past 14 days (for monitoring sketchy behavior).
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.get_user_info', status_code=403, status_message='{}'.format(user_id))
     user = User.query.filter_by(id=int(user_id)).first()
+    if user is None:
+        flash("ERROR: Can't find that user.")
+        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.get_user_info', status_code=404, status_message='{}'.format(user_id))
+        return redirect(url_for('admin.dashboard'))
     limit = datetime.utcnow() - timedelta(days=14)
-    activities = Sentry.query.filter(Sentry.user_id == user_id and Sentry.domain_id == current_user.domain_id and Sentry.timestamp >= limit).all()
+    activities = Sentry.query.filter(Sentry.user_id == user_id, Sentry.domain_id == current_user.domain_id, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.get_user_info', status_code=200, status_message='{}'.format(user_id))
     return render_template('admin/get_user_info.html', title='SENTRY - Get User Info', user=user, activities=activities)
 
@@ -197,16 +212,16 @@ def sentry_create_success():
     - This is a list of all incidents where users successfully created posts over the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_success', status_code=403, status_message='Access denied.')
         return redirect(url_for('main.dashboard'))
     limit = datetime.utcnow() - timedelta(days=14)
-    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_short_text' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_long_text' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_image' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_video' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
+    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_short_text', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_long_text', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_image', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_video', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_success', status_code=200, status_message='OK')
-    return render_template('admin/create_success.html', title='SENTRY - Successful Creates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
+    return render_template('admin/create_success.html', title='Successful Creations', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
 # CREATE-403
 @bp.route('/admin/sentry/create/fail', methods=['GET'])
@@ -220,16 +235,16 @@ def sentry_create_fail():
     - This is a list of all incidents where users attempted to create posts (but failed) over the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_fail', status_code=403, status_message='Access denied.')
         return redirect(url_for('main.dashboard'))
     limit = datetime.utcnow() - timedelta(days=14)
-    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_short_text' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_long_text' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_image' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.create_video' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_short_text', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_long_text', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_image', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.create_video', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_fail', status_code=200, status_message='OK')
-    return render_template('admin/create_fail.html', title='SENTRY - Failed Creates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
+    return render_template('admin/create_fail.html', title='Attempted Creations', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
 # READ-200
 @bp.route('/admin/sentry/read/success', methods=['GET'])
@@ -243,13 +258,13 @@ def sentry_read_success():
     - This is a list of all incidents where users had access to their dashboards (and could see all of the company's social queues) in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_success', status_code=403, status_message='Access denied.')
         return redirect(url_for('main.dashboard'))
     limit = datetime.utcnow() - timedelta(days=14)
-    reads = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.dashboard' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
+    reads = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.dashboard', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_success', status_code=200, status_message='OK')
-    return render_template('admin/read_success.html', title='SENTRY - Successful Reads', reads=reads)
+    return render_template('admin/read_success.html', title='Successful Reads', reads=reads)
 
 # READ-403
 @bp.route('/admin/sentry/read/fail', methods=['GET'])
@@ -263,13 +278,13 @@ def sentry_read_fail():
     - This is a list of all incidents where users tried unsuccessfully to access the company's social queues in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_fail', status_code=403, status_message='Access denied.')
         return redirect(url_for('main.dashboard'))
     limit = datetime.utcnow() - timedelta(days=14)
-    reads = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.dashboard' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    reads = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.dashboard', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_fail', status_code=200, status_message='OK')
-    return render_template('admin/read_fail.html', title='SENTRY - Failed Reads', reads=reads)
+    return render_template('admin/read_fail.html', title='Attempted Reads', reads=reads)
 
 # UPDATE-200
 @bp.route('/admin/sentry/update/success', methods=['GET'])
@@ -283,15 +298,15 @@ def sentry_update_success():
     - This is a list of all incidents where users successfully edited/updated posts in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_success', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_short_text' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_long_text' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_image' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_video' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
+    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_short_text', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_long_text', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_image', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_video', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_success', status_code=200, status_message='OK')
-    return render_template('admin/update_success.html', title='SENTRY - Successful Updates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
+    return render_template('admin/update_success.html', title='Successful Updates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
 # UPDATE-403
 @bp.route('/admin/sentry/update/fail', methods=['GET'])
@@ -305,15 +320,15 @@ def sentry_update_fail():
     - This is a list of all incidents where users unsuccessfully attempted to edit/update posts in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_fail', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_short_text' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_long_text' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_image' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.update_video' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    short_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_short_text', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    long_texts = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_long_text', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    images = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_image', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    videos = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.update_video', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_fail', status_code=200, status_message='OK')
-    return render_template('admin/update_fail.html', title='SENTRY - Failed Updates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
+    return render_template('admin/update_fail.html', title='Attempted Updates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
 # DELETE-204
 @bp.route('/admin/sentry/delete/success', methods=['GET'])
@@ -327,12 +342,12 @@ def sentry_delete_success():
     - This is a list of all incidents where users successfully deleted posts in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_success', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    deletes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.delete_post' and Sentry.status_code == 204 and Sentry.timestamp >= limit).all()
+    deletes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.delete_post', Sentry.status_code == 204, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_success', status_code=200, status_message='OK')
-    return render_template('admin/delete_success.html', title='SENTRY - Successful Deletes', deletes=deletes)
+    return render_template('admin/delete_success.html', title='Successful Deletes', deletes=deletes)
 
 # DELETE-403
 @bp.route('/admin/sentry/delete/fail', methods=['GET'])
@@ -346,12 +361,12 @@ def sentry_delete_fail():
     - This is a list of all incidents where users unsuccessfully attempted to delete a post in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_fail', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    deletes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'main.delete_post' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    deletes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'main.delete_post', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_fail', status_code=200, status_message='OK')
-    return render_template('admin/delete_fail.html', title='SENTRY - Failed Deletes', deletes=deletes)
+    return render_template('admin/delete_fail.html', title='Failed Deletes', deletes=deletes)
 
 # PERMISSION-200
 @bp.route('/admin/sentry/permission/success', methods=['GET'])
@@ -365,13 +380,13 @@ def sentry_permission_success():
     - This is a list of all incidents where users successfully changed another user's permissions in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_success', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    grants = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.grant_permission' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    revokes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.revoke_permission' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
+    grants = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.grant_permission', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    revokes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.revoke_permission', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_success', status_code=200, status_message='OK')
-    return render_template('admin/permission_success.html', title='SENTRY - Successful Permission Changes', grants=grants, revokes=revokes)
+    return render_template('admin/permission_success.html', title='Successful Permission Changes', grants=grants, revokes=revokes)
 
 # PERMISSION-403
 @bp.route('/admin/sentry/permission/fail', methods=['GET'])
@@ -385,13 +400,13 @@ def sentry_permission_fail():
     - This is a list of all incidents where users unsuccessfully attempted to change another user's permissions in the past 14 days.
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_fail', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    grants = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.grant_permission' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    revokes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.revoke_permission' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    grants = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.grant_permission', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    revokes = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.revoke_permission', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_fail', status_code=200, status_message='OK')
-    return render_template('admin/permission_fail.html', title='SENTRY - Failed Permission Changes', grants=grants, revokes=revokes)
+    return render_template('admin/permission_fail.html', title='Attempted Permission Changes', grants=grants, revokes=revokes)
 
 # ADMIN CONSOLE-200
 @bp.route('/admin/sentry/admin/success', methods=['GET'])
@@ -406,27 +421,27 @@ def sentry_admin_success():
     - This should all be the domain admin...
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_success', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    dashboard = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.dashboard' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    get_user_info = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.get_user_info' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    create_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_create_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    create_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_create_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    read_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_read_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    read_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_read_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    update_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_update_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    update_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_update_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    delete_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_delete_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    delete_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_delete_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    permission_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_permission_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    permission_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_permission_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    admin_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_admin_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    admin_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_admin_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    creds_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_creds_success' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    creds_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_creds_fail' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
-    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_fail', status_code=200, status_message='OK')
-    return render_template('admin/admin_success.html', title='SENTRY - Successful Admin Console Access', dashboard=dashboard, get_user_info=get_user_info, create_success=create_success, create_fail=create_fail, read_success=read_success, read_fail=read_fail, update_success=update_success, update_fail=update_fail, delete_success=delete_success, delete_fail=delete_fail, permission_success=permission_success, permission_fail=permission_fail, admin_fail=admin_fail)
+    dashboard = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.dashboard', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    get_user_info = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.get_user_info', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    create_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_create_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    create_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_create_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    read_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_read_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    read_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_read_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    update_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_update_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    update_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_update_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    delete_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_delete_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    delete_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_delete_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    permission_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_permission_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    permission_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_permission_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    admin_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_admin_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    admin_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_admin_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    creds_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_creds_success', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    creds_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_creds_fail', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
+    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_success', status_code=200, status_message='OK')
+    return render_template('admin/admin_success.html', title='Successful Admin Console Access', dashboard=dashboard, get_user_info=get_user_info, create_success=create_success, create_fail=create_fail, read_success=read_success, read_fail=read_fail, update_success=update_success, update_fail=update_fail, delete_success=delete_success, delete_fail=delete_fail, permission_success=permission_success, permission_fail=permission_fail, admin_success=admin_success, admin_fail=admin_fail, creds_success=creds_success, creds_fail=creds_fail)
 
 # ADMIN CONSOLE-403
 @bp.route('/admin/sentry/admin/fail', methods=['GET'])
@@ -441,26 +456,27 @@ def sentry_admin_fail():
     - This should be empty
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_fail', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    dashboard = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.dashboard' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    get_user_info = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.get_user_info' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    create_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_create_success' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    create_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_create_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    read_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_read_success' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    read_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_read_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    update_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_update_success' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    update_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_update_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    delete_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_delete_success' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    delete_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_delete_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    permission_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_permission_success' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    permission_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_permission_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    admin_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_admin_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    creds_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_creds_success' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
-    creds_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'admin.sentry_creds_fail' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    dashboard = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.dashboard', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    get_user_info = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.get_user_info', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    create_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_create_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    create_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_create_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    read_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_read_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    read_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_read_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    update_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_update_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    update_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_update_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    delete_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_delete_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    delete_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_delete_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    permission_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_permission_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    permission_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_permission_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    admin_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_admin_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    admin_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_admin_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    creds_success = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_creds_success', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
+    creds_fail = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'admin.sentry_creds_fail', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_fail', status_code=200, status_message='OK')
-    return render_template('admin/admin_fail.html', title='SENTRY - Failed Admin Access', dashboard=dashboard, get_user_info=get_user_info, create_success=create_success, create_fail=create_fail, read_success=read_success, read_fail=read_fail, update_success=update_success, update_fail=update_fail, delete_success=delete_success, delete_fail=delete_fail, permission_success=permission_success, permission_fail=permission_fail, admin_fail=admin_fail)
+    return render_template('admin/admin_fail.html', title='Attempted Admin Console Access', dashboard=dashboard, get_user_info=get_user_info, create_success=create_success, create_fail=create_fail, read_success=read_success, read_fail=read_fail, update_success=update_success, update_fail=update_fail, delete_success=delete_success, delete_fail=delete_fail, permission_success=permission_success, permission_fail=permission_fail, admin_success=admin_success, admin_fail=admin_fail, creds_success=creds_success, creds_fail=creds_fail)
 
 # CREDS-200
 @bp.route('/admin/sentry/creds/success', methods=['GET'])
@@ -474,12 +490,12 @@ def sentry_creds_success():
     - This is a list of all successful changes to the domain's social media creds in the past 14 days
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_success', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    creds = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'auth.update_creds' and Sentry.status_code == 200 and Sentry.timestamp >= limit).all()
+    creds = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'auth.update_creds', Sentry.status_code == 200, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_success', status_code=200, status_message='OK')
-    return render_template('admin/creds_success.html', title='SENTRY - Successful Creds Access', creds=creds)
+    return render_template('admin/creds_success.html', title='Successful Credentials Access', creds=creds)
 
 # CREDS-403
 @bp.route('/admin/sentry/creds/fail', methods=['GET'])
@@ -493,9 +509,9 @@ def sentry_creds_fail():
     - This is a list of all unsuccessful attempts to change the domain's social media creds in the past 14 days
     '''
     if current_user.is_admin is False:
-        flash("You don't have permission to do that.")
+        flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_fail', status_code=403, status_message='Access denied.')
     limit = datetime.utcnow() - timedelta(days=14)
-    creds = Sentry.query.filter(Sentry.domain_id == current_user.domain_id and Sentry.endpoint == 'auth.update_creds' and Sentry.status_code == 403 and Sentry.timestamp >= limit).all()
+    creds = Sentry.query.filter(Sentry.domain_id == current_user.domain_id, Sentry.endpoint == 'auth.update_creds', Sentry.status_code == 403, Sentry.timestamp >= limit).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_fail', status_code=200, status_message='OK')
-    return render_template('admin/creds_fail.html', title='SENTRY - Failed Creds Access', creds=creds)
+    return render_template('admin/creds_fail.html', title='Attempted Credentials Access', creds=creds)

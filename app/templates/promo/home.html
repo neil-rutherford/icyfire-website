@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <header class="ac-full-width business-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="display-3 text-center text-white">IcyFire</h1>
+                <h2 class="text-center text-white">Queue and forget!</h2>
+            </div>
+        </div>
+    </div>
+    </header>
+
+    <article class="row p-5">
+    <center>
+        <h2>What's IcyFire?</h2>
+        </center>
+        <p><strong>Consistency.</strong><br>
+        It's what makes you proud of your work. It's the reason you can make quality assurances and money-back guarantees.<br>
+        It's what keeps your people happy and energized. It's what makes customers recognize your brand and keep coming back.<br>
+        Quite simply, it's the backbone of your organization.</p>
+
+        <p>In the age of "I don't know...Google it," your business's online presence is more important than ever.<br>
+        If done consistently, social media has the potential to be a brand awareness and sales tool for your business.<br>
+        Yet this can be a major challenge for those of us who wear multiple hats throughout the day, particularly those who run small businesses or entrepreneurs.<br>
+        How are you supposed to update Facebook if you're under a car doing an oil change?<br>
+        How are you supposed to consistently post at 10am if you suddenly get slammed with customers?<br>
+        How are you supposed to post to Twitter if you don't have a dedicated social media team?<br>
+        This is the challenge we set out to solve.</p>
+
+        <p>What if there was a way that social media <i>could</i> be put on the back burner without hurting the company's consistency?<br>
+        What if there was a program running in the background, posting to social media like clockwork so that employees could focus on other things during the day?<br>
+        And when there's some downtime, what if everyone could work together to share ideas, share resources, and ultimately decide the company's online voice?<br>
+        What if?</p>
+
+        <p>Welcome to IcyFire, a digital marketing tool that helps companies overcome obstacles and achieve a consistent online presence.<br>
+        It's a social media queueing tool that posts on a schedule. <br>
+        It does one thing – wake up when you tell it to, send the next social media post in the queue, and go back to sleep. <br>
+        The queue can be as long as you need it to be, so you could technically even plan a month’s worth of content and just let it run. <strong>Queue and forget!</strong><br>
+        It gives your clients consistent content and keeps your team accountable.<br>
+        It allows an unlimited number of team members to contribute.<br>
+        It posts to multiple platforms, which saves you from typing the same post more than once.<br>
+        And most importantly, it allows you to <strong>queue and forget</strong>!</p>
+
+    </article>
+    <hr>
+    <img src="{{ url_for('promo.random_image', image_type='people') }}" width=100% height="auto">
+    <hr>
+    <article class="row p-5">
+    <center>
+        <h2>How is IcyFire different?</h2>
+        <p>So glad you asked.</p>
+        </center>
+        <ul>
+            <li><strong>Ownership.</strong> Instead of monthly fees and plans, we charge a flat fee. This is important because it fundamentally changes the dynamic between you and us. Instead of convincing you every month to stay with us and continue your subscription, we can focus on providing genuine value. If we read a really good article by our competition, we can share it with you without being scared that you will switch providers. We can be transparent with you and encourage you to take responsibility for your tool. We can show you how some things work under the hood and encourage your creativity and curiosity. Finally, we will <a href="{{ url_for('promo.make_product_suggestion') }}">listen to your suggestions</a> and try our best to make them a reality.</li>
+            <br>
+            <li><strong>Unlimited queue length.</strong> We offer social media interfaces, so why should we restrict your ability to post across different social media? Doesn’t make sense to us, so we don’t do that.</li>
+            <br>
+            <li><strong>Unlimited number of team members.</strong> Existing solutions charge an arm and a leg for extra team members. To add more than 10 team members on HootSuite, for example, you will have to pay $18,000 / year. Other platforms don’t allow more than 5. At IcyFire, there are no such limitations.</li>
+            <br>
+            <li><strong>Unlimited posts.</strong> We strongly discourage businesses from bombarding their audience with more than one post per hour, since that may be counterproductive. Also, because of rate limits, we cannot post more than once a minute without being blocked from the site. However, keeping these considerations in mind, there are no limitations on the total number of posts across social networks.</li>
+            <br>
+            <li><strong>Constantly improving software.</strong> We pledge to support and improve this product as long as our company is in existence. So the product you buy today will be better a year from now, and you won’t have to pay for that upgrade.</li>
+            <br>
+            <li><strong>No URL constraints.</strong> HootSuite doesn't let you use your own URL shorteners without paying, which we think is outrageous. Nickel and diming your customers erodes trust and causes long-term resentment. At IcyFire, we don't care if you use bit.ly or tinyurl or your own domain. (Just as long as you take care of the URL shortening yourself.)
+        </ul>
+
+    </article>
+    <hr>
+    <img src="{{ url_for('promo.random_image', image_type='scenic') }}" width=100% height="auto">
+    <hr>
+    
+    <center>
+    <article class="row p-5">
+        <h2>Ready to get started?</h2><br>
+        <form action="{{ url_for('promo.pricing') }}">
+            <input type="submit" value="Learn about pricing.">
+        </form>
+    </article>
+    </center>
+    
+    <!---
+    <article class="row p-5">
+        <h2>Ready to get started?</h2>
+        <a href="{{ url_for('promo.pricing') }}"><button>Learn about pricing.</button></a>
+    </article>
+    --->
+
+{% endblock %}

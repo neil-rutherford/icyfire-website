@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    {% if platform == 'Facebook' %}
+        <center><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Facebook.svg/800px-Facebook.svg.png" width=50% height="auto"></center>
+    {% elif platform == 'Twitter' %}
+        <center><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Twitter_logo.svg" width=50% height="auto"></center>
+    {% elif platform == 'Tumblr' %}
+        <center><img src="https://upload.wikimedia.org/wikipedia/commons/2/2c/Tumblr_Logo.svg" width=50% height="auto"></center>
+    {% elif platform == 'Reddit' %}
+        <center><img src="https://upload.wikimedia.org/wikipedia/commons/b/b4/Reddit_logo.svg" width=50% height="auto"></center>
+    {% endif %}
+    <hr>
+    <h1>Edit your {{ platform }} account</h1>
+    <h2>Housekeeping</h2>
+    <ul>
+        <li>You are not allowed to edit any API keys. To do this, please delete the account and connect a new one.</li>
+        <li><mark>Remember, times are in UTC!</mark> Just for reference, the time in UTC was <b>{{ time }}</b> when you loaded this page.</li>
+        <li>Use of third-party logos does not imply that IcyFire is sponsored by, affiliated with, endorsed by, or otherwise connected with those companies.</li>
+    </ul>
+    <br>
+    <hr>
+    <h2>Account and scheduling</h2>
+    <div class="row">
+		<div class="col-md-4">
+			{{ wtf.quick_form(form) }}
+		</div>
+	</div>
+{% endblock %}

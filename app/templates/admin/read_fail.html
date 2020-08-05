@@ -1,14 +1,13 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>SENTRY - Failed Reads</h1>
+    <h1>Attempted Reads</h1>
 
     <p>These are your domain's READ-403 logs for the past 14 days. They are created when a user tries to view your domain's queues but doesn't have read permission.</p>
     <p>Clicking the link in the "User ID" column will bring you to a page where you can review the user's activity and/or change their permissions.</p>
     <p>If you see something that isn't right and you can't control, such as a user you don't recognize attempting to access your posts, please let us know by escalating it to the IcyFire CISO.</p>
 
-    <table>
+    <table width=100%>
         <tr>
             <th>Timestamp</th>
             <th>User ID</th>
@@ -19,12 +18,12 @@
             <tr>
                 <td>{{ moment(post.timestamp).format('LLL') }}</td>
                 {% if current_user.id != post.user_id %}
-                    <td><a href="{{ url_for('get_user_info', user_id={{ post.user_id }}) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% else %}
                     <td>You</td>
                 {% endif %}
                 <td>{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('admin.escalate_ciso', post_id={{ post.id }}) }}">Escalate to IcyFire CISO</a></td>
+                <td><a href="{{ url_for('admin.escalate_ciso', post_id=post.id) }}">Escalate to IcyFire CISO</a></td>
             </tr>
         {% endfor %}
     </table>

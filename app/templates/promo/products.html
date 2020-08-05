@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <img src="{{ url_for('promo.random_image', image_type='scenic') }}" width=100% height="auto">
+    <hr>
+    <center>
+    <h1>IcyFire Social Media Automation</h1>
+    <h2>Introduction</h2>
+    </center>
+    <p>In today’s marketplace, online presence is vital for any business trying to get their name out there. In a <a href="https://www.socialmediaexaminer.com/wp-content/uploads/2016/05/SocialMediaMarketingIndustryReport2016.pdf">2016 survey</a>, 90% of small business marketers said that social media was important to their business. Here are some of the perks of using social media marketing:</p>
+    <ul>
+        <li>Build brand awareness;</li>
+        <li>Engage current customers;</li>
+        <li>Generate leads and increase customer base;</li>
+        <li>Respond to customer reviews;</li>
+        <li>Give your business a friendly face with multimedia content that customers might not have otherwise seen;</li>
+        <li>Collaborate with other businesses;</li>
+        <li>Piggyback on trends and big advertising campaigns, like <a href="https://www.americanexpress.com/us/small-business/shop-small/">American Express's Small Business Saturday</a>.</li>
+    </ul>
+    <p>The list goes on. To successfully implement social media marketing, it is important to be consistent in your posting schedule, content, and aesthetics. A regular schedule keeps your audience engaged and coming back for more, while a sporadic schedule will inevitably cause users to lose interest. This requires a substantial time investment to schedule and curate content.</p>
+    <p>Unfortunately, many small businesses may not have this luxury. The nature of the work may not allow staff members to periodically sit down at a computer and post a social media post that is consistent with the company’s branding. Supervisors may choose to prioritize other tasks over social media posts. According to the same survey, more than a third of marketers spend 5 hours or less on social media each week. How do you think that is affecting the company’s online presence?</p>
+    <p>We recognize that sometimes, workers might be swamped and not have the time or means to update social media. Other times, they might just forget or not feel like it. Other times, they may be in the perfect mental headspace and have the means to post, but think better of it because it is late at night and no one will see it. IcyFire lets workers bridge that gap by providing them a way to queue their posts for later. They can use their downtime to curate and queue content, and then not have to worry about it.</p>
+    <p>For existing digital marketing teams, IcyFire can complement existing solutions and make teams more effective. With IcyFire’s scheduling and automation, teams can focus on what they are good at – content creation and responding to customers.</p>
+    <center>
+    <h2>Current capabilities</h2>
+    </center>
+    <ul>
+        <li>Post types:<ul>
+            <li>Short text posts</li>
+            <li>Long text posts</li>
+            <li>Image posts</li>
+            <li>Video posts</li></ul></li>
+        <li>Social media sites:<ul>
+            <li>Facebook</li>
+            <li>Twitter</li>
+            <li>Tumblr</li>
+            <li>Reddit</li></ul></li>
+        <li>Unlimited users</li>
+        <li>Unlimited posts in queue</li>
+        <li>Strong domain-level security for administrators</li>
+        <li>User-level permissions control</li>
+        <li>Contact IcyFire to set up your posting schedule</li>
+    </ul>
+
+    <center>
+    <h2>Future improvements currently under development</h2>
+    </center>
+    <ul>
+        <li>Social media sites:<ul>
+            <li>LinkedIn</li>
+            <li>YouTube</li></ul></li>
+        <li><a href="{{ url_for('promo.make_product_suggestion') }}">Make a suggestion / give feedback!</a></li>
+    </ul>
+
+    <center>
+    <article class="row p-5">
+        <h2>Pricing</h2><br>
+        <form action="{{ url_for('promo.pricing') }}">
+            <input type="submit" value="Learn about pricing.">
+        </form>
+    </article>
+    </center>
+    <!---
+    <h2>Pricing</h2>
+    <button onclick="location.href = {{ url_for('promo.pricing') }}">Learn about pricing.</button>
+    --->
+{% endblock %}

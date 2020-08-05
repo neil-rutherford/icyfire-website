@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>IcyFire's Vulnerability Disclosure Program (VDP)</h1>
+    
+    <h2>Disclosure</h2>
+    <p>Please note that this program does not allow disclosure. You may not release information about vulnerabilities found in this program to the public.</p>
+
+    <h2>In scope</h2>
+    <hr>
+    <p><strong>www.icy-fire.com/*</strong></p>
+    <hr>
+    <p>IcyFire is starting this program with our primary public-facing web application on icy-fire.com. As the program progresses, more targets will be added to the program.</p>
+    <p>Testing is only authorized on targets listed as in-scope. Any domain/property of IcyFire not listed above is out-of-scope and is not included in this program.</p>
+
+    <h2>Scanning activity</h2>
+    <p>Please do not use automated vulnerability scanners on this program. Custom scripts and fuzzing tools are permitted, but if using them, please keep your traffic to 6 requests per second or less. Please avoid using automated tools unless for targeted, specific testing, and then only at less than 6 requests per second.</p>
+
+    <h2>Non-qualifying vulnerabilities</h2>
+    <p>When reporting vulnerabilities, please consider (1) attack scenario/exploitability, and (2) security impact of the bug. The following issues are considered out-of-scope:</p>
+    <ul>
+        <li>Clickjacking on pages with no sensitive actions</li>
+        <li>Cross-Site Request Forgery (CSRF) on unauthenticated forms or forms with no sensitive actions</li>
+        <li>Attacks requiring MITM or physical access to a user's device</li>
+        <li>Previously known vulnerable libraries without a working Proof of Concept</li>
+        <li>Comma Separated Values (CSV) injection without demonstrating a vulnerability</li>
+        <li>Any activity that could lead to the disruption of our service (DoS)</li>
+        <li>Content spoofing and text injection issues without showing an attack vector / without being able to modify HTML/CSS</li>
+        <li>Rate limiting or brute force issues on non-authentication endpoints</li>
+        <li>Missing best practices in Content Security Policy</li>
+        <li>Missing HttpOnly or Secure flags on cookies</li>
+        <li>Missing email best practices (invalid, incomplete or missing SPF/DKIM/DMARC records, etc.)</li>
+        <li>Vulnerabilities only affecting users of outdated or unpatched browsers</li>
+        <li>Software version disclosure / Banner identification issues / Descriptive error messages or headers (e.g. stack traces, application or server errors)</li>
+        <li>Tab nabbing</li>
+        <li>Open redirect - unless an additional security implication can be demonstrated</li>
+        <li>Self XSS</li>
+        <li>Promo code abuse (e.g. ordering multiple times using the same promo code)</li>
+        <li>Abuse of promotional offers and referral codes</li>
+        <li>Promo code enumeration, abuse of our promotional offers and referral codes</li>
+        <li>Able to retrieve user's public information</li>
+        <li>Username / email enumeration</li>
+        <li>Social engineering of users, IcyFire staff, or contractors</li>
+        <li>Bugs in third-party authentications (attacks specifically against our implementation are fine)</li>
+        <li>Results from automated tools without any manual confirmation</li>
+        <li>Any action that interferes with a user's privacy, security, or experience</li>
+        <li>Clear Text / HTTP Basic Authentication</li>
+        <li>Internal Path disclosure</li>
+        <li>Blind XSS, Blind SSRF with no actual exploitation</li>
+        <li>Subdomain takeover</li>
+    </ul>
+
+    <h2>Safe harbor</h2>
+    <p>When conducting vulnerability research according to this policy, we consider this research to be:</p>
+    <ul>
+        <li>Authorized in accordance with the Computer Fraud and Abuse Act (CFAA) (and/or similar state laws), and we will not initiate or support legal action against you for accidental, good faith violations of this policy;</li>
+        <li>Exempt from the Digital Millennium Copyright Act (DMCA), and we will not bring a claim against you for circumvention of technology controls;</li>
+        <li>Exempt from restrictions in our Terms of Service that would interfere with conducting security research, and we wait those restrictions on a limited basis for work done under this policy; and</li>
+        <li>Lawful, helpful to the overall security of the Internet, and conducted in good faith.</li>
+        <li>You are expected, as always, to comply with all applicable laws.</li>
+    </ul>
+
+    <button onclick="window.location.href={{ url_for('legal.report_vulnerability') }}">Report a vulnerability</button>
+{% endblock %}

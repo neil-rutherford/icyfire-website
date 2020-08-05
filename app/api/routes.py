@@ -1,246 +1,296 @@
-from flask import request, jsonify
-from datetime import datetime
-from app.models import FacebookPost, TwitterPost, TumblrPost, RedditPost, YoutubePost, LinkedinPost, Sentry
+from flask import request, jsonify, current_app
+from datetime import datetime, timedelta
+from app.models import FacebookPost, TwitterPost, TumblrPost, RedditPost, Sentry, TimeSlot, FacebookCred, TwitterCred, TumblrCred, RedditCred
 from app import db
 from app.api import bp
 
 # HELPER FUNCTION
-def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
-    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id)
+def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
+    activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id, flag=flag)
     db.session.add(activity)
     db.session.commit()
 
+def make_error(endpoint, status, error_details, code):
+    return jsonify(endpoint=endpoint, status=status, error_details=error_details, utc_timestamp=datetime.utcnow(), ip_address=request.remote_addr), code
+
+
 # READ API
-@bp.route('/api/_r/<domain_id>/<platform>/auth=<read_token>', methods=['GET'])
-def read(domain_id, platform, read_token):
-    '''
-    - Sentry logs:
-        + 200 = accessed post (`status_message` = platform)
-        + 404 = queue is empty; can't load the next post (`status_message` = platform)
-        + 400 = bad request; can't find that platform (`status_message` = platform)
-        + 403 = wrong read token (`status_message` = read token)
-    - Assuming read token is valid, this uses the `domain_id` and `platform` arguments to build a list of posts in ascending time order (oldest first)
-    - First post in queue is returned as a JSON object
-    '''
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if str(read_token) == app.config['READ_TOKEN']:
-        if str(platform) == 'facebook':
-            post = FacebookPost.query.filter_by(domain_id=int(domain_id)).order_by(FacebookPost.timestamp.asc()).first()
+@bp.route('/api/_r/<timeslot_id>/auth=<read_token>&<cred_token>')
+def read(timeslot_id, read_token, cred_token):
+    if read_token == 'read' and cred_token == 'cred':
+    #if read_token == current_app.config['READ_TOKEN'] and cred_token == current_app.config['CRED_TOKEN']:
+
+        timeslot = TimeSlot.query.filter_by(id=timeslot_id).first()
+
+        if timeslot is None:
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=400, status_message='{}'.format(timeslot_id))
+            return make_error(endpoint='api/_r', status='400 Bad Request', error_details='ERROR: Malformed request; timeslot not found.', code=400)
+        
+        domain_id = timeslot.domain_id
+
+        if timeslot.facebook_cred_id is not None:
+            cred = FacebookCred.query.filter_by(id=timeslot.facebook_cred_id).first()
+            post = FacebookPost.query.filter_by(cred_id=cred.id).order_by(FacebookPost.timestamp.asc()).first()
+
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='facebook')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='Queue is empty.'), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='facebook|{}'.format(cred.id))
+                return make_error(endpoint='api/_r/facebook', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='facebook')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
-        elif str(platform) == 'twitter':
-            post = TwitterPost.query.filter_by(domain_id=int(domain_id)).order_by(TwitterPost.timestamp.asc()).first()
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='facebook|{}'.format(cred.id))
+                return jsonify(platform='facebook', access_token=cred.access_token, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
+
+        elif timeslot.twitter_cred_id is not None:
+            cred = TwitterCred.query.filter_by(id=timeslot.twitter_cred_id).first()
+            post = TwitterPost.query.filter_by(cred_id=cred.id).order_by(TwitterPost.timestamp.asc()).first()
+
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='twitter')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='Queue is empty.'), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='twitter|{}'.format(cred.id))
+                return make_error(endpoint='api/_r/twitter', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='twitter')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
-        elif str(platform) == 'tumblr':
-            post = TumblrPost.query.filter_by(domain_id=int(domain_id)).order_by(TumblrPost.timestamp.asc()).first()
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='twitter|{}'.format(cred.id))
+                return jsonify(platform='twitter', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, access_token_key=cred.access_token_key, access_token_secret=cred.access_token_secret, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
+
+        elif timeslot.tumblr_cred_id is not None:
+            cred = TumblrCred.query.filter_by(id=timeslot.tumblr_cred_id).first()
+            post = TumblrPost.query.filter_by(cred_id=cred.id).order_by(TumblrPost.timestamp.asc()).first()
+
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='tumblr')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='Queue is empty.'), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='tumblr|{}'.format(cred.id))
+                return make_error(endpoint='api/_r/tumblr', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='tumblr')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
-        elif str(platform) == 'reddit':
-            post = RedditPost.query.filter_by(domain_id=int(domain_id)).order_by(RedditPost.timestamp.asc()).first()
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='tumblr|{}'.format(cred.id))
+                return jsonify(platform='tumblr', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, oauth_token=cred.oauth_token, oauth_secret=cred.oauth_secret, blog_name=cred.blog_name, post_type=post.post_type, title=post.title, body=post.body, tags=post.tags, link_url=post.link_url, multimedia_url=post.multimedia_url, caption=post.caption)
+
+        elif timeslot.reddit_cred_id is not None:
+            cred = RedditCred.query.filter_by(id=timeslot.reddit_cred_id).first()
+            post = RedditPost.query.filter_by(cred_id=cred.id).order_by(RedditPost.timestamp.asc()).first()
+
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='reddit')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='Queue is empty.'), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='reddit|{}'.format(cred.id))
+                return make_error(endpoint='api/_r/reddit', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='reddit')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url), 200
-        elif str(platform) == 'youtube':
-            post = YoutubePost.query.filter_by(domain_id=int(domain_id)).order_by(YoutubePost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='youtube')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='Queue is empty.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='youtube')
-                return jsonify(timestamp=post.timestamp, multimedia_url=post.multimedia_url, title=post.title, caption=post.caption, tags=post.tags, category=post.category), 200
-        elif str(platform) == 'linkedin':
-            post = LinkedinPost.query.filter_by(domain_id=int(domain_id)).order_by(LinkedinPost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='linkedin')
-                return jsonify(endpoint='api/_r', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='Queue is empty.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='linkedin')
-                return jsonify(post_type=post.post_type, timestamp=post.timestamp, title=post.title, body=post.body, caption=post.caption, multimedia_url=post.multimedia_url, link_url=post.link_url, tags=post.tags), 200
+                return jsonify(platform='reddit', client_id=cred.client_id, client_secret=cred.client_secret, user_agent=cred.user_agent, username=cred.username, password=cred.password, post_type=post.post_type, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url)
+        
         else:
-            make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=400, status_message='{}'.format(str(platform)))
-            return jsonify(endpoint='api/_r', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
+            return make_error(endpoint='api/_r', status='218 This Is Fine', error_details='INFO: Timeslot is empty.', code=218)
+
     else:
-        make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read'.format(platform), status_code=403, status_message='{}'.format(str(read_token)))
-        return jsonify(endpoint='api/_r', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=403, status_message='{}|{}'.format(read_token, cred_token))
+        return make_error(endpoint='api/_r', status='403 Forbidden', error_details='ERROR: Authentication token(s) incorrect.', code=403)
+
 
 # DELETE API
-@bp.route('/api/_d/<domain_id>/<platform>/auth=<read_token>&<delete_token>', methods=['GET'])
-def delete(domain_id, platform, read_token, delete_token):
-    '''
-    - Sentry logs:
-        + 204 = post deleted successfully (`status_message` = platform)
-        + 404 = queue is empty; can't delete the next post (`status_message` = platform)
-        + 400 = bad request; can't find that platform (`status_message` = platform)
-        + 403 = permission denied; wrong read OR delete token (`status_message` = read|delete)
-    - Since deleting is more sensitive than reading, two tokens are needed for this endpoint (read token AND delete token), which are both stored in config
-    - Assuming both tokens are valid, this uses the `domain_id` and `platform` arguments to build a list of posts in ascending time order (oldest first)
-    - First post in queue is deleted
-    - This is intended to be used like: api.read => api.permission => publish post => api.delete => time.sleep(until next wake) => api.read => ...
-    '''
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if str(read_token) == app.config['READ_TOKEN'] and str(delete_token) == app.config['DELETE_TOKEN']:
-        if str(platform) == 'facebook':
-            post = FacebookPost.query.filter_by(domain_id=int(domain_id)).order_by(FacebookPost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='facebook')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='facebook')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'twitter':
-            post = TwitterPost.query.filter_by(domain_id=int(domain_id)).order_by(TwitterPost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='twitter')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='twitter')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'tumblr':
-            post = TumblrPost.query.filter_by(domain_id=int(domain_id)).order_by(TumblrPost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='tumblr')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='tumblr')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'reddit':
-            post = RedditPost.query.filter_by(domain_id=int(domain_id)).order_by(RedditPost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='reddit')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='reddit')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'youtube':
-            post = YoutubePost.query.filter_by(domain_id=int(domain_id)).order_by(YoutubePost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='youtube')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='youtube')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        elif str(platform) == 'linkedin':
-            post = LinkedinPost.query.filter_by(domain_id=int(domain_id)).order_by(LinkedinPost.timestamp.asc()).first()
-            if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='linkedin')
-                return jsonify(endpoint='api/_d', status='404 Not Found', utc_timestamp=timestamp, ip_address=ip_address, error_details='No such post.'), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='linkedin')
-                db.session.delete(post)
-                db.session.commit()
-                return jsonify(endpoint='api/_d', status='204 No Content', utc_timestamp=timestamp, ip_address=ip_address), 204
-        else:
-            make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=400, status_message='{}'.format(str(platform)))
-            return jsonify(endpoint='api/_d', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
-    else:
-        make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=403, status_message='{}|{}'.format(str(read_token), str(delete_token)))
-        return jsonify(endpoint='api/_d', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
+@bp.route('/api/_d/<timeslot_id>/auth=<read_token>&<delete_token>')
+def delete(timeslot_id, read_token, delete_token):
+    if read_token == 'read' and delete_token == 'delete':
+    #if read_token == current_app.config['READ_TOKEN'] and delete_token == current_app.config['DELETE_TOKEN']:
+        
+        timeslot = TimeSlot.query.filter_by(id=timeslot_id).first()
 
-# PERMISSION API
-@bp.route('/api/_p/<domain_id>/<platform>/auth=<read_token>&<delete_token>&<permission_token>', methods=['GET'])
-def permission(domain_id, platform, read_token, delete_token, permission_token):
-    '''
-    - Sentry logs:
-        + 200 = ok; creds in json format (`status_message` = platform)
-        + 400 = bad request; can't find that platform (`status_message` = platform)
-        + 403 = permission denied; one or more tokens is incorrect (`status_message` = read|delete|permission)
-        + 404 = not found; permissions don't exist?
-    - Since permissions are the most sensitive, three tokens are needed for this endpoint (read token AND delete token AND permission token), which are all stored in config
-    - Assuming all tokens are valid, this uses the `domain_id` and `platform` arguments to access the creds for that platform
-    - Creds are returned as a JSON object
-    - This is intended to be used like: api.read => api.permission => publish post => api.delete => time.sleep(until next wake) => api.read => ...
-    '''
-    timestamp = datetime.utcnow()
-    ip_address = request.remote_addr
-    if str(read_token) == app.config['READ_TOKEN'] and str(delete_token) == app.config['DELETE_TOKEN'] and str(permission_token) == app.config['PERMISSION_TOKEN']:
-        domain = Domain.query.filter_by(id=int(domain_id)).first()
-        if str(platform) == 'facebook':
-            facebook_token = domain.facebook_token
-            if facebook_token is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=404, status_message='facebook')
-                return jsonify(endpoint='/api/_p/facebook', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+        if timeslot is None:
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=400, status_message='{}'.format(timeslot_id))
+            return make_error(endpoint='api/_d', status='400 Bad Request', error_details='ERROR: Malformed request; timeslot not found.', code=400)
+        
+        domain_id = timeslot.domain_id
+
+        if timeslot.facebook_cred_id is not None:
+            cred = FacebookCred.query.filter_by(id=timeslot.facebook_cred_id).first()
+            post = FacebookPost.query.filter_by(cred_id=cred.id).order_by(FacebookPost.timestamp.asc()).first()
+
+            if post is None:
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='facebook|{}'.format(cred.id))
+                return make_error(endpoint='api/_d/facebook', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=200, status_message='facebook')
-                return jsonify(facebook_token=facebook_token), 200
-        elif str(platform) == 'twitter':
-            twitter_token = domain.twitter_token
-            twitter_secret = domain.twitter_secret
-            if twitter_token is None or twitter_secret is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=404, status_message='twitter')
-                return jsonify(endpoint='/api/_p/twitter', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='facebook|{}'.format(cred.id))
+                db.session.delete(post)
+                db.session.commit()
+                return make_error(endpoint='api/_d/facebook', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
+        
+        elif timeslot.twitter_cred_id is not None:
+            cred = TwitterCred.query.filter_by(id=timeslot.twitter_cred_id).first()
+            post = TwitterPost.query.filter_by(cred_id=cred.id).order_by(TwitterPost.timestamp.asc()).first()
+
+            if post is None:
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='twitter|{}'.format(cred.id))
+                return make_error(endpoint='api/_d/twitter', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api/_p/{}/twitter'.format(domain_id), status_code=200, status_message='twitter')
-                return jsonify(twitter_token=twitter_token, twitter_secret=twitter_secret), 200
-        elif str(platform) == 'tumblr':
-            tumblr_blog_name = domain.tumblr_blog_name
-            tumblr_token = domain.tumblr_token
-            tumblr_secret = domain.tumblr_secret
-            if tumblr_blog_name is None or tumblr_token is None or tumblr_secret is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=404, status_message='tumblr')
-                return jsonify(endpoint='/api/_p/tumblr', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='twitter|{}'.format(cred.id))
+                db.session.delete(post)
+                db.session.commit()
+                return make_error(endpoint='api/_d/twitter', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
+        
+        elif timeslot.tumblr_cred_id is not None:
+            cred = TumblrCred.query.filter_by(id=timeslot.tumblr_cred_id).first()
+            post = TumblrPost.query.filter_by(cred_id=cred.id).order_by(TumblrPost.timestamp.asc()).first()
+
+            if post is None:
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='tumblr|{}'.format(cred.id))
+                return make_error(endpoint='api/_d/tumblr', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=200, status_message='tumblr')
-                return jsonify(tumblr_blog_name=tumblr_blog_name, tumblr_token=tumblr_token, tumblr_secret=tumblr_secret), 200
-        elif str(platform) == 'reddit':
-            reddit_subreddit = domain.reddit_subreddit
-            reddit_username = domain.reddit_username
-            reddit_password = domain.reddit_password
-            if reddit_subreddit is None or reddit_username is None or reddit_password is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=404, status_message='reddit')
-                return jsonify(endpoint='/api/_p/reddit', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='tumblr|{}'.format(cred.id))
+                db.session.delete(post)
+                db.session.commit()
+                return make_error(endpoint='api/_d/tumblr', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
+        
+        elif timeslot.reddit_cred_id is not None:
+            cred = RedditCred.query.filter_by(id=timeslot.reddit_cred_id).first()
+            post = RedditPost.query.filter_by(cred_id=cred.id).order_by(RedditPost.timestamp.asc()).first()
+
+            if post is None:
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='reddit|{}'.format(cred.id))
+                return make_error(endpoint='api/_d/reddit', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=200, status_message='reddit')
-                return jsonify(reddit_subreddit=reddit_subreddit, reddit_username=reddit_username, reddit_password=reddit_password), 200
-        elif str(platform) == 'youtube':
-            youtube_refresh = domain.youtube_refresh
-            youtube_access = domain.youtube_access
-            if youtube_refresh is None or youtube_access is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=404, status_message='youtube')
-                return jsonify(endpoint='/api/_p/youtube', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=200, status_message='youtube')
-                return jsonify(youtube_refresh=youtube_refresh, youtube_access=youtube_access), 200
-        elif str(platform) == 'linkedin':
-            linkedin_author = domain.linkedin_author
-            linkedin_token = domain.linkedin_token
-            linkedin_secret = domain.linkedin_secret
-            if linkedin_author is None or linkedin_token is None or linkedin_secret is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=404, status_message='linkedin')
-                return jsonify(endpoint='/api/_p/linkedin', status='404 Credential Not Found', utc_timestamp=timestamp, ip_address=ip_address), 404
-            else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=200, status_message='linkedin')
-                return jsonify(linkedin_author=linkedin_author, linkedin_token=linkedin_token, linkedin_secret=linkedin_secret), 200
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='reddit|{}'.format(cred.id))
+                db.session.delete(post)
+                db.session.commit()
+                return make_error(endpoint='api/_d/reddit', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
+        
         else:
-            make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=400, status_message='{}'.format(str(platform)))
-            return jsonify(endpoint='api/_d', status='400 Bad Request', utc_timestamp=timestamp, ip_address=ip_address, error_details='Malformed request; platform not found.'), 400
+            return make_error(endpoint='api/_d', status='218 This Is Fine', error_details='INFO: Timeslot is empty.', code=218)
+
     else:
-        make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.permission', status_code=403, status_message='{}/{}/{}'.format(str(read_token), str(delete_token), str(permission_token)))
-        return jsonify(endpoint='api/_p', status='403 Forbidden', utc_timestamp=timestamp, ip_address=ip_address, error_details="You don't have permission to do that."), 403
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=403, status_message='{}|{}'.format(read_token, delete_token))
+        return make_error(endpoint='api/_d', status='403 Forbidden', error_details='ERROR: Authentication token(s) incorrect.', code=403)
+
+
+# SECURITY API
+@bp.route('/api/_rs/auth=<read_token>&<security_token>/query=<argument>:<data>')
+def read_sentry(read_token, security_token, argument, data):
+    #if read_token == current_app.config['READ_TOKEN'] and security_token == current_app.config['SECURITY_TOKEN']:
+    if read_token == 'read' and security_token == 'security':
+
+        if argument == 'sentry_id':
+            try:
+                data = int(data)
+                results = [Sentry.query.filter_by(id=data).first()]
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='sentry_id|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='sentry_id|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'timestamp':
+            try:
+                data = int(data)
+                limit = datetime.utcnow() - timedelta(days=data)
+                results = Sentry.query.filter(Sentry.timestamp >= limit).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='timestamp|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='timestamp|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'ip_address':
+            try:
+                data = str(data)
+                results = Sentry.query.filter_by(ip_address=data).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='ip_address|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='ip_address|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'user_id':
+            try:
+                data = int(data)
+                results = Sentry.query.filter_by(user_id=data).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='user_id|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='user_id|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'domain_id':
+            try:
+                data = int(data)
+                results = Sentry.query.filter_by(domain_id=data).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='domain_id|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='domain_id|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'endpoint':
+            try:
+                data = str(data)
+                results = Sentry.query.filter_by(endpoint=data).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='endpoint|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='endpoint|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'endpoint_prefix':
+            try:
+                data = str(data)
+                everything = Sentry.query.all()
+                json_list = []
+                for thing in everything:
+                    if thing.endpoint.split('.')[0] == data:
+                        json_dict = {'id': thing.id, 'timestamp': thing.timestamp, 'ip_address': thing.ip_address, 'user_id': thing.user_id, 'domain_id': thing.domain_id, 'endpoint': thing.endpoint, 'status_code': thing.status_code, 'status_message': thing.status_message, 'flag': thing.flag}
+                        json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='endpoint_prefix|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='endpoint_prefix|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'status_code':
+            try:
+                data = int(data)
+                results = Sentry.query.filter_by(status_code=data).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='status_code|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='status_code|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        elif argument == 'flag':
+            try:
+                data = str(data)
+                results = Sentry.query.filter_by(flag=data).all()
+                json_list = []
+                for result in results:
+                    json_dict = {'id': result.id, 'timestamp': result.timestamp, 'ip_address': result.ip_address, 'user_id': result.user_id, 'domain_id': result.domain_id, 'endpoint': result.endpoint, 'status_code': result.status_code, 'status_message': result.status_message, 'flag': result.flag}
+                    json_list.append(json_dict)
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=200, status_message='flag|{}'.format(data))
+                return jsonify(json_list), 200
+            except:
+                make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=404, status_message='flag|{}'.format(data))
+                return make_error(endpoint='api/_rs', status='404 Data Not Found', error_details='ERROR: No results found.', code=404)
+
+        else:
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=400, status_message='{}'.format(argument))
+            return make_error(endpoint='api/_rs', status='400 Bad Request', error_details='ERROR: Malformed request; argument not found.', code=400)
+
+    else:
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read_sentry', status_code=403, status_message='{}|{}'.format(read_token, security_token))
+        return make_error(endpoint='api/_rs', status='403 Forbidden', error_details='ERROR: Authentication token(s) incorrect.', code=403)

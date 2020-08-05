@@ -9,8 +9,8 @@ import uuid
 import pdfrw
 import os
 
-def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message):
-    incident = Sentry(user_id=user_id, domain_id=domain_id, ip_address=ip_address, endpoint=endpoint, status_code=status_code, status_message=status_message)
+def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
+    incident = Sentry(user_id=user_id, domain_id=domain_id, ip_address=ip_address, endpoint=endpoint, status_code=status_code, status_message=status_message, flag=flag)
     db.session.add(incident)
     db.session.commit()
 
@@ -41,23 +41,23 @@ def privacy_policy():
         user = User.query.filter_by(id=current_user.id).first()
         incidents = Sentry.query.filter_by(user_id=current_user.id).all()
         crta = current_user.icyfire_crta
-        country = str(current_user.icyfire_crta).split('-')[0]
-        region = str(current_user.icyfire_crta).split('-')[1]
-        team = str(current_user.icyfire_crta).split('-')[2]
-        agent = str(current_user.icyfire_crta).split('-')[3]
+        #country = str(current_user.icyfire_crta).split('-')[0]
+        #region = str(current_user.icyfire_crta).split('-')[1]
+        #team = str(current_user.icyfire_crta).split('-')[2]
+        #agent = str(current_user.icyfire_crta).split('-')[3]
         if crta is None:
             contractor = None
             sales = None
-        elif country != '00' and region == '00' and team == '00' and agent == '00':
+        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] == '00' and str(current_user.icyfire_crta).split('-')[2] == '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
             contractor = CountryLead.query.filter_by(crta_code=crta).first()
             sales = Sale.query.filter_by(country_lead_id=contractor.id).all()
-        elif country != '00' and region != '00' and team == '00' and agent == '00':
+        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] != '00' and str(current_user.icyfire_crta).split('-')[2] == '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
             contractor = RegionLead.query.filter_by(crta_code=crta).first()
             sales = Sale.query.filter_by(region_lead_id=contractor.id).all()
-        elif country != '00' and region != '00' and team != '00' and agent == '00':
+        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] != '00' and str(current_user.icyfire_crta).split('-')[2] != '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
             contractor = TeamLead.query.filter_by(crta_code=crta).first()
             sales = Sale.query.filter_by(team_lead_id=contractor.id).all()
-        elif country != '00' and region != '00' and team != '00' and agent != '00':
+        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] != '00' and str(current_user.icyfire_crta).split('-')[2] != '00' and str(current_user.icyfire_crta).split('-')[3] != '00':
             contractor = Agent.query.filter_by(crta_code=crta).first()
             sales = Sale.query.filter_by(agent_id=contractor.id).all()
     else:
@@ -114,3 +114,11 @@ def independent_contractor_agreement():
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='legal.privacy_policy', status_code=200, status_message='OK')
         return send_from_directory(os.path.join(basedir, 'app', 'static', 'records', 'contracts'), '{}_ica.pdf'.format(str(form.last_name.data)), as_attachment=True)
     return render_template('legal/independent_contractor_agreement.html', title='Generate Independent Contractor Agreement', form=form)
+
+@bp.route('/legal/vulnerability-disclosure-program')
+def vulnerability_disclosure_program():
+    return render_template('legal/vdp.html', title='IcyFire - Vulnerability Disclosure Program (VDP)')
+
+@bp.route('/legal/report-vulnerability')
+def report_vulnerability():
+    return redirect('https://docs.google.com/forms/d/e/1FAIpQLSdz9635l_yBfSXg9-a3aXOejkOqVQcVCQf-3svF8VEdQekmNw/viewform?usp=sf_link')
