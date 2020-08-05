@@ -11,7 +11,7 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
     db.session.add(activity)
     db.session.commit()
 
-# ADMIN DASHBOARD
+# ADMIN DASHBOARD - TESTED
 @bp.route('/admin/dashboard', methods=['GET'])
 @login_required
 def dashboard():
@@ -29,7 +29,7 @@ def dashboard():
     users = User.query.filter_by(domain_id=current_user.domain_id).order_by(User.id.desc()).all()
     return render_template('admin/dashboard.html', title='Admin Console', users=users)
 
-# GRANT PERMISSION
+# GRANT PERMISSION - TESTED
 @bp.route('/admin/<user_id>/+<permission>', methods=['GET', 'POST'])
 @login_required
 def grant_permission(user_id, permission):
@@ -90,7 +90,7 @@ def grant_permission(user_id, permission):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.grant_permission', status_code=400, status_message='{}|{}|Not a valid permission.'.format(int(user_id), str(permission)))
         return redirect(url_for('admin.dashboard'))
 
-# REVOKE PERMISSION
+# REVOKE PERMISSION - TESTED
 @bp.route('/admin/<user_id>/-<permission>')
 @login_required
 def revoke_permission(user_id, permission):
@@ -158,7 +158,7 @@ def revoke_permission(user_id, permission):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.revoke_permission', status_code=400, status_message='{}|{}|Not a valid permission.'.format(int(user_id), str(permission)))
         return redirect(url_for('admin.dashboard'))
 
-# ESCALATE TO CISO
+# ESCALATE TO CISO - TESTED
 @bp.route('/admin/sentry/escalate-ciso/<post_id>')
 def escalate_ciso(post_id):
     '''
@@ -175,7 +175,7 @@ def escalate_ciso(post_id):
     flash("Thank you for your feedback. You'll hear from us shortly.")
     return redirect(url_for('admin.dashboard'))
 
-# GET USER INFORMATION
+# GET USER INFORMATION - TESTED
 @bp.route('/admin/sentry/user/<user_id>')
 @login_required
 def get_user_info(user_id):
@@ -200,7 +200,7 @@ def get_user_info(user_id):
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.get_user_info', status_code=200, status_message='{}'.format(user_id))
     return render_template('admin/get_user_info.html', title='SENTRY - Get User Info', user=user, activities=activities)
 
-# CREATE-200
+# CREATE-200 - TESTED
 @bp.route('/admin/sentry/create/success', methods=['GET'])
 @login_required
 def sentry_create_success():
@@ -223,7 +223,7 @@ def sentry_create_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_success', status_code=200, status_message='OK')
     return render_template('admin/create_success.html', title='Successful Creations', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
-# CREATE-403
+# CREATE-403 - TESTED
 @bp.route('/admin/sentry/create/fail', methods=['GET'])
 @login_required
 def sentry_create_fail():
@@ -246,7 +246,7 @@ def sentry_create_fail():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_fail', status_code=200, status_message='OK')
     return render_template('admin/create_fail.html', title='Attempted Creations', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
-# READ-200
+# READ-200 - TESTED
 @bp.route('/admin/sentry/read/success', methods=['GET'])
 @login_required
 def sentry_read_success():
@@ -266,7 +266,7 @@ def sentry_read_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_success', status_code=200, status_message='OK')
     return render_template('admin/read_success.html', title='Successful Reads', reads=reads)
 
-# READ-403
+# READ-403 - TESTED
 @bp.route('/admin/sentry/read/fail', methods=['GET'])
 @login_required
 def sentry_read_fail():
@@ -286,7 +286,7 @@ def sentry_read_fail():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_fail', status_code=200, status_message='OK')
     return render_template('admin/read_fail.html', title='Attempted Reads', reads=reads)
 
-# UPDATE-200
+# UPDATE-200 - TESTED
 @bp.route('/admin/sentry/update/success', methods=['GET'])
 @login_required
 def sentry_update_success():
@@ -308,7 +308,7 @@ def sentry_update_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_success', status_code=200, status_message='OK')
     return render_template('admin/update_success.html', title='Successful Updates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
-# UPDATE-403
+# UPDATE-403 - TESTED
 @bp.route('/admin/sentry/update/fail', methods=['GET'])
 @login_required
 def sentry_update_fail():
@@ -330,7 +330,7 @@ def sentry_update_fail():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_fail', status_code=200, status_message='OK')
     return render_template('admin/update_fail.html', title='Attempted Updates', short_texts=short_texts, long_texts=long_texts, images=images, videos=videos)
 
-# DELETE-204
+# DELETE-204 - TESTED
 @bp.route('/admin/sentry/delete/success', methods=['GET'])
 @login_required
 def sentry_delete_success():
@@ -349,7 +349,7 @@ def sentry_delete_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_success', status_code=200, status_message='OK')
     return render_template('admin/delete_success.html', title='Successful Deletes', deletes=deletes)
 
-# DELETE-403
+# DELETE-403 - TESTED
 @bp.route('/admin/sentry/delete/fail', methods=['GET'])
 @login_required
 def sentry_delete_fail():
@@ -368,7 +368,7 @@ def sentry_delete_fail():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_fail', status_code=200, status_message='OK')
     return render_template('admin/delete_fail.html', title='Failed Deletes', deletes=deletes)
 
-# PERMISSION-200
+# PERMISSION-200 - TESTED
 @bp.route('/admin/sentry/permission/success', methods=['GET'])
 @login_required
 def sentry_permission_success():
@@ -388,7 +388,7 @@ def sentry_permission_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_success', status_code=200, status_message='OK')
     return render_template('admin/permission_success.html', title='Successful Permission Changes', grants=grants, revokes=revokes)
 
-# PERMISSION-403
+# PERMISSION-403 - TESTED
 @bp.route('/admin/sentry/permission/fail', methods=['GET'])
 @login_required
 def sentry_permission_fail():
@@ -408,7 +408,7 @@ def sentry_permission_fail():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_fail', status_code=200, status_message='OK')
     return render_template('admin/permission_fail.html', title='Attempted Permission Changes', grants=grants, revokes=revokes)
 
-# ADMIN CONSOLE-200
+# ADMIN CONSOLE-200 - TESTED
 @bp.route('/admin/sentry/admin/success', methods=['GET'])
 @login_required
 def sentry_admin_success():
@@ -443,7 +443,7 @@ def sentry_admin_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_success', status_code=200, status_message='OK')
     return render_template('admin/admin_success.html', title='Successful Admin Console Access', dashboard=dashboard, get_user_info=get_user_info, create_success=create_success, create_fail=create_fail, read_success=read_success, read_fail=read_fail, update_success=update_success, update_fail=update_fail, delete_success=delete_success, delete_fail=delete_fail, permission_success=permission_success, permission_fail=permission_fail, admin_success=admin_success, admin_fail=admin_fail, creds_success=creds_success, creds_fail=creds_fail)
 
-# ADMIN CONSOLE-403
+# ADMIN CONSOLE-403 - TESTED
 @bp.route('/admin/sentry/admin/fail', methods=['GET'])
 @login_required
 def sentry_admin_fail():
@@ -478,7 +478,7 @@ def sentry_admin_fail():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_fail', status_code=200, status_message='OK')
     return render_template('admin/admin_fail.html', title='Attempted Admin Console Access', dashboard=dashboard, get_user_info=get_user_info, create_success=create_success, create_fail=create_fail, read_success=read_success, read_fail=read_fail, update_success=update_success, update_fail=update_fail, delete_success=delete_success, delete_fail=delete_fail, permission_success=permission_success, permission_fail=permission_fail, admin_success=admin_success, admin_fail=admin_fail, creds_success=creds_success, creds_fail=creds_fail)
 
-# CREDS-200
+# CREDS-200 - TESTED
 @bp.route('/admin/sentry/creds/success', methods=['GET'])
 @login_required
 def sentry_creds_success():
@@ -497,7 +497,7 @@ def sentry_creds_success():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_success', status_code=200, status_message='OK')
     return render_template('admin/creds_success.html', title='Successful Credentials Access', creds=creds)
 
-# CREDS-403
+# CREDS-403 - TESTED
 @bp.route('/admin/sentry/creds/fail', methods=['GET'])
 @login_required
 def sentry_creds_fail():
