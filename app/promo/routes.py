@@ -19,7 +19,25 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
 @bp.route('/')
 def home():
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.home', status_code=200, status_message='OK')
-    return render_template('promo/home.html', title='Welcome to IcyFire!')
+    return render_template('promo/new_home.html', title='Welcome to IcyFire!')
+
+@bp.route('/product')
+def product():
+    return "Product page"
+
+@bp.route('/help-others')
+def help_others():
+    return "Help others page"
+
+@bp.route('/what-if')
+def what_if():
+    return "What if page"
+
+@bp.route('/do-good')
+def do_good():
+    return "Do good page"
+
+##############
 
 @bp.route('/products')
 def products():
