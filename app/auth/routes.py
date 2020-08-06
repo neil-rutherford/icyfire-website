@@ -87,6 +87,12 @@ def logout():
     #make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.logout', status_code=200, status_message='Successful logout.')
     return redirect(url_for('promo.home'))
 
+@bp.route('/register')
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    return render_template('auth/register.html', title='Register')
+
 # NEW DOMAIN REGISTRATION PAGE
 @bp.route('/register/domain', methods=['GET', 'POST'])
 def register_domain():

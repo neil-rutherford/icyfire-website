@@ -34,19 +34,18 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_anonymous %}
+                    <li><a href="{{ url_for('auth.register') }}">Register</a></li>
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-		            <li><a href="{{ url_for('auth.register_user') }}">New User Registration</a></li>
-                    <li><a href="{{ url_for('auth.register_domain') }}">New Domain Registration</a></li>
                     {% else %}
+                    {% if current_user.is_admin == true %}
+                    <li><a href="{{ url_for('admin.dashboard') }}">Admin Console</a></li>
+                    {% endif %}
                     <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
                     <li><a href="{{ url_for('main.create_short_text') }}"> + Short Text</a></li>
                     <li><a href="{{ url_for('main.create_long_text') }}"> + Long Text</a></li>
                     <li><a href="{{ url_for('main.create_image') }}"> + Image</a></li>
                     <li><a href="{{ url_for('main.create_video') }}"> + Video</a></li>
                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-                    {% endif %}
-                    {% if current_user.is_admin == true %}
-                    <li><a href="{{ url_for('admin.dashboard') }}">Admin Console</a></li>
                     {% endif %}
                 </ul>
             </div>
