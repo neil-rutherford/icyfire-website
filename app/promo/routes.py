@@ -40,14 +40,30 @@ def do_good():
 
 @bp.route('/contact-us')
 def contact_us():
+    make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.contact_us', status_code=200, status_message='OK')
     return render_template('promo/contact_us.html', title='Contact us')
 
 @bp.route('/buy-now')
 def buy_now():
-    return "Buy now"
+    return "Buy now!"
+    #return redirect(url_for('promo.record_sale'))
+
+#@bp.route('/buy-now/receive')
+#def receive_payment():
+    #try:
+        #data = json.loads(request.data)
+        #intent = stripe.PaymentIntent.create(amount=3000, currency='usd')
+        #return jsonify({'clientSecret': intent['client_secret']})
+    #except Exception as e:
+        #return jsonify(error=str(e)), 403
+
+#@bp.route('/buy-now/record')
+#def record_sale():
+    #form
 
 @bp.route('/contact-sales', methods=['GET', 'POST'])
 def contact_sales():
+    make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.contact_sales', status_code=200, status_message='OK')
     form = LeadForm()
     if form.validate_on_submit():
         agents = Agent.query.filter().all()
@@ -70,6 +86,8 @@ def contact_sales():
         lead.email_opt_in = form.email_opt_in.data
         db.session.add(lead)
         db.session.commit()
+        flash("Thanks for your interest! We'll reach out to you shortly.")
+        return redirect(url_for('promo.home'))
     return render_template('promo/contact_sales.html', title='Contact sales', form=form)
 
 ##############

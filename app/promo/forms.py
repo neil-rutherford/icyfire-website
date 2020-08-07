@@ -56,3 +56,15 @@ class LeadForm(FlaskForm):
     ], validators=[DataRequired()])
     email_opt_in = BooleanField("Want to subscribe to our mailing list? (No spam, we promise.)")
     submit = SubmitField("Let's talk")
+
+class SaleForm(FlaskForm):
+    client_name = StringField
+    client_street_address = StringField
+    client_city = StringField
+    client_state = StringField
+    client_country = StringField
+    client_zip = StringField
+    client_phone_country = StringField
+    client_phone_number = StringField
+    client_email = StringField
+    submit = SubmitField
