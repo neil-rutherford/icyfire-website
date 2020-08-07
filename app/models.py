@@ -595,6 +595,49 @@ class Sentry(db.Model):
     def __repr__(self):
         return 'Sentry {}'.format(self.timestamp)
 
+class Lead(db.Model):
+    '''
+    A Lead is an individual who has requested more information about our company or services.
+
+    [id]                    : int       : Primary key.
+    [timestamp]             : datetime  : Date and time this occurred, in UTC.
+    [ip_address]            : str       : What is the Lead's IP address?
+    [agent_id]              : rel       : Foreign key. Which Agent has been assigned to this Lead?
+    [is_contacted]          : bool      : Has this Lead been contacted yet?
+    [first_name]            : str       : Individual's given name.
+    [last_name]             : str       : Individual's family name.
+    [company_name]          : str       : What company does this individual work for / is this individual representing?
+    [job_title]             : str       : What is the individual's job title? (Are they a decision maker?)
+    [number_of_employees]   : int       : How many employees does the company have? (1: 1 employee, 2: 2-10 employees, 3: 11-50, 4: 51-250, 5: 251-500, 6: 501-1,000, 7: 1,001-5,000, 8: 5,001-10,000, 9: 10,000+)
+    [time_zone]             : int       : What time zone is the Lead in? (1: Eastern, 2: Central, 3: Mountain, 4: Pacific, 5: Alaska, 6: Hawaii-Aleutian, 7: Other)
+    [phone_number]          : int       : What is the Lead's phone number? (Assuming a US number. If they are not in the US, they have been instructed to contact us by email.)
+    [email]                 : str       : What is the Lead's business email?
+    [contact_preference]    : int       : How does the Lead want to be contacted? (0: No preference, 1: Email, 2: Phone call)
+    [time_preference]       : int       : When does the Lead want to be contacted? (0: No preference, 1: 8:00-9:30am, 2: 9:30-11:00am, 3: 11:00am-1:00pm, 4: 1:00-3:00pm, 5: 3:00-5:00pm)
+    [email_opt_in]          : bool      : Has this individual opted-in to marketing emails?
+    '''
+    __tablename__='lead'
+
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(15))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    agent_id = db.Column(db.Integer, db.ForeignKey('agent.id'))
+    is_contacted = db.Column(db.Boolean)
+    first_name = db.Column(db.String(50))
+    last_name = db.Column(db.String(50))
+    company_name = db.Column(db.String(100))
+    job_title = db.Column(db.String(100))
+    number_of_employees = db.Column(db.Integer)
+    time_zone = db.Column(db.Integer)
+    phone_number = db.Column(db.Integer)
+    email = db.Column(db.String(100))
+    contact_preference = db.Column(db.Integer)
+    time_preference = db.Column(db.Integer)
+    email_opt_in = db.Column(db.Boolean)
+
+    def __repr__(self):
+        return 'Lead {}'.format(self.email)
+
 
 @login.user_loader
 def load_user(id):

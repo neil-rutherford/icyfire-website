@@ -2,7 +2,8 @@ from flask import render_template, request, url_for, redirect, flash, send_from_
 from flask_login import current_user
 from app import db
 from app.promo import bp
-from app.models import Sentry, Agent, User
+from app.models import Sentry, Agent, User, Lead
+from app.promo.forms import LeadForm
 import glob
 import os
 import datetime
@@ -36,6 +37,40 @@ def what_if():
 @bp.route('/do-good')
 def do_good():
     return "Do good page"
+
+@bp.route('/contact-us')
+def contact_us():
+    return render_template('promo/contact_us.html', title='Contact us')
+
+@bp.route('/buy-now')
+def buy_now():
+    return "Buy now"
+
+@bp.route('/contact-sales', methods=['GET', 'POST'])
+def contact_sales():
+    form = LeadForm()
+    if form.validate_on_submit():
+        agents = Agent.query.filter().all()
+        x = random.randint(0, len(agents)-1)
+        lucky_agent = agents[x]
+
+        lead = Lead(ip_address=request.remote_addr)
+        lead.agent_id = lucky_agent.id
+        lead.is_contacted = False
+        lead.first_name = form.first_name.data
+        lead.last_name = form.last_name.data
+        lead.company_name = form.company_name.data
+        lead.job_title = form.job_title.data
+        lead.number_of_employees = form.number_of_employees.data
+        lead.time_zone = form.time_zone.data
+        lead.phone_number = form.phone_number.data
+        lead.email = form.email.data
+        lead.contact_preference = form.contact_preference.data
+        lead.time_preference = form.time_preference.data
+        lead.email_opt_in = form.email_opt_in.data
+        db.session.add(lead)
+        db.session.commit()
+    return render_template('promo/contact_sales.html', title='Contact sales', form=form)
 
 ##############
 

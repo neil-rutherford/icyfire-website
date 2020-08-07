@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Contact sales</h1>
+
+    <h2>We're here to help.</h2>
+
+    <div class="row">
+		<div class="col-md-4">
+			{{ wtf.quick_form(form) }}
+		</div>
+	</div>
+    <br>
+    <p>For information about IcyFire handles personal data, see our <a href="{{ url_for('legal.privacy_policy') }}">Privacy Policy</a> and <a href="{{ url_for('legal.cookie_policy') }}">Cookie Policy</a>.</p>
+{% endblock %}
