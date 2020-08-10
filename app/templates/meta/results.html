@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Search results</h1>
+
+    {% if model == 'domain' %}
+        <h2>Domains</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>Domain name</th>
+                <th>Sale ID</th>
+                <th>Activation code</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.domain_name }}</td>
+                    <td>{{ x.sale_id }}</td>
+                    <td>{{ x.activation_code }}</td>
+                    <td><a href="{{ url_for('meta.edit_domain', domain_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='domain', id=x.id) }}">Delete</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'user' %}
+        <h2>Users</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>Email</th>
+                <th>Domain ID</th>
+                <th>Post count</th>
+                <th>Is admin</th>
+                <th>Is create</th>
+                <th>Is read</th>
+                <th>Is update</th>
+                <th>Is delete</th>
+                <th>Email opt-in</th>
+                <th>CRTA</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.email }}</td>
+                    <td>{{ x.domain_id }}</td>
+                    <td>{{ x.post_count }}</td>
+                    <td>{{ x.is_admin }}</td>
+                    <td>{{ x.is_create }}</td>
+                    <td>{{ x.is_read }}</td>
+                    <td>{{ x.is_update }}</td>
+                    <td>{{ x.is_delete }}</td>
+                    <td>{{ x.email_opt_in }}</td>
+                    <td>{{ x.icyfire_crta }}</td>
+                    <td><a href="{{ url_for('meta.edit_user', user_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='user', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'country_lead' %}
+        <h2>Country leads</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Phone number</th>
+                <th>Email</th>
+                <th>CRTA</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.user_id }}</td>
+                    <td>{{ x.first_name }}</td>
+                    <td>{{ x.last_name }}</td>
+                    <td>{{ x.phone_number }}</td>
+                    <td>{{ x.email }}</td>
+                    <td>{{ x.crta_code }}</td>
+                    <td><a href="{{ url_for('meta.edit_country_lead', country_lead_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='country_lead', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'region_lead' %}
+        <h2>Region Leads</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Phone number</th>
+                <th>Email</th>
+                <th>CRTA</th>
+                <th>Country lead</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.user_id }}</td>
+                    <td>{{ x.first_name }}</td>
+                    <td>{{ x.last_name }}</td>
+                    <td>{{ x.phone_number }}</td>
+                    <td>{{ x.email }}</td>
+                    <td>{{ x.crta_code }}</td>
+                    <td>{{ x.country_lead_id }}</td>
+                    <td><a href="{{ url_for('meta.edit_region_lead', region_lead_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='region_lead', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'team_lead' %}
+        <h2>Team Leads</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Phone number</th>
+                <th>Email</th>
+                <th>CRTA</th>
+                <th>Region lead ID</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.user_id }}</td>
+                    <td>{{ x.first_name }}</td>
+                    <td>{{ x.last_name }}</td>
+                    <td>{{ x.phone_number }}</td>
+                    <td>{{ x.email }}</td>
+                    <td>{{ x.crta_code }}</td>
+                    <td>{{ x.region_lead_id }}</td>
+                    <td><a href="{{ url_for('meta.edit_team_lead', team_lead_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='team_lead', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'agent' %}
+        <h2>Agents</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Phone number</th>
+                <th>Email</th>
+                <th>CRTA</th>
+                <th>Team lead ID</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{x.id}}</td>
+                    <td>{{ x.user_id }}</td>
+                    <td>{{ x.first_name }}</td>
+                    <td>{{ x.last_name }}</td>
+                    <td>{{ x.phone_number }}</td>
+                    <td>{{ x.email }}</td>
+                    <td>{{ x.crta_code }}</td>
+                    <td>{{ x.team_lead_id }}</td>
+                    <td><a href="{{ url_for('meta.edit_agent', agent_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='agent', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'sale' %}
+        <h2>Sales</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>Agent ID</th>
+                <th>Team lead ID</th>
+                <th>Region lead ID</th>
+                <th>Country lead ID</th>
+                <th>Timestamp</th>
+                <th>Street address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>ZIP</th>
+                <th>Phone number</th>
+                <th>Email</th>
+                <th>Unit price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Sales tax</th>
+                <th>Total</th>
+                <th>Receipt</th>
+                <th>Payment reference</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.agent_id }}</td>
+                    <td>{{ x.team_lead_id }}</td>
+                    <td>{{ x.region_lead_id }}</td>
+                    <td>{{ x.country_lead_id }}</td>
+                    <td>{{ moment(x.timestamp).format('LLL') }}</td>
+                    <td>{{ x.client_name }}</td>
+                    <td>{{ x.client_street_address }}</td>
+                    <td>{{ x.client_city }}</td>
+                    <td>{{ x.client_state }}</td>
+                    <td>{{ x.client_zip }}</td>
+                    <td>{{ x.client_phone_number }}</td>
+                    <td>{{ x.client_email }}</td>
+                    <td>{{ x.unit_price }}</td>
+                    <td>{{ x.quantity }}</td>
+                    <td>{{ x.subtotal }}</td>
+                    <td>{{ x.sales_tax }}</td>
+                    <td>{{ x.total }}</td>
+                    <td><a href="{{ x.receipt_url }}">URL</a></td>
+                    <td>{{ x.payment_reference }}</td>
+                    <td><a href="{{ url_for('meta.edit_sale', sale_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='sale', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% elif model == 'lead' %}
+        <h2>Leads</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>IP address</th>
+                <th>Timestamp</th>
+                <th>Agent ID</th>
+                <th>Is contacted</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Company name</th>
+                <th>Job title</th>
+                <th>Number of employees</th>
+                <th>Time zone</th>
+                <th>Phone number</th>
+                <th>Email</th>
+                <th>Contact preference</th>
+                <th>Time preference</th>
+                <th>Email opt-in</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.ip_address }}</td>
+                    <td>{{ moment(x.timestamp).format('LLL') }}</td>
+                    <td>{{ x.agent_id }}</td>
+                    <td>{{ x.is_contacted }}</td>
+                    <td>{{ x.first_name }}</td>
+                    <td>{{ x.last_name }}</td>
+                    <td>{{ x.company_name }}</td>
+                    <td>{{ x.job_title }}</td>
+                    {% if x.number_of_employees == 1 %}
+                        <td>1 employee</td>
+                    {% elif x.number_of_employees == 2 %}
+                        <td>2-10 employees</td>
+                    {% elif x.number_of_employees == 3 %}
+                        <td>11-50 employees</td>
+                    {% elif x.number_of_employees == 4 %}
+                        <td>51-250 employees</td>
+                    {% elif x.number_of_employees == 5 %}
+                        <td>251-500 employees</td>
+                    {% elif x.number_of_employees == 6 %}
+                        <td>501-1,000 employees</td>
+                    {% elif x.number_of_employees == 7 %}
+                        <td>1,001-5,000 employees</td>
+                    {% elif x.number_of_employees == 8 %}
+                        <td>5,001-10,000 employees</td>
+                    {% else %}
+                        <td>10,000+ employees</td>
+                    {% endif %}
+                    {% if x.time_zone == 1 %}
+                        <td>Eastern</td>
+                    {% elif x.time_zone == 2 %}
+                        <td>Central</td>
+                    {% elif x.time_zone == 3 %}
+                        <td>Mountain</td>
+                    {% elif x.time_zone == 4 %}
+                        <td>Pacific</td>
+                    {% elif x.time_zone == 5 %}
+                        <td>Alaska</td>
+                    {% elif x.time_zone == 6 %}
+                        <td>Hawaii-Aleutian</td>
+                    {% else %}
+                        <td>Other</td>
+                    {% endif %}
+                    <td>{{ x.phone_number }}</td>
+                    <td>{{ x.email }}</td>
+                    {% if x.contact_preference == 0 %}
+                        <td>No preference</td>
+                    {% elif x.contact_preference == 1 %}
+                        <td>Email</td>
+                    {% else %}
+                        <td>Phone call</td>
+                    {% endif %}
+                    {% if x.time_preference == 1 %}
+                        <td>8:00-9:30am</td>
+                    {% elif x.time_preference == 2 %}
+                        <td>9:30-11:00am</td>
+                    {% elif x.time_preference == 3 %}
+                        <td>11:00am-1:00pm</td>
+                    {% elif x.time_preference == 4 %}
+                        <td>1:00-3:00pm</td>
+                    {% elif x.time_preference == 5 %}
+                        <td>3:00-5:00pm</td>
+                    {% else %}
+                        <td>No preference</td>
+                    {% endif %}
+                    <td>{{ x.email_opt_in }}</td>
+                    <td><a href="{{ url_for('meta.edit_lead', lead_id=x.id) }}">Edit</a></td>
+                    <td><a href="{{ url_for('meta.delete', model='lead', id=x.id) }}">Delete</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h2>Timeslots</h2>
+        <table width=100%>
+            <tr>
+                <th>ID</th>
+                <th>Domain ID</th>
+                <th>Facebook cred ID</th>
+                <th>Twitter cred ID</th>
+                <th>Tumblr cred ID</th>
+                <th>Reddit cred ID</th>
+                <th>Server ID</th>
+                <th>Day of week</th>
+                <th>Time</th>
+            </tr>
+            {% for x in results %}
+                <tr>
+                    <td>{{ x.id }}</td>
+                    <td>{{ x.domain_id }}</td>
+                    <td>{{ x.facebook_cred_id }}</td>
+                    <td>{{ x.twitter_cred_id }}</td>
+                    <td>{{ x.tumblr_cred_id }}</td>
+                    <td>{{ x.reddit_cred_id }}</td>
+                    <td>{{ x.server_id }}</td>
+                    <td>{{ x.day_of_week }}</td>
+                    <td>{{ x.time }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+{% endblock %}                    

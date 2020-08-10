@@ -11,5 +11,9 @@ class Config(object):
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') is not None
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    ADMINS = ['neilbolyard@gmail.com']
+    AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+    AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
+    S3_BUCKET = os.environ.get('S3_BUCKET')
+    S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(S3_BUCKET)
+    ADMINS = ['neilrutherford@icy-fire.com']
     TRAP_HTTP_EXCEPTIONS = True

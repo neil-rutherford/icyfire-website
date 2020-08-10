@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+    <h1>Meta Dashboard</h1>
+    <hr>
+
+    <h2>Make a new...</h2>
+    <ul>
+        <li><a href="{{ url_for('meta.create_domain') }}"><h3>Domain</h3></a></li>
+        <li><a href="{{ url_for('meta.create_user') }}"><h3>User</h3></a></li>
+        <li><a href="{{ url_for('meta.create_country_lead') }}"><h3>Country lead</h3></a></li>
+        <li><a href="{{ url_for('meta.create_region_lead') }}"><h3>Region lead</h3></a></li>
+        <li><a href="{{ url_for('meta.create_team_lead') }}"><h3>Team lead</h3></a></li>
+        <li><a href="{{ url_for('meta.create_agent') }}"><h3>Agent</h3></a></li>
+        <li><a href="{{ url_for('meta.create_sale') }}"><h3>Sale</h3></a></li>
+        <li><a href="{{ url_for('meta.create_lead') }}"><h3>Lead</h3></a></li>
+    </ul>
+
+    <hr>
+
+    <h2>See all...</h2>
+    <ul>
+        <li><a href="{{ url_for('meta.read', model='domain') }}"><h3>Domains</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='user') }}"><h3>Users</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='country_lead') }}"><h3>Country leads</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='region_lead') }}"><h3>Region leads</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='team_lead') }}"><h3>Team leads</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='agent') }}"><h3>Agents</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='sale') }}"><h3>Sales</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='lead') }}"><h3>Leads</h3></a></li>
+        <li><a href="{{ url_for('meta.read', model='timeslot') }}"><h3>Timeslots</h3></a></li>
+    </ul>
+
+    <hr>
+
+    <h2>Server management</h2>
+    <ul>
+        <li><a href="{{ url_for('meta.create_server') }}"><h3>Create server</h3></a></li>
+        <li><a href="{{ url_for('meta.system_status') }}"><h3>System status</h3></a></li>
+    </ul>
+{% endblock %}

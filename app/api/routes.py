@@ -16,15 +16,15 @@ def make_error(endpoint, status, error_details, code):
 
 # READ API
 # TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
-@bp.route('/api/_r/<timeslot_id>/auth=<read_token>&<cred_token>')
-def read(timeslot_id, read_token, cred_token):
+@bp.route('/api/_r/<timeslot_id>/auth=<read_token>&<cred_token>&<server_id>')
+def read(timeslot_id, read_token, cred_token, server_id):
     if read_token == 'read' and cred_token == 'cred':
-    #if read_token == current_app.config['READ_TOKEN'] and cred_token == current_app.config['CRED_TOKEN']:
+    #if read_token == current_app.config['READ_TOKEN'] and cred_token == current_app.config['CRED_TOKEN'] and server_id is not None:
 
         timeslot = TimeSlot.query.filter_by(id=timeslot_id).first()
 
         if timeslot is None:
-            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=400, status_message='{}'.format(timeslot_id))
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=400, status_message='{}|{}'.format(timeslot_id, server_id))
             return make_error(endpoint='api/_r', status='400 Bad Request', error_details='ERROR: Malformed request; timeslot not found.', code=400)
         
         domain_id = timeslot.domain_id
@@ -34,10 +34,10 @@ def read(timeslot_id, read_token, cred_token):
             post = FacebookPost.query.filter_by(cred_id=cred.id).order_by(FacebookPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='facebook|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='facebook|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_r/facebook', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='facebook|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='facebook|{}|{}'.format(cred.id, server_id))
                 return jsonify(platform='facebook', access_token=cred.access_token, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
 
         elif timeslot.twitter_cred_id is not None:
@@ -45,10 +45,10 @@ def read(timeslot_id, read_token, cred_token):
             post = TwitterPost.query.filter_by(cred_id=cred.id).order_by(TwitterPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='twitter|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='twitter|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_r/twitter', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='twitter|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='twitter|{}|{}'.format(cred.id, server_id))
                 return jsonify(platform='twitter', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, access_token_key=cred.access_token_key, access_token_secret=cred.access_token_secret, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
 
         elif timeslot.tumblr_cred_id is not None:
@@ -56,10 +56,10 @@ def read(timeslot_id, read_token, cred_token):
             post = TumblrPost.query.filter_by(cred_id=cred.id).order_by(TumblrPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='tumblr|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='tumblr|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_r/tumblr', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='tumblr|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='tumblr|{}|{}'.format(cred.id, server_id))
                 return jsonify(platform='tumblr', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, oauth_token=cred.oauth_token, oauth_secret=cred.oauth_secret, blog_name=cred.blog_name, post_type=post.post_type, title=post.title, body=post.body, tags=post.tags, link_url=post.link_url, multimedia_url=post.multimedia_url, caption=post.caption)
 
         elif timeslot.reddit_cred_id is not None:
@@ -67,30 +67,31 @@ def read(timeslot_id, read_token, cred_token):
             post = RedditPost.query.filter_by(cred_id=cred.id).order_by(RedditPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='reddit|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='reddit|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_r/reddit', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
                 return jsonify(platform='reddit', client_id=cred.client_id, client_secret=cred.client_secret, user_agent=cred.user_agent, username=cred.username, password=cred.password, post_type=post.post_type, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url)
         
         else:
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=218, status_message='{}'.format(server_id))
             return make_error(endpoint='api/_r', status='218 This Is Fine', error_details='INFO: Timeslot is empty.', code=218)
 
     else:
-        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=403, status_message='{}|{}'.format(read_token, cred_token))
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=403, status_message='{}|{}|{}'.format(read_token, cred_token, server_id))
         return make_error(endpoint='api/_r', status='403 Forbidden', error_details='ERROR: Authentication token(s) incorrect.', code=403)
 
 
 # DELETE API
 # TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
-@bp.route('/api/_d/<timeslot_id>/auth=<read_token>&<delete_token>')
-def delete(timeslot_id, read_token, delete_token):
+@bp.route('/api/_d/<timeslot_id>/auth=<read_token>&<delete_token>&<server_id>')
+def delete(timeslot_id, read_token, delete_token, server_id):
     if read_token == 'read' and delete_token == 'delete':
-    #if read_token == current_app.config['READ_TOKEN'] and delete_token == current_app.config['DELETE_TOKEN']:
+    #if read_token == current_app.config['READ_TOKEN'] and delete_token == current_app.config['DELETE_TOKEN'] and server_id is not None:
         
         timeslot = TimeSlot.query.filter_by(id=timeslot_id).first()
 
         if timeslot is None:
-            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=400, status_message='{}'.format(timeslot_id))
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=400, status_message='{}|{}'.format(timeslot_id, server_id))
             return make_error(endpoint='api/_d', status='400 Bad Request', error_details='ERROR: Malformed request; timeslot not found.', code=400)
         
         domain_id = timeslot.domain_id
@@ -100,10 +101,10 @@ def delete(timeslot_id, read_token, delete_token):
             post = FacebookPost.query.filter_by(cred_id=cred.id).order_by(FacebookPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='facebook|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='facebook|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_d/facebook', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='facebook|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='facebook|{}|{}'.format(cred.id, server_id))
                 db.session.delete(post)
                 db.session.commit()
                 return make_error(endpoint='api/_d/facebook', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
@@ -113,10 +114,10 @@ def delete(timeslot_id, read_token, delete_token):
             post = TwitterPost.query.filter_by(cred_id=cred.id).order_by(TwitterPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='twitter|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='twitter|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_d/twitter', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='twitter|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='twitter|{}|{}'.format(cred.id, server_id))
                 db.session.delete(post)
                 db.session.commit()
                 return make_error(endpoint='api/_d/twitter', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
@@ -126,10 +127,10 @@ def delete(timeslot_id, read_token, delete_token):
             post = TumblrPost.query.filter_by(cred_id=cred.id).order_by(TumblrPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='tumblr|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='tumblr|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_d/tumblr', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='tumblr|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='tumblr|{}|{}'.format(cred.id, server_id))
                 db.session.delete(post)
                 db.session.commit()
                 return make_error(endpoint='api/_d/tumblr', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
@@ -139,19 +140,20 @@ def delete(timeslot_id, read_token, delete_token):
             post = RedditPost.query.filter_by(cred_id=cred.id).order_by(RedditPost.timestamp.asc()).first()
 
             if post is None:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='reddit|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=404, status_message='reddit|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_d/reddit', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='reddit|{}'.format(cred.id))
+                make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.delete', status_code=204, status_message='reddit|{}|{}'.format(cred.id, server_id))
                 db.session.delete(post)
                 db.session.commit()
                 return make_error(endpoint='api/_d/reddit', status='204 No Content', error_details='SUCCESS: Post deleted.', code=204)
         
         else:
+            make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=218, status_message='{}'.format(server_id))
             return make_error(endpoint='api/_d', status='218 This Is Fine', error_details='INFO: Timeslot is empty.', code=218)
 
     else:
-        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=403, status_message='{}|{}'.format(read_token, delete_token))
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.delete', status_code=403, status_message='{}|{}|{}'.format(read_token, delete_token, server_id))
         return make_error(endpoint='api/_d', status='403 Forbidden', error_details='ERROR: Authentication token(s) incorrect.', code=403)
 
 

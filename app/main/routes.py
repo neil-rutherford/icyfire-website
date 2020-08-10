@@ -6,6 +6,7 @@ from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 import os
 import uuid
+import json
 from app.main import bp
 from datetime import datetime, date
 import boto3, botocore
@@ -39,13 +40,43 @@ def make_reddit(cred_id, domain_id, user_id, post_type, title, body, link_url, i
     db.session.commit()
 
 def upload_s3(file, bucket_name, acl='public-read'):
-    s3 = boto3.client("s3", aws_access_key_id=current_app.config['S3_KEY'], aws_secret_access_key=current_app.config['S3_SECRET'])
+    s3 = boto3.client("s3", aws_access_key_id=current_app.config['AWS_ACCESS_KET'], aws_secret_access_key=current_app.config['AWS_SECRET_KEY'])
     try:
         s3.upload_fileobj(file, bucket_name, file.filename, ExtraArgs={"ACL": acl, "ContentType": file.content_type})
     except Exception as e:
-        return e
+        raise e
     return "{}{}".format(current_app.config["S3_LOCATION"], file.filename)
 
+
+# Trying client-side upload ;)
+#@bp.route('/sign-s3')
+#def sign_s3():
+    #AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
+    #AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
+    #S3_BUCKET = os.environ.get('S3_BUCKET')
+    
+    #file_name = request.args.get('file-name')
+    #file_type = request.args.get('file-type')
+
+    #s3 = boto3.client(
+        #'s3',
+        #aws_access_key=AWS_ACCESS_KEY,
+        #aws_secret_key=AWS_SECRET_KEY)
+
+    #presigned_post = s3.generate_presigned_post(
+        #Bucket=S3_BUCKET, 
+        #Key=file_name, 
+        #Fields={'acl': 'public-read', 'Content-Type': file_type},
+        #Conditions=[
+            #{'acl': 'public-read'},
+            #{'Content-Type': file_type}
+        #],
+        #ExpiresIn=3600)
+
+    #return json.dumps({
+        #'data': presigned_post,
+        #'url': 'https://{}.s3.amazonaws.com/{}'.format(S3_BUCKET, file_name)
+    #})
 
 # DASHBOARD
 @bp.route('/dashboard', methods=['GET'])

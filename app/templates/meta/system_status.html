@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>IcyFire system status (past 7 days)</h1>
+
+    {% if system_status is not none %}
+        {% for status in system_status %}
+            <h2>Server {{ status['server_id'] }}</h2>
+
+            <p>Overall summary:<br>
+            <span style="color:green; font-weight:bold">{{ status['good_calls'] * '|' }}</span><span style="color:yellow; font-weight:bold">{{ status['fines'] * '|' }}</span><span style="color:red; font-weight:bold">{{ status['errors'] * '|' }}</span><span style="color:grey; font-weight:bold">{{ status['downtime'] * '|' }}</span></p>
+
+            <p>Successful API calls: {{ status['good_calls'] }}%<br>
+            <span style="color:green; font-weight:bold">{{ status['good_calls'] * '|' }}</span></p>
+
+            <p>Unallocated time slots: {{ status['fines'] }}%<br>
+            <span style="color:yellow; font-weight:bold">{{ status['fines'] * '|' }}</span></p>
+
+            <p>Failed API calls: {{ status['errors'] }}%<br>
+            <span style="color:red; font-weight:bold">{{ status['errors'] * '|' }}</span></p>
+
+            <p>Downtime: {{ status['downtime'] }}%<br>
+            <span style="color:grey; font-weight:bold">{{ status['downtime'] * '|' }}</span></p>
+
+            <hr>
+        {% endfor %}
+    {% else %}
+        <p>Our system is not operational at this time. Please check back later or contact us at <a href="mailto:support@icy-fire.com">support@icy-fire.com</a>. We apologize for any inconvenience this may cause.</p>
+        <hr>
+    {% endif %}
+
+    <h3>Additional information</h3>
+    <ul>
+        <li>We round our percentages, which means that sometimes our distribution may not add up to exactly 100.</li>
+        <li><b>Successful API calls:</b> This is when the server does everything correctly in the API call, and it either results in a <code>200 (Success)</code> or a <code>404 (Queue is empty)</code>.</li>
+        <li><b>Unallocated time slots:</b> This is when the server queries a timeslot, but no one has claimed it. The API call is going through, but there is no response. When this is high, it tells us that IcyFire is losing money. When this is low, it tells us that we need to bring another server online soon to keep up with demand.</li>
+        <li><b>Failed API calls:</b> This is when some sort of error occurs, either a <code>400 (Malformed request)</code> or a <code>403 (Access denied)</code>. This tells us when our developers have some debugging to do.</li>
+        <li><b>Downtime:</b> The server is supposed to be communicating, but it is not. This could be high for any number of reasons. If we just brought a new server online yesterday, for example, it would show about 85% downtime because it is measured against the past 7 days (6 of which it was inactive). If you have a question about why a server is experiencing high downtime, feel free to contact us by email at <a href="mailto:support@icy-fire.com">support@icy-fire.com</a>.</li>
+    </ul>
+
+    <script language="javascript">
+    setTimeOut(function() {
+        location.reload();
+    }, 60000);
+    </script>
+{% endblock %}
