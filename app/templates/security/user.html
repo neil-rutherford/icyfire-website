@@ -7,7 +7,11 @@
     <h2>Information</h2>
     <p><b>ID:</b> {{ user.id }}</p>
     <p><b>Email:</b> {{ user.email }}</p>
-    <p><b>Domain ID:</b> <a href="{{ url_for('security.sort_by_domain', domain_id={{ user.domain_id }}) }}">{{ user.domain_id }}</a></p>
+    {% if user.domain_id is not none %}
+        <p><b>Domain ID:</b> <a href="{{ url_for('security.sort_by_domain', domain_id=user.domain_id) }}">{{ user.domain_id }}</a></p>
+    {% else %}
+        <p><b>Domain ID:</b> None</p>
+    {% endif %}
     <p><b>Post count:</b> {{ user.post_count }}</p>
     <p><b>Admin:</b> {{ user.is_admin }}</p>
     <p><b>Create:</b> {{ user.is_create }}</p>
@@ -17,7 +21,7 @@
     <p><b>CRTA:</b> {{ user.icyfire_crta }}</p>
 
     <h2>Activity</h2>
-    <table>
+    <table width=100%>
         <tr>
             <th>Incident ID</th>
             <th>Timestamp</th>
@@ -31,11 +35,16 @@
             <tr>
                 <td>{{ post.id }}</td>
                 <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                <td><a href="{{ url_for('security.sort_by_ip', ip_address={{ post.ip_address }}) }}">{{ post.ip_address }}</td>
-                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ post.domain_id }}) }}">{{ post.domain_id }}</a></td>
+                <td><a href="{{ url_for('security.sort_by_ip', ip_address=post.ip_address) }}">{{ post.ip_address }}</td>
+                {% if post.user_id is not none %}
+                    <td><a href="{{ url_for('security.sort_by_domain', domain_id=post.domain_id) }}">{{ post.domain_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
                 <td>{{ post.endpoint }}</td>
-                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ post.status_code }}) }}">{{ post.status_code }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code=post.status_code) }}">{{ post.status_code }}</td>
                 <td>{{ post.status_message }}</td>
             </tr>
         {% endfor %}
+    </table>
 {% endblock %}

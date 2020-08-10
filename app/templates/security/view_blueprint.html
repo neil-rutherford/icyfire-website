@@ -6,7 +6,7 @@
     <h1>VIEW BLUEPRINT - {{ blueprint_name }}</h1>
 
     <h2>Access granted</h2>
-    <table>
+    <table width=100%>
         <tr>
             <th>Incident ID</th>
             <th>Timestamp</th>
@@ -21,18 +21,26 @@
             <tr>
                 <td>{{ post.id }}</td>
                 <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ post.domain_id }}) ">{{ post.domain_id }}</a></td>
-                <td><a href="{{ url_for('security.sort_by_user', user_id={{ post.user_id }}) }}">{{ post.user_id }}</a></td>
-                <td><a href="{{ url_for('security.sort_by_ip', ip_address={{ post.ip_address }}) ">{{ post.ip_address }}</a></td>
+                {% if post.domain_id is not none %}
+                    <td><a href="{{ url_for('security.sort_by_domain', domain_id=post.domain_id) }}">{{ post.domain_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
+                {% if post.user_id is not none%}
+                    <td><a href="{{ url_for('security.sort_by_user', user_id=post.user_id) }}">{{ post.user_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
+                <td><a href="{{ url_for('security.sort_by_ip', ip_address=post.ip_address) }}">{{ post.ip_address }}</a></td>
                 <td>{{ post.endpoint }}</td>
-                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ post.status_code }}) }}">{{ post.status_code }}</a></td>
-                <td>{{ post.status_code }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code=post.status_code) }}">{{ post.status_code }}</a></td>
                 <td>{{ post.status_message }}</td>
             </tr>
         {% endfor %}
+    </table>
 
     <h2>Access denied</h2>
-    <table>
+    <table width=100%>
         <tr>
             <th>Incident ID</th>
             <th>Timestamp</th>
@@ -47,13 +55,21 @@
             <tr>
                 <td>{{ post.id }}</td>
                 <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ post.domain_id }}) ">{{ post.domain_id }}</a></td>
-                <td><a href="{{ url_for('security.sort_by_user', user_id={{ post.user_id }}) }}">{{ post.user_id }}</a></td>
-                <td><a href="{{ url_for('security.sort_by_ip', ip_address={{ post.ip_address }}) ">{{ post.ip_address }}</a></td>
+                {% if post.domain_id is not none %}
+                    <td><a href="{{ url_for('security.sort_by_domain', domain_id=post.domain_id) }}">{{ post.domain_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
+                {% if post.user_id is not none %}
+                    <td><a href="{{ url_for('security.sort_by_user', user_id=post.user_id) }}">{{ post.user_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
+                <td><a href="{{ url_for('security.sort_by_ip', ip_address=post.ip_address) }}">{{ post.ip_address }}</a></td>
                 <td>{{ post.endpoint }}</td>
-                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ post.status_code }}) }}">{{ post.status_code }}</a></td>
-                <td>{{ post.status_code }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code=post.status_code) }}">{{ post.status_code }}</a></td>
                 <td>{{ post.status_message }}</td>
             </tr>
         {% endfor %}
+    </table>
 {% endblock %}

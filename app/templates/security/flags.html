@@ -4,7 +4,7 @@
 {% block app_content %}
     <h1>Flagged Incidents</h1>
 
-    <table>
+    <table width=100%>
         <tr>
             <th>Incident ID</th>
             <th>Timestamp</th>
@@ -19,12 +19,22 @@
             <tr>
                 <td>{{ flag.id }}</td>
                 <td>{{ moment(flag.timestamp).format('LLL') }}</td>
-                <td><a href="{{ url_for('security.sort_by_ip', ip_address={{ flag.ip_address }}) }}">{{ flag.ip_address }}</td>
-                <td><a href="{{ url_for('security.sort_by_user', user_id={{ flag.user_id }}) }}">{{ flag.user_id }}</a></td>
-                <td><a href="{{ url_for('security.sort_by_domain', domain_id={{ flag.domain_id }}) }}">{{ flag.domain_id }}</a></td>
+                <td><a href="{{ url_for('security.sort_by_ip', ip_address=flag.ip_address) }}">{{ flag.ip_address }}</td>
+                {% if post.domain_id is not none %}
+                    <td><a href="{{ url_for('security.sort_by_domain', domain_id=post.domain_id) }}">{{ post.domain_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
+                {% if post.user_id is not none %}
+                    <td><a href="{{ url_for('security.sort_by_user', user_id=post.user_id) }}">{{ post.user_id }}</a></td>
+                {% else %}
+                    <td>None</td>
+                {% endif %}
                 <td>{{ flag.endpoint }}</td>
-                <td><a href="{{ url_for('security.sort_by_status_code', status_code={{ flag.status_code }}) }}">{{ flag.status_code }}</td>
+                <td><a href="{{ url_for('security.sort_by_status_code', status_code=flag.status_code) }}">{{ flag.status_code }}</td>
                 <td>{{ flag.status_message }}</td>
             </tr>
         {% endfor %}
+    </table>
+
 {% endblock %}
