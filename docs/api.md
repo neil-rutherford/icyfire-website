@@ -21,11 +21,11 @@ Even with the authentication token system, we recognize that API calls between t
 
 ## Endpoints
 
-### /api/_r/<timeslot_id>/auth={read_token}&{cred_token}
+### /api/_r/<timeslot_id>/auth={read_token}&{cred_token}&{server_id}
 
 This endpoint is used to get the platform, the credentials, and the post sub-components. The `timeslot_id` variable is expected to be an integer, and the `read_token` and `cred_token` variables are both expected to be strings.
 
-Example usage: `/api/_r/314/auth=RrEeAaDd&CcRrEeDd` returns the post associated with time slot #314. It provides two authentication tokens, "RrEeAaDd" as the READ token and "CcRrEeDd" as the CRED token.
+Example usage: `/api/_r/314/auth=RrEeAaDd&CcRrEeDd/1` returns the post associated with time slot #314. It provides two authentication tokens, "RrEeAaDd" as the READ token and "CcRrEeDd" as the CRED token. It also shows that the request is coming from Server #1.
 
 If the request is successful, a JSON object will be returned with a `200` status code. The first part of the response is `platform`, which indicates what social media platform the post is meant for (i.e. `facebook`, `twitter`, `tumblr`, or `reddit`). The second part of the response is the credentials needed for that platform. Twitter, for example, would have four variables: `consumer_key`, `consumer_secret`, `access_key`, and `access_secret`. The final part of the response includes the post subcomponents, such as the body and links to multimedia. Sentry will record this as a `200`.
 
@@ -36,11 +36,11 @@ Possible errors:
 - "ERROR: Timeslot is empty" (status code 218): An internal response saying that while the request was properly formed, no domain has claimed the time slot and there is nothing to post. Sentry will record this as a `218`.
 - "ERROR: Authentication token(s) incorrect" (status code 403): The API call cannot be completed because the READ token and/or CRED token is incorrect. Sentry will record this as a `403`.
 
-### /api/_d/{timeslot_id}/auth={read_token}&{delete_token}
+### /api/_d/{timeslot_id}/auth={read_token}&{delete_token}&{server_id}
 
 This endpoint is used to delete a particular post after it has been published. The `timeslot_id` variable is expected to be an integer, and the `read_token` and `delete_token` variables are both expected to be strings.
 
-Example usage: `/api/_d/123/auth=rReEaAdD&DdEeLlEeTtEe` deletes the post associated with time slot #123. It provides two authentication tokens, "rReEaAdD" as the READ token and "DdEeLlEeTtEe" as the DELETE token.
+Example usage: `/api/_d/123/auth=rReEaAdD&DdEeLlEeTtEe&1` deletes the post associated with time slot #123. It provides two authentication tokens, "rReEaAdD" as the READ token and "DdEeLlEeTtEe" as the DELETE token. It also shows that the request is coming from Server #1.
 
 If the request is successful, a short JSON response will be returned with a `204` status code. In the `error_details` variable, you will see: `SUCCESS: Post deleted.`. Sentry will record this as a `204`.
 
