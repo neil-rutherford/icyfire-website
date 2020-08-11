@@ -610,7 +610,7 @@ class Lead(db.Model):
     [job_title]             : str       : What is the individual's job title? (Are they a decision maker?)
     [number_of_employees]   : int       : How many employees does the company have? (1: 1 employee, 2: 2-10 employees, 3: 11-50, 4: 51-250, 5: 251-500, 6: 501-1,000, 7: 1,001-5,000, 8: 5,001-10,000, 9: 10,000+)
     [time_zone]             : int       : What time zone is the Lead in? (1: Eastern, 2: Central, 3: Mountain, 4: Pacific, 5: Alaska, 6: Hawaii-Aleutian, 7: Other)
-    [phone_number]          : int       : What is the Lead's phone number? (Assuming a US number. If they are not in the US, they have been instructed to contact us by email.)
+    [phone_number]          : int       : What is the Lead's phone number? (Assuming a US number.)
     [email]                 : str       : What is the Lead's business email?
     [contact_preference]    : int       : How does the Lead want to be contacted? (0: No preference, 1: Email, 2: Phone call)
     [time_preference]       : int       : When does the Lead want to be contacted? (0: No preference, 1: 8:00-9:30am, 2: 9:30-11:00am, 3: 11:00am-1:00pm, 4: 1:00-3:00pm, 5: 3:00-5:00pm)

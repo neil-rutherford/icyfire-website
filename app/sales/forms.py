@@ -14,7 +14,7 @@ def phone_check(form, field):
             raise ValidationError('Numbers only, please.')
 
 class SaleForm(FlaskForm):
-    client_name = StringField('Client name', validators=[DataRequired(), Length(max=100)])
+    client_name = StringField("Company's legal name", validators=[DataRequired(), Length(max=100)])
     client_street_address = StringField('Street address', validators=[DataRequired(), Length(max=100)])
     client_city = StringField('City', validators=[DataRequired(), Length(max=60)])
     client_state = SelectField('State', choices=[
@@ -65,13 +65,13 @@ class SaleForm(FlaskForm):
         ('Washington', 'Washington'),
         ('West Virginia', 'West Virginia'),
         ('Wisconsin', 'Wisconsin'),
-        ('Wyoming', 'Wyoming')
+        ('Wyoming', 'Wyoming'),
+        ('Other', 'Other / not in the United States')
     ],
     validators=[DataRequired()])
     client_zip = StringField('ZIP code', validators=[DataRequired(), Length(max=15)])
-    client_phone_number = StringField('Contact phone number', validators=[DataRequired(), Length(min=10, max=10), phone_check])
+    client_phone = StringField('Contact phone number', validators=[DataRequired(), Length(min=10, max=10), phone_check])
     client_email = StringField('Contact email', validators=[DataRequired(), Email(), Length(max=120)])
     payment_reference = StringField('Payment reference code', validators=[DataRequired(), Length(max=100)])
-    #quantity = StringField('Quantity sold', validators=[DataRequired(), phone_check])
     submit = SubmitField('Submit')
 

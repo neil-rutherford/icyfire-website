@@ -14,6 +14,5 @@ python-twitter
 pytumblr
 praw
 cryptography
-boto3
-flask-testing
 markdown
+dropbox

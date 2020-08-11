@@ -8,3 +8,4 @@ migrations/
 *$py.class
 *.swp
 *.*~
+.env

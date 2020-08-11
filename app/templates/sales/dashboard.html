@@ -1,14 +1,12 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
 
 <h1>{{ title }}</h1>
 
 {% if subs is not none %}
-    <br>
     <h2>Your support team</h2>
-    <table>
+    <table width=100%>
         <tr>
             <th>First name</th>
             <th>Last name</th>
@@ -26,151 +24,183 @@
             </tr>
         {% endfor %}
     </table>
+{% else %}
+    <h2>Your leads</h2>
+    <table width=100%>
+        <tr>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Company name</th>
+            <th>Phone number</th>
+            <th>Email</th>
+            <th>More info</th>
+            <th>Contacted?</th>
+        </tr>
+        {% for x in leads %}
+            <tr>
+                <td>{{ x.first_name }}</td>
+                <td>{{ x.last_name }}</td>
+                <td>{{ x.company_name }}</td>
+                <td>{{ x.phone_number }}</td>
+                <td>{{ x.email }}</td>
+                <td><a href="{{ url_for('sales.lead_info', lead_id=x.id) }}">More info</a></td>
+                {% if x.is_contacted == false %}
+                    <td><a href="{{ url_for('sales.contacted_lead', lead_id=x.id) }}">I contacted this person!</a></td>
+                {% else %}
+                    <td>Have you followed up recently?</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
 {% endif %}
 
-<br>
+<hr>
 <h2>Your sales this month</h2>
-<button type="button" class="collapsible">Your sales this month</button>
-<div class="content">
-    <table>
-        <tr>
-            <th>Progress</th>
-            <th>Expectation</th>
-        </tr>
-        {% if label == 'agent' %}
-            {% if sales|length < 2 %}
-                <td style="background-color:#F08080">{{ sales|length }}</td>
-                <td>2</td>
-            {% else %}
-                <td style="background-color:#aed581">{{ sales|length }}</td>
-                <td>2</td>
-            {% endif %}
-        {% elif label == 'team_lead' %}
-            {% if sales|length < 30 %}
-                <td style="background-color:#F08080">{{ sales|length }}</td>
-                <td>30</td>
-            {% else %}
-                <td style="background-color:#aed581">{{ sales|length }}</td>
-                <td>30</td>
-            {% endif %}
-        {% elif label == 'region_lead' %}
-            {% if sales|length < 300 %}
-                <td style="background-color:#F08080">{{ sales|length }}</td>
-                <td>300</td>
-            {% else %}
-                <td style="background-color:#aed581">{{ sales|length }}</td>
-                <td>30</td>
-            {% endif %}
-        {% elif label == 'country_lead' %}
-            {% if sales|length < 1500 %}
-                <td style="background-color:#F08080">{{ sales|length }}</td>
-                <td>1500</td>
-            {% else %}
-                <td style="background-color:#aed581">{{ sales|length }}</td>
-                <td>1500</td>
-            {% endif %}
+<br>
+<form action="{{ url_for('sales.create_sale') }}">
+    <input type="submit" value="Record new sale">
+</form>
+<br>
+<table width=100%>
+    <tr>
+        <th>Progress</th>
+        <th>Expectation</th>
+    </tr>
+    {% if label == 'agent' %}
+        {% if sales|length < 2 %}
+            <td style="background-color:#F08080">{{ sales|length }}</td>
+            <td>2</td>
+        {% else %}
+            <td style="background-color:#aed581">{{ sales|length }}</td>
+            <td>2</td>
         {% endif %}
-    </table>
-    <table>
+    {% elif label == 'team_lead' %}
+        {% if sales|length < 30 %}
+            <td style="background-color:#F08080">{{ sales|length }}</td>
+            <td>30</td>
+        {% else %}
+            <td style="background-color:#aed581">{{ sales|length }}</td>
+            <td>30</td>
+        {% endif %}
+    {% elif label == 'region_lead' %}
+        {% if sales|length < 300 %}
+            <td style="background-color:#F08080">{{ sales|length }}</td>
+            <td>300</td>
+        {% else %}
+            <td style="background-color:#aed581">{{ sales|length }}</td>
+            <td>30</td>
+        {% endif %}
+    {% elif label == 'country_lead' %}
+        {% if sales|length < 1500 %}
+            <td style="background-color:#F08080">{{ sales|length }}</td>
+            <td>1500</td>
+        {% else %}
+            <td style="background-color:#aed581">{{ sales|length }}</td>
+            <td>1500</td>
+        {% endif %}
+    {% endif %}
+</table>
+<br>
+<table width=100%>
+    <tr>
+        <th>Timestamp</th>
+        <th>Client name</th>
+        <th>Client phone</th>
+        <th>Client email</th>
+        <th>Invoice</th>
+    </tr>
+    {% for sale in sales %}
         <tr>
-            <th>Timestamp</th>
-            <th>Client name</th>
-            <th>Client phone</th>
-            <th>Client email</th>
-            <th>Invoice</th>
+            <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+            <td>{{ sale.client_name }}</td>
+            <td>{{ sale.client_phone_number }}</td>
+            <td>{{ sale.client_email }}</td>
+            <td>{{ sale.receipt_url }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<hr>
+<h2>Your projected earnings this month</h2>
+{% if label == 'agent' %}
+    <table width=100%>
+        <tr>
+            <th>Sale timestamp</th>
+            <th>Your commission</th>
         </tr>
         {% for sale in sales %}
             <tr>
                 <td>{{ moment(sale.timestamp).format('LLL') }}</td>
-                <td>{{ sale.client_name }}</td>
-                <td>{{ sale.client_phone_number }}</td>
-                <td>{{ sale.client_email }}</td>
-                <td><a href="{{ sale.invoice_url }}">Download</a></td>
+                <td>$2,500.00</td>
             </tr>
         {% endfor %}
     </table>
-</div>
-<br>
-<h2>Your projected earnings this month</h2>
-<button type="button" class="collapsible">Your earnings this month</button>
-<div class="content">
-    {% if label == 'agent' %}
-        <table>
+    <br>
+    <table width=100%>
+        <tr>
+            <td>Total commission</td>
+            <td>{{ sales|length * 2500 }}
+        </tr>
+    </table>
+{% elif label == 'team_lead' %}
+    <table width=100%>
+        <tr>
+            <th>Sale timestamp</th>
+            <th>Your commission</th>
+        </tr>
+        {% for sale in sales %}
             <tr>
-                <th>Sale timestamp</th>
-                <th>Your commission</th>
+                <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                <td>$250.00</td>
             </tr>
-            {% for sale in sales %}
-                <tr>
-                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
-                    <td>$2,500.00</td>
-                </tr>
-            {% endfor %}
-        </table>
-        <table>
+        {% endfor %}
+    </table>
+    <br>
+    <table width=100%>
+        <tr>
+            <td>Total commission</td>
+            <td>{{ sales|length * 250 }}
+        </tr>
+    </table>
+{% elif label == 'region_lead' %}
+    <table width=100%>
+        <tr>
+            <th>Sale timestamp</th>
+            <th>Your commission</th>
+        </tr>
+        {% for sale in sales %}
             <tr>
-                <td>Total commission</td>
-                <td>{{ sales|length * 2500 }}
+                <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                <td>$150.00</td>
             </tr>
-        </table>
-    {% elif label == 'team_lead' %}
-        <table>
+        {% endfor %}
+    </table>
+    <br>
+    <table width=100%>
+        <tr>
+            <td>Total commission</td>
+            <td>{{ sales|length * 150 }}
+        </tr>
+    </table>
+{% elif label == 'country_lead' %}
+    <table width=100%>
+        <tr>
+            <th>Sale timestamp</th>
+            <th>Your commission</th>
+        </tr>
+        {% for sale in sales %}
             <tr>
-                <th>Sale timestamp</th>
-                <th>Your commission</th>
+                <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+                <td>$50.00</td>
             </tr>
-            {% for sale in sales %}
-                <tr>
-                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
-                    <td>$250.00</td>
-                </tr>
-            {% endfor %}
-        </table>
-        <table>
-            <tr>
-                <td>Total commission</td>
-                <td>{{ sales|length * 250 }}
-            </tr>
-        </table>
-    {% elif label == 'region_lead' %}
-        <table>
-            <tr>
-                <th>Sale timestamp</th>
-                <th>Your commission</th>
-            </tr>
-            {% for sale in sales %}
-                <tr>
-                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
-                    <td>$150.00</td>
-                </tr>
-            {% endfor %}
-        </table>
-        <table>
-            <tr>
-                <td>Total commission</td>
-                <td>{{ sales|length * 150 }}
-            </tr>
-        </table>
-    {% elif label == 'country_lead' %}
-        <table>
-            <tr>
-                <th>Sale timestamp</th>
-                <th>Your commission</th>
-            </tr>
-            {% for sale in sales %}
-                <tr>
-                    <td>{{ moment(sale.timestamp).format('LLL') }}</td>
-                    <td>$50.00</td>
-                </tr>
-            {% endfor %}
-        </table>
-        <table>
-            <tr>
-                <td>Total commission</td>
-                <td>{{ sales|length * 50 }}
-            </tr>
-        </table>
-    {% endif %}
-</div>
+        {% endfor %}
+    </table>
+    <br>
+    <table width=100%>
+        <tr>
+            <td>Total commission</td>
+            <td>{{ sales|length * 50 }}
+        </tr>
+    </table>
+{% endif %}
 
 {% endblock %}

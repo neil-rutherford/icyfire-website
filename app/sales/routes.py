@@ -1,6 +1,6 @@
-from flask import render_template, flash, redirect, url_for, request, send_from_directory
-from app import db
-from app.models import Sentry, CountryLead, RegionLead, TeamLead, Agent, Sale, Domain
+from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app
+from app import db, create_app
+from app.models import Sentry, CountryLead, RegionLead, TeamLead, Agent, Sale, Domain, Lead
 from app.sales.forms import SaleForm
 from flask_login import current_user, login_required
 import os
@@ -8,6 +8,10 @@ import uuid
 from app.sales import bp
 from datetime import datetime, date
 import pdfrw
+from app.main.transfer import TransferData
+from dotenv import load_dotenv
+
+load_dotenv('.env')
 
 # HELPER FUNCTIONS
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
@@ -15,14 +19,15 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
     db.session.add(activity)
     db.session.commit()
 
-def fill_pdf(input_path, output_path, data_dict):
+def write_fillable_pdf(input_pdf_path, output_pdf_path, data_dict):
     ANNOT_KEY = '/Annots'
     ANNOT_FIELD_KEY = '/T'
     ANNOT_VAL_KEY = '/V'
     ANNOT_RECT_KEY = '/Rect'
     SUBTYPE_KEY = '/Subtype'
     WIDGET_SUBTYPE_KEY = '/Widget'
-    template_pdf = pdfrw.PdfReader(input_path)
+    template_pdf = pdfrw.PdfReader(input_pdf_path)
+    template_pdf.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true'))) 
     annotations = template_pdf.pages[0][ANNOT_KEY]
     for annotation in annotations:
         if annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
@@ -30,10 +35,11 @@ def fill_pdf(input_path, output_path, data_dict):
                 key = annotation[ANNOT_FIELD_KEY][1:-1]
                 if key in data_dict.keys():
                     annotation.update(
-                        pdfrw.PdfDict(AP=data_dict[key], V='{}'.format(data_dict[key]))
+                        pdfrw.PdfDict(V='{}'.format(data_dict[key]))
                     )
-    pdfrw.PdfWriter().write(output_path, template_pdf)
+    pdfrw.PdfWriter().write(output_pdf_path, template_pdf)
 
+# Works, 2020-08-11
 # SALES DASHBOARD
 @bp.route('/sales/dashboard')
 @login_required
@@ -54,40 +60,42 @@ def dashboard():
     region = str(current_user.icyfire_crta).split('-')[1]
     team = str(current_user.icyfire_crta).split('-')[2]
     agent = str(current_user.icyfire_crta).split('-')[3]
-    start = date(year={}, month={}, day=1).format(datetime.utcnow().strftime('%Y'), datetime.utcnow().strftime('%m'))
+    year = int(datetime.utcnow().strftime('%Y'))
+    month = int(datetime.utcnow().strftime('%m'))
+    start = date(year=year, month=month, day=1)
     # Country lead
     if country != '00' and region == '00' and team == '00' and agent == '00':
         country_lead = CountryLead.query.filter_by(crta_code=crta).first()
-        #sales = Sale.query.filter_by(country_lead_id=country_lead.id).filter(Sale.timestamp >= start)
         sales = Sale.query.filter(Sale.country_lead_id == country_lead.id, Sale.timestamp >= start).all()
         subs = country_lead.region_leads
+        leads = None
         label = 'country_lead'
         title = 'Dashboard - {} Country Lead'.format(country)
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='country_lead')
     # Region lead
     elif country != '00' and region != '00' and team == '00' and agent == '00':
         region_lead = RegionLead.query.filter_by(crta_code=crta).first()
-        #sales = Sale.query.filter_by(region_lead_id=region_lead.id).filter(Sale.timestamp >= start)
         sales = Sale.query.filter(Sale.region_lead_id == region_lead.id, Sale.timestamp >= start).all()
         subs = region_lead.team_leads
+        leads = None
         label = 'region_lead'
         title = 'Dashboard - {} Region Lead'.format(region)
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='region_lead')
     # Team lead
     elif country != '00' and region != '00' and team != '00' and agent == '00':
         team_lead = TeamLead.query.filter_by(crta_code=crta).first()
-        #sales = Sale.query.filter_by(team_lead_id=team_lead.id).filter(Sale.timestamp >= start)
         sales = Sale.query.filter(Sale.team_lead_id == team_lead.id, Sale.timestamp >= start).all()
         subs = team_lead.agents
+        leads = None
         label = 'team_lead'
         title = 'Dashboard - {} Team Lead'.format(team)
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='team_lead')
     # Agent
     elif country != '00' and region != '00' and team != '00' and agent != '00':
         agent = Agent.query.filter_by(crta_code=crta).first()
-        #sales = Sale.query.filter_by(agent_id=agent.id).filter(Sale.timestamp >= start)
         sales = Sale.query.filter(Sale.agent_id == agent.id, Sale.timestamp >= start).all()
         subs = None
+        leads = Lead.query.filter_by(agent_id=agent.id).all()
         label = 'agent'
         title = 'Dashboard - Agent {}'.format(agent)
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='agent')
@@ -96,8 +104,48 @@ def dashboard():
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=400, status_message='Malformed request; content not found.')
         flash("ERROR: Couldn't process that request.")
         return redirect(url_for('main.dashboard'))
-    return render_template('sales/sales_dashboard.html', sales=sales, subs=subs, title=title, label=label)
+    return render_template('sales/dashboard.html', sales=sales, subs=subs, title=title, label=label, leads=leads)
 
+# Works (weird bug with < 5, but whatever), 2020-08-11
+@bp.route('/sales/lead/<lead_id>')
+@login_required
+def lead_info(lead_id):
+    lead = Lead.query.filter_by(id=lead_id).first()
+    agent = Agent.query.filter_by(crta_code=current_user.icyfire_crta).first()
+    if agent.id != lead.agent_id:
+        flash("ERROR: You don't have permission to do that.")
+        return redirect(url_for('sales.dashboard'))
+    history = []
+    timestamps = []
+    time_spent = []
+    endpoints = []
+    incidents = Sentry.query.filter_by(ip_address=lead.ip_address).all()
+    for x in incidents:
+        timestamps.append(x.timestamp)
+        endpoints.append(x.endpoint)
+    for y in range(0, len(timestamps)-1):
+        z = timestamps[y+1] - timestamps[y]
+        time_spent.append(z.seconds)
+    for z in range(0, len(endpoints)-1):
+        history.append({'time_spent': time_spent[z], 'endpoint': endpoints[z]})
+    return render_template('sales/lead.html', title='Lead info - {} {}'.format(lead.first_name, lead.last_name), lead=lead, history=history)
+
+# Works I think, 2020-08-11
+# Jumping off point for CRM???
+@bp.route('/sales/contacted-lead/<lead_id>')
+@login_required
+def contacted_lead(lead_id):
+    lead = Lead.query.filter_by(id=lead_id).first()
+    if current_user.crta_code != lead.agent_id:
+        flash("ERROR: You don't have permission to do that.")
+        return redirect(url_for('sales.dashboard'))
+    lead.is_contacted = True
+    db.session.add(lead)
+    db.session.commit()
+    flash("Nice! Keep up the good work! :)")
+    return redirect(url_for('sales.dashboard'))
+
+# Works, 2020-08-11
 # CREATE SALE
 @bp.route('/create/sale', methods=['GET', 'POST'])
 @login_required
@@ -106,7 +154,7 @@ def create_sale():
     - Sentry logs:
         + 403: permission denied; not a contractor OR not an agent
         + 200: ok; sale created
-    - Makes a sale and generates an invoice
+    - Makes a sale and generates a receipt
     '''
     if current_user.icyfire_crta is None or str(current_user.icyfire_crta).split('-')[3] == '00':
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.create_sale', status_code=403, status_message='Permission denied.')
@@ -115,22 +163,7 @@ def create_sale():
     form = SaleForm()
     if form.validate_on_submit():
         agent = Agent.query.filter_by(crta_code=current_user.icyfire_crta).first()
-        unit_price = float(3000)
-        quantity = int(form.quantity.data)
-        subtotal = unit_price * quantity
-        sale = Sale(client_name=str(form.client_name.data))
-        sale.agent_id = agent.id
-        sale.client_street_address = str(form.client_street_address.data)
-        sale.client_city = str(form.client_city.data)
-        sale.client_state = str(form.client_state.data)
-        sale.client_country = 'United States'
-        sale.client_zip = str(form.client_zip.data)
-        sale.client_phone_country = int(1)
-        sale.client_phone_number = int(form.client_phone_number.data)
-        sale.client_email = str(form.client_email.data)
-        sale.unit_price = unit_price
-        sale.quantity = quantity
-        sale.subtotal = subtotal
+        activation_code = str(uuid.uuid4())
         sales_tax_dict = {
             'Alabama': 0.04,
             'Alaska': 0.00,
@@ -182,51 +215,65 @@ def create_sale():
             'Wyoming': 0.00
             # (Source: https://blog.taxjar.com/saas-sales-tax/, https://taxfoundation.org/2020-sales-taxes/)
         }
-        sales_tax = sales_tax_dict[str(form.client_state.data)] * subtotal
-        sale.sales_tax = sales_tax
-        sale.total = sale.sales_tax + sale.subtotal
-        country, region, team = str(current_user.icyfire_crta).split('-')[0], str(current_user.icyfire_crta).split('-')[1], str(current_user.icyfire_crta).split('-')[2]
-        country_lead = CountryLead.query.filter_by(crta_code=country + '-00-00-00').first()
-        sale.country_lead_id = country_lead.id
-        region_lead = RegionLead.query.filter_by(crta_code=country + '-' + region + '-00-00').first()
-        sale.region_lead_id = region_lead.id
-        team_lead = TeamLead.query.filter_by(crta_code=country + '-' + region + '-' + team + '-00').first()
-        sale.team_lead_id = team_lead.id
-        activation_code = str(uuid.uuid4())
-        basedir = os.path.abspath(os.path.dirname(__file__))
+        sales_tax = float(3000 * sales_tax_dict[form.client_state.data])
+        total = 3000 + sales_tax
         data_dict = {
-            'invoice_date': datetime.utcnow().strftime('%Y-%d-%m'),
-            'icyfire_address1': '6058 S HILL ST',
-            'icyfire_address2': 'LITTLETON, COLORADO, USA 80120',
-            'agent_name': '{} {}'.format(agent.first_name, agent.last_name),
-            'agent_email': current_user.email,
-            'agent_phone': '+{}-({})-{}-{}'.format(agent.phone_country, str(agent.phone_number)[0:3], str(agent.phone_number)[3:6], str(agent.phone_number)[6:10]),
-            'client_name': str(form.client_name.data),
-            'client_street_address': str(form.client_street_address.data),
-            'client_city': str(form.client_state.data),
-            'client_state': str(form.client_state.data),
-            'client_zip_code': str(form.client_zip.data),
-            'client_email': str(form.client_email.data),
-            'client_phone': '+{}-({})-{}-{}'.format(1, str(form.client_phone_number.data)[0:3], str(form.client_phone_number.data)[3:6], str(form.client_phone_number.data)[6:10]),
-            'quantity': quantity,
-            'unit_price': '${}'.format(unit_price),
-            'subtotal': '${}'.format(subtotal),
-            'sales_tax': '${}'.format(sales_tax),
-            'total_due': '${}'.format(sales_tax + subtotal),
+            'receipt_date': datetime.utcnow().strftime('%m/%d/%Y %H:%M'),
+            'agent_name': f'{str(agent.first_name).upper()} {str(agent.last_name).upper()}',
+            'agent_email': f'{agent.email}',
+            'agent_phone': f'({str(agent.phone_number)[0:3]}) {str(agent.phone_number)[3:6]}-{str(agent.phone_number)[6:10]}',
+            'client_name': f'{str(form.client_name.data).upper()}',
+            'client_street_address': f'{str(form.client_street_address.data).upper()}',
+            'client_city': f'{str(form.client_city.data).upper()}',
+            'client_state': f'{str(form.client_state.data).upper()}',
+            'client_zip': f'{form.client_zip.data}',
+            'client_email': f'{form.client_email.data}',
+            'client_phone': f'({str(form.client_phone.data)[0:3]}) {str(form.client_phone.data)[3:6]}-{str(form.client_phone.data)[6:10]}',
+            'sales_tax': f'${sales_tax:.2f}',
+            'total': f'${total:.2f}',
             'activation_code': activation_code
         }
-        fill_pdf(input_path=os.path.join(basedir, 'app', 'static', 'agreements', 'client_invoice_template.pdf'), output_path=os.path.join(basedir, 'app', 'static', 'records', '{}_template.pdf'.format(str(form.client_name.data))), data_dict=data_dict)
-        sale.invoice_url = url_for('sales.get_invoice', '{}_invoice.pdf'.format(str(form.client_name.data)))
+        write_fillable_pdf(input_pdf_path='./app/static/agreements/receipt_template.pdf', output_pdf_path='./app/static/agreements/{}_receipt.pdf'.format(form.client_name.data), data_dict=data_dict)
+        
+        transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+        file_from = './app/static/agreements/{}_receipt.pdf'.format(form.client_name.data)
+        file_to = '/receipts/{}.pdf'.format(form.client_name.data)
+        transfer_data.upload_file(file_from, file_to)
+
+        country = str(current_user.icyfire_crta).split('-')[0]
+        region = str(current_user.icyfire_crta).split('-')[1]
+        team = str(current_user.icyfire_crta).split('-')[2]
+
+        team_lead = TeamLead.query.filter_by(crta_code=f'{country}-{region}-{team}-00').first()
+        region_lead = RegionLead.query.filter_by(crta_code=f'{country}-{region}-00-00').first()
+        country_lead = CountryLead.query.filter_by(crta_code=f'{country}-00-00-00').first()
+        
+        sale = Sale(agent_id=agent.id)
+        sale.team_lead_id = team_lead.id
+        sale.region_lead_id = region_lead.id
+        sale.country_lead_id = country_lead.id
+        sale.client_name = form.client_name.data
+        sale.client_street_address = form.client_street_address.data
+        sale.client_city = form.client_city.data
+        sale.client_state = form.client_state.data
+        sale.client_country = 'United States'
+        sale.client_zip = form.client_zip.data
+        sale.client_phone_country = 1
+        sale.client_phone_number = form.client_phone.data
+        sale.client_email = form.client_email.data
+        sale.unit_price = 3000
+        sale.quanity = 1
+        sale.subtotal = 3000
+        sale.sales_tax = float(sales_tax)
+        sale.total = float(total)
+        sale.receipt_url = 'dropbox/home/Apps/icyfire/receipts/{}.pdf'.format(form.client_name.data)
+        sale.payment_reference = form.payment_reference.data
+
         domain = Domain(activation_code=activation_code)
+
         db.session.add(sale)
         db.session.add(domain)
         db.session.commit()
-        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.create_sale', status_code=200, status_message='Sale created.')
-        return redirect(url_for('sales.dashboard'))
-    return render_template('sales/create_sale.html', title='New Sale', form=form)
 
-# GET INVOICE
-@bp.route('/sale/invoice/<filename>', methods=['GET'])
-def get_invoice(filename):
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    return send_from_directory(os.path.join(basedir, 'app', 'static', 'records'), filename, as_attachment=True)
+        return send_from_directory('static/agreements', '{}_receipt.pdf'.format(form.client_name.data))
+    return render_template('sales/create_sale.html', title='New Sale', form=form)

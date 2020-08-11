@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>More information - {{ lead.first_name }} {{ lead.last_name }}</h1>
+
+    <h2>Contact information</h2>
+    <p><b>Email:</b> <a href="mailto:{{ lead.email }}">{{ lead.email }}</a></p>
+    <p><b>Phone:</b> <a href="tel:{{ lead.phone_number }}">{{ lead.phone_number }}</a></p>
+
+    <hr>
+
+    <h2>Personal information and preferences</h2>
+    <p><b>First name:</b> {{ lead.first_name }}</p>
+    <p><b>Last name:</b> {{ lead.last_name }}</p>
+    <p><b>Job title:</b> {{ lead.job_title }}</p>
+    {% if lead.time_zone == 1 %}
+        <p><b>Time zone:</b> Eastern</p>
+    {% elif lead.time_zone == 2 %}
+        <p><b>Time zone:</b> Central</p>
+    {% elif lead.time_zone == 3 %}
+        <p><b>Time zone:</b> Mountain</p>
+    {% elif lead.time_zone == 4 %}
+        <p><b>Time zone:</b> Pacific</p>
+    {% elif lead.time_zone == 5 %}
+        <p><b>Time zone:</b> Alaska</p>
+    {% elif lead.time_zone == 6 %}
+        <p><b>Time zone:</b> Hawaii-Aleutian</p>
+    {% else %}
+        <p><b>Time zone:</b> Not located in the United States</p>
+    {% endif %}
+    {% if lead.contact_preference == 1 %}
+        <p><b>Contact by:</b> Email</p>
+    {% elif lead.contact_preference == 2 %}
+        <p><b>Contact by:</b> Phone</p>
+    {% else %}
+        <p><b>Contact by:</b> Email or phone (no preference)</p>
+    {% endif %}
+    {% if lead.time_preference == 1 %}
+        <p><b>Time preference (local time on weekdays):</b> Early morning (8:00 - 9:30 am)</p>
+    {% elif lead.time_preference == 2 %}
+        <p><b>Time preference (local time on weekdays):</b> Late morning (9:30 - 11:00am)</p>
+    {% elif lead.time_preference == 3 %}
+        <p><b>Time preference (local time on weekdays):</b> Lunch hour (11:00am - 1:00pm)</p>
+    {% elif lead.time_preference == 4 %}
+        <p><b>Time preference (local time on weekdays):</b> Early afternoon (1:00 - 3:00pm)</p>
+    {% elif lead.time_preference == 5 %}
+        <p><b>Time preference (local time on weekdays):</b> Late afternoon (3:00 - 5:00pm)</p>
+    {% else %}
+        <p><b>Time preference (local time on weekdays):</b> Any reasonable time (no preference)</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Company information</h2>
+    <p><b>Company name:</b> {{ lead.company_name }}</p>
+    {% if lead.number_of_employees == 1 %}
+        <p><b>Number of employees:</b> 1</p>
+    {% elif lead.number_of_employees == 2 %}
+        <p><b>Number of employees:</b> 2 - 10</p>
+    {% elif lead.number_of_employees == 3 %}
+        <p><b>Number of employees:</b> 11 - 50</p>
+    {% elif lead.number_of_employees == 4 %}
+        <p><b>Number of employees:</b> 51 - 250</p>
+    {% elif lead.number_of_employees == 5 %}
+        <p><b>Number of employees:</b> 251 - 500</p>
+    {% elif lead.number_of_employees == 6 %}
+        <p><b>Number of employees:</b> 501 - 1,000</p>
+    {% elif lead.number_of_employees == 7 %}
+        <p><b>Number of employees:</b> 1,000 - 5,000</p>
+    {% elif lead.number_of_employees == 8 %}
+        <p><b>Number of employees:</b> 5,001 - 10,000</p>
+    {% else %}
+        <p><b>Number of employees:</b> 10,000+</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Additional information</h2>
+    {% if lead.email_opt_in == true %}
+        <p><b>Opted in to marketing emails?</b> Yes</p>
+    {% else %}
+        <p><b>Opted in to marketing emails?</b> No</p>
+    {% endif %}
+    <p><b>Submitted information:</b> {{ moment(lead.timestamp).format('LLL') }}</p>
+    <hr>
+
+    <h2>Movement through the site</h2>
+    <table width=100%>
+        <tr>
+            <th>Time spent (seconds)</th>
+            <th>Endpoint</th>
+        </tr>
+        {% for incident in history %}
+            <tr>
+                {% if incident['time_spent'] < 5 %}
+                    <td style="background-color:#FFFFE0">{{ incident['time_spent'] }}</td>
+                    <td style="background-color:#FFFFE0">{{ incident['endpoint'] }}</td>
+                {% elif 10 > incident['time_spent'] > 6 %}
+                    <td style="background-color:#fff33b">{{ incident['time_spent'] }}</td>
+                    <td style="background-color:#fff33b">{{ incident['endpoint'] }}</td>
+                {% elif 20 > incident['time_spent'] > 11 %}
+                    <td style="background-color:#fdc70c">{{ incident['time_spent'] }}</td>
+                    <td style="background-color:#fdc70c">{{ incident['endpoint'] }}</td>
+                {% elif 30 > incident['time_spent'] > 21 %}
+                    <td style="background-color:#f3903f">{{ incident['time_spent'] }}</td>
+                    <td style="background-color:#f3903f">{{ incident['endpoint'] }}</td>
+                {% elif 60 > incident['time_spent'] > 31 %}
+                    <td style="background-color:#ed683c">{{ incident['time_spent'] }}</td>
+                    <td style="background-color:#ed683c">{{ incident['endpoint'] }}</td>
+                {% else %}
+                    <td style="background-color:#e93e3a">{{ incident['time_spent'] }}</td>
+                    <td style="background-color:#e93e3a">{{ incident['endpoint'] }}</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
