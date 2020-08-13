@@ -166,8 +166,6 @@ def view_blueprint(blueprint_name):
         for y in denies:
             if str(y.endpoint).split('.')[0] == 'auth':
                 denied.append(y)
-        #granted = Sentry.query.filter(str(Sentry.endpoint)[0:4] == 'auth', Sentry.status_code == 200).all()
-        #denied = Sentry.query.filter(str(Sentry.endpoint)[0:4] == 'auth', Sentry.status_code == 403).all()
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='auth')
     elif blueprint_name == 'legal':
         for x in grants:
@@ -176,8 +174,6 @@ def view_blueprint(blueprint_name):
         for y in denies:
             if str(y.endpoint).split('.')[0] == 'legal':
                 denied.append(y)
-        #granted = Sentry.query.filter(str(Sentry.endpoint)[0:5] == 'legal', Sentry.status_code == 200).all()
-        #denied = Sentry.query.filter(str(Sentry.endpoint)[0:5] == 'legal', Sentry.status_code == 403).all()
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='legal')
     elif blueprint_name == 'main':
         for x in grants:
@@ -186,8 +182,6 @@ def view_blueprint(blueprint_name):
         for y in denies:
             if str(y.endpoint).split('.')[0] == 'main':
                 denied.append(y)
-        #granted = Sentry.query.filter(str(Sentry.endpoint)[0:4] == 'main', Sentry.status_code == 200).all()
-        #denied = Sentry.query.filter(str(Sentry.endpoint)[0:4] == 'main', Sentry.status_code == 403).all()
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='main')
     elif blueprint_name == 'sales':
         for x in grants:
@@ -196,8 +190,6 @@ def view_blueprint(blueprint_name):
         for y in denies:
             if str(y.endpoint).split('.')[0] == 'sales':
                 denied.append(y)
-        #granted = Sentry.query.filter(str(Sentry.endpoint)[0:5] == 'sales', Sentry.status_code == 200).all()
-        #denied = Sentry.query.filter(str(Sentry.endpoint)[0:5] == 'sales', Sentry.status_code == 403).all()
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='sales')
     elif blueprint_name == 'security':
         for x in grants:
@@ -206,13 +198,8 @@ def view_blueprint(blueprint_name):
         for y in denies:
             if str(y.endpoint).split('.')[0] == 'security':
                 denied.append(y)
-        #granted = Sentry.query.filter(str(Sentry.endpoint)[0:8] == 'security', Sentry.status_code == 200).all()
-        #denied = Sentry.query.filter(str(Sentry.endpoint)[0:8] == 'security', Sentry.status_code == 403).all()
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='security')
     else:
         flash("ERROR: That blueprint is not supported.")
         return redirect(url_for('security.get_flags'))
-    #granted = Sentry.query.filter(str(Sentry.endpoint).split('.')[0] == blueprint_name.lower(), Sentry.status_code == 200).all()
-    #denied = Sentry.query.filter(str(Sentry.endpoint).split('.')[0] == blueprint_name.lower(), Sentry.status_code == 403).all()
-    #make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=200, status_message='{}'.format(blueprint_name))
     return render_template('security/view_blueprint.html', title='SENTRY - {}'.format(str(blueprint_name).upper()), granted=granted, denied=denied, blueprint_name=blueprint_name.upper())

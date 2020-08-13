@@ -2,7 +2,7 @@ from app.meta import bp
 from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app
 from app import db
 from app.models import *
-from app.meta.forms import SearchForm, DomainForm, UserForm, CountryLeadForm, RegionLeadForm, TeamLeadForm, AgentForm, SaleForm, LeadForm
+from app.meta.forms import DomainForm, UserForm, CountryLeadForm, RegionLeadForm, TeamLeadForm, AgentForm, SaleForm, LeadForm
 from flask_login import current_user, login_required
 from datetime import datetime, timedelta
 
@@ -14,27 +14,6 @@ def dashboard():
         db.session.delete(current_user)
         db.session.commit()
         return redirect("https://imgflip.com/i/4aqeg1")
-    #form = SearchForm()
-    #if form.validate_on_submit():
-        #if form.domain_var.data != '0':
-            #return redirect(url_for('meta.results', model='domain', criteria=form.domain_var.data, value=form.value.data))
-        #elif form.user_var.data != '0':
-            #return redirect(url_for('meta.results', model='user', criteria=form.user_var.data, value=form.value.data))
-        #elif form.country_lead_var.data != '0':
-            #return redirect(url_for('meta.results', model='country_lead', criteria=form.country_lead_var.data, value=form.value.data))
-        #elif form.region_lead_var.data != '0':
-            #return redirect(url_for('meta.results', model='region_lead', criteria=form.region_lead_var.data, value=form.value.data))
-        #elif form.team_lead_var.data != '0':
-            #return redirect(url_for('meta.results', model='team_lead', criteria=form.team_lead_var.data, value=form.value.data))
-        #elif form.agent_var.data != '0':
-            #return redirect(url_for('meta.results', model='agent', criteria=form.agent_var.data, value=form.value.data))
-        #elif form.sale_var.data != '0':
-            #return redirect(url_for('meta.results', model='sale', criteria=form.sale_var.data, value=form.value.data))
-        #elif form.lead_var.data != '0':
-            #return redirect(url_for('meta.results', model='lead', criteria=form.lead_var.data, value=form.value.data))
-        #else:
-            #flash("Couldn't understand that.")
-            #return redirect(url_for('meta.dashboard'))
     return render_template('meta/dashboard.html', title='Meta dashboard')
 
 # Tested 2020-08-08
@@ -75,48 +54,6 @@ def read(model):
     else:
         flash("What???????")
         return redirect(url_for('meta.dashboard'))
-
-# Doesn't work, shelfing
-#@bp.route('/meta/search/model=<model>&criteria=<criteria>&value=<value>')
-#@login_required
-#def results(model, criteria, value):
-    #if current_user.email != 'neilrutherford@icy-fire.com':
-        ##db.session.delete(current_user)
-        #db.session.commit()
-        #return redirect("https://imgflip.com/i/4aqeg1")
-    #if model == 'domain':
-        #if criteria == 'id':
-            #results = exec(f"Domain.query.filter_by(id={value}).first()")
-            #return str(results)
-        #elif criteria == 'domain_name':
-            #results = [Domain.query.filter_by(domain_name={})]
-        #elif criteria == 'activation_code'
-        #results = exec("Domain.query.filter_by({}='{}').{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #if model == 'user':
-        #results = exec("User.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #elif model == 'country_lead':
-        #results = exec("CountryLead.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #elif model == 'region_lead':
-        #results = exec("RegionLead.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #elif model == 'team_lead':
-        #results = exec("TeamLead.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #elif model == 'agent':
-        ##results = exec("Agent.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #elif model == 'sale':
-        #results = exec("Sale.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #elif model == 'lead':
-        #results = exec("Lead.query.filter_by({}={}).{}()".format(criteria, value, query_type))
-        #return render_template('meta/results.html', title='Search results', model=model, results=results)
-    #else:
-        #flash("Can't interpret model.")
-        #return redirect(url_for('meta.dashboard'))
 
 # Works, 2020-08-08
 @bp.route('/meta/create/domain', methods=['GET', 'POST'])
