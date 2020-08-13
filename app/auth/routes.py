@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, current_user, login_required, f
 from app import db
 from app.auth import bp
 from app.auth.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ContractorRegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, FacebookCreds, TwitterCreds, TumblrCreds, RedditCreds
-from app.models import User, Sentry, Domain, FacebookCred, TwitterCred, TumblrCred, RedditCred, TimeSlot
+from app.models import User, Sentry, Domain, FacebookCred, TwitterCred, TumblrCred, RedditCred, TimeSlot, FacebookPost, TwitterPost, TumblrPost, RedditPost, Agent, TeamLead, RegionLead, CountryLead
 from app.auth.email import send_password_reset_email
 import base64
 import os
@@ -13,6 +13,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv('.env')
 
 # SENTRY HELPER FUNCTION
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
@@ -20,11 +23,12 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
     db.session.add(activity)
     db.session.commit()
 
+# Works, 2020-08-11
 # ENCRYPTION HELPER FUNCTION
 def encrypt(message):
-    password_provided = current_app.config['SECRET_KEY']
+    password_provided = os.environ['SECRET_KEY']
     password = password_provided.encode()
-    salt = current_app.config['SALT'].encode()
+    salt = os.environ['SALT'].encode()
     kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000, backend=default_backend())
     key = base64.urlsafe_b64encode(kdf.derive(password))
     message = message.encode()
@@ -32,12 +36,14 @@ def encrypt(message):
     encrypted = f.encrypt(message)
     return encrypted
 
+# Works, 2020-08-11
 # LOGIN DEFENSE
 @bp.route('/login-defense')
 def login_defense():
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.login', status_code=303, status_message='Redirected', flag=True)
     return render_template('auth/login_defense.html', title='Woah there!')
 
+# Works, 2020-08-11
 # LOGIN PAGE
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -75,6 +81,7 @@ def login():
         return redirect(next_page)
     return render_template('auth/login.html', title='Log In', form=form)
 
+# Works, 2020-08-11
 # LOGOUT PAGE
 @bp.route('/logout')
 def logout():
@@ -87,12 +94,14 @@ def logout():
     #make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.logout', status_code=200, status_message='Successful logout.')
     return redirect(url_for('promo.home'))
 
+# Works, 2020-08-11
 @bp.route('/register')
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     return render_template('auth/register.html', title='Register')
 
+# Works, 2020-08-11
 # NEW DOMAIN REGISTRATION PAGE
 @bp.route('/register/domain', methods=['GET', 'POST'])
 def register_domain():
@@ -130,6 +139,7 @@ def register_domain():
         return redirect(url_for('auth.link_social'))
     return render_template('auth/register_domain.html', title='Register Your New Domain', form=form)
 
+# Works, 2020-08-11
 # NEW USER REGISTRATION PAGE
 @bp.route('/register/user', methods=['GET', 'POST'])
 def register_user():
@@ -164,6 +174,7 @@ def register_user():
         return redirect(url_for('main.dashboard'))
     return render_template('auth/register_user.html', title='New User Registration', form=form)
 
+# Works, but you have to have the hierarchy built above first, 2020-08-12
 # NEW CONTRACTOR REGISTRATION PAGE
 @bp.route('/register/contractor', methods=['GET', 'POST'])
 def register_contractor():
@@ -185,7 +196,7 @@ def register_contractor():
         return redirect(url_for('main.dashboard'))
     form = ContractorRegistrationForm()
     if form.validate_on_submit():
-        domain = Domain.query.filter_by(domain_name='icyfire').first()
+        domain = Domain.query.filter_by(domain_name='IcyFire Technologies, LLC').first()
         user = User(email=str(form.email.data))
         user.domain_id = domain.id
         user.set_password(str(form.password.data))
@@ -195,6 +206,7 @@ def register_contractor():
         user.is_update = False
         user.is_delete = False
         user.email_opt_in = True
+        user.post_count = 0
         user.icyfire_crta = 'USA-' + str(form.icyfire_region.data) + '-' + str(form.icyfire_team.data) + '-' + str(form.icyfire_agent.data)
         db.session.add(user)
         db.session.commit()
@@ -243,6 +255,7 @@ def register_contractor():
         return redirect(url_for('main.dashboard'))
     return render_template('auth/register_contractor.html', title='New Contractor Registration', form=form)
 
+# Works, 2020-08-12
 @bp.route('/reset-password-request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
@@ -253,27 +266,29 @@ def reset_password_request():
         if user:
             send_password_reset_email(user)
         flash('Check your email for instructions to reset your password.')
-        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.reset_password_request', status_code=200, status_message='OK')
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.reset_password_request', status_code=200, status_message='{}'.format(form.email.data))
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password_request.html', title='Reset Password', form=form)
 
+# Works, 2020-08-12
 @bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
     user = User.verify_reset_password_token(token)
     if not user:
-        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.reset_token', status_code=404, status_message='User not found')
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.reset_token', status_code=404, status_message='User not found')
         return redirect(url_for('promo.home'))
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)
         db.session.commit()
         flash('Your password has been reset.')
-        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.reset_token', status_code=200, status_message='OK')
+        make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.reset_token', status_code=200, status_message='OK')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
 
+# Works, 2020-08-13
 @bp.route('/register/link-social')
 @login_required
 def link_social():
@@ -282,13 +297,23 @@ def link_social():
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_social', status_code=403, status_message='Admin permission denied.')
         return redirect(url_for('main.dashboard'))
     domain = Domain.query.filter_by(id=current_user.domain_id).first()
-    facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-    twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
-    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_social', status_code=200, status_message='OK')
-    return render_template('auth/link_social.html', title="Link Your Social Media Accounts", domain=domain, facebook_creds=facebook_creds, twitter_creds=twitter_creds, tumblr_creds=tumblr_creds, reddit_creds=reddit_creds)
 
+    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
+    facebook_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.facebook_cred_id != None).all()
+
+    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).all()
+    twitter_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.twitter_cred_id != None).all()
+
+    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
+    tumblr_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.tumblr_cred_id != None).all()
+
+    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
+    reddit_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.reddit_cred_id != None).all()
+
+    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_social', status_code=200, status_message='OK')
+    return render_template('auth/link_social.html', title="Link Your Social Media Accounts", domain=domain, facebook_creds=facebook_creds, facebook_timeslots=facebook_timeslots, twitter_creds=twitter_creds, twitter_timeslots=twitter_timeslots, tumblr_creds=tumblr_creds, tumblr_timeslots=tumblr_timeslots, reddit_creds=reddit_creds, reddit_timeslots=reddit_timeslots)
+
+# Works, 2020-08-12
 @bp.route('/register/link-social/facebook', methods=['GET', 'POST'])
 @login_required
 def link_facebook():
@@ -305,19 +330,19 @@ def link_facebook():
     sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
     #
     monday_list = [(i.id, i.time) for i in monday_availability]
-    monday_list.insert(0, ('0', "I don't want to post on Mondays."))
+    monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
-    tuesday_list.insert(0, ('0', "I don't want to post on Tuesdays."))
+    tuesday_list.insert(0, (0, "I don't want to post on Tuesdays."))
     wednesday_list = [(i.id, i.time) for i in wednesday_availability]
-    wednesday_list.insert(0, ('0', "I don't want to post on Wednesdays."))
+    wednesday_list.insert(0, (0, "I don't want to post on Wednesdays."))
     thursday_list = [(i.id, i.time) for i in thursday_availability]
-    thursday_list.insert(0, ('0', "I don't want to post on Thursdays."))
+    thursday_list.insert(0, (0, "I don't want to post on Thursdays."))
     friday_list = [(i.id, i.time) for i in friday_availability]
-    friday_list.insert(0, ('0', "I don't want to post on Fridays."))
+    friday_list.insert(0, (0, "I don't want to post on Fridays."))
     saturday_list = [(i.id, i.time) for i in saturday_availability]
-    saturday_list.insert(0, ('0', "I don't want to post on Saturdays."))
+    saturday_list.insert(0, (0, "I don't want to post on Saturdays."))
     sunday_list = [(i.id, i.time) for i in sunday_availability]
-    sunday_list.insert(0, ('0', "I don't want to post on Sundays."))
+    sunday_list.insert(0, (0, "I don't want to post on Sundays."))
     form = FacebookCreds()
     form.schedule_monday.choices = monday_list
     form.schedule_tuesday.choices = tuesday_list
@@ -332,64 +357,71 @@ def link_facebook():
         cred.alias = form.alias.data
         db.session.add(cred)
         db.session.commit()
-        if form.schedule_monday.data != '0':
+        if form.schedule_monday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_facebook'))
-        if form.schedule_tuesday.data != '0':
+        if form.schedule_tuesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_facebook'))
-        if form.schedule_wednesday.data != '0':
+        if form.schedule_wednesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_facebook'))
-        if form.schedule_thursday.data != '0':
+        if form.schedule_thursday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_facebook'))
-        if form.schedule_friday.data != '0':
+        if form.schedule_friday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_facebook'))
-        if form.schedule_saturday.data != '0':
+        if form.schedule_saturday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_facebook'))
-        if form.schedule_sunday.data != '0':
+        if form.schedule_sunday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.facebook_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
@@ -400,6 +432,7 @@ def link_facebook():
         return redirect(url_for('auth.link_social'))
     return render_template('auth/link_facebook.html', title='Link A Facebook Account', form=form, time=datetime.utcnow())
 
+# Works, 2020-08-11
 @bp.route('/register/link-social/twitter', methods=['GET', 'POST'])
 @login_required
 def link_twitter():
@@ -415,19 +448,19 @@ def link_twitter():
     saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
     sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
-    monday_list.insert(0, ('0', "I don't want to post on Mondays."))
+    monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
-    tuesday_list.insert(0, ('0', "I don't want to post on Tuesdays."))
+    tuesday_list.insert(0, (0, "I don't want to post on Tuesdays."))
     wednesday_list = [(i.id, i.time) for i in wednesday_availability]
-    wednesday_list.insert(0, ('0', "I don't want to post on Wednesdays."))
+    wednesday_list.insert(0, (0, "I don't want to post on Wednesdays."))
     thursday_list = [(i.id, i.time) for i in thursday_availability]
-    thursday_list.insert(0, ('0', "I don't want to post on Thursdays."))
+    thursday_list.insert(0, (0, "I don't want to post on Thursdays."))
     friday_list = [(i.id, i.time) for i in friday_availability]
-    friday_list.insert(0, ('0', "I don't want to post on Fridays."))
+    friday_list.insert(0, (0, "I don't want to post on Fridays."))
     saturday_list = [(i.id, i.time) for i in saturday_availability]
-    saturday_list.insert(0, ('0', "I don't want to post on Saturdays."))
+    saturday_list.insert(0, (0, "I don't want to post on Saturdays."))
     sunday_list = [(i.id, i.time) for i in sunday_availability]
-    sunday_list.insert(0, ('0', "I don't want to post on Sundays."))
+    sunday_list.insert(0, (0, "I don't want to post on Sundays."))
     form = TwitterCreds()
     form.schedule_monday.choices = monday_list
     form.schedule_tuesday.choices = tuesday_list
@@ -445,64 +478,71 @@ def link_twitter():
         cred.domain_id = current_user.domain_id
         db.session.add(cred)
         db.session.commit()
-        if form.schedule_monday.data != '0':
+        if form.schedule_monday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_twitter'))
-        if form.schedule_tuesday.data != '0':
+        if form.schedule_tuesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_twitter'))
-        if form.schedule_wednesday.data != '0':
+        if form.schedule_wednesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_twitter'))
-        if form.schedule_thursday.data != '0':
+        if form.schedule_thursday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_twitter'))
-        if form.schedule_friday.data != '0':
+        if form.schedule_friday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_twitter'))
-        if form.schedule_saturday.data != '0':
+        if form.schedule_saturday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_twitter'))
-        if form.schedule_sunday.data != '0':
+        if form.schedule_sunday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.twitter_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
@@ -513,6 +553,7 @@ def link_twitter():
         return redirect(url_for('auth.link_social'))
     return render_template('auth/link_twitter.html', title='Link A Twitter Account', form=form, time=datetime.utcnow())
 
+# Works, 2020-08-13
 @bp.route('/register/link-social/tumblr', methods=['GET', 'POST'])
 @login_required
 def link_tumblr():
@@ -528,19 +569,19 @@ def link_tumblr():
     saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
     sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
-    monday_list.insert(0, ('0', "I don't want to post on Mondays."))
+    monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
-    tuesday_list.insert(0, ('0', "I don't want to post on Tuesdays."))
+    tuesday_list.insert(0, (0, "I don't want to post on Tuesdays."))
     wednesday_list = [(i.id, i.time) for i in wednesday_availability]
-    wednesday_list.insert(0, ('0', "I don't want to post on Wednesdays."))
+    wednesday_list.insert(0, (0, "I don't want to post on Wednesdays."))
     thursday_list = [(i.id, i.time) for i in thursday_availability]
-    thursday_list.insert(0, ('0', "I don't want to post on Thursdays."))
+    thursday_list.insert(0, (0, "I don't want to post on Thursdays."))
     friday_list = [(i.id, i.time) for i in friday_availability]
-    friday_list.insert(0, ('0', "I don't want to post on Fridays."))
+    friday_list.insert(0, (0, "I don't want to post on Fridays."))
     saturday_list = [(i.id, i.time) for i in saturday_availability]
-    saturday_list.insert(0, ('0', "I don't want to post on Saturdays."))
+    saturday_list.insert(0, (0, "I don't want to post on Saturdays."))
     sunday_list = [(i.id, i.time) for i in sunday_availability]
-    sunday_list.insert(0, ('0', "I don't want to post on Sundays."))
+    sunday_list.insert(0, (0, "I don't want to post on Sundays."))
     form = TumblrCreds()
     form.schedule_monday.choices = monday_list
     form.schedule_tuesday.choices = tuesday_list
@@ -555,67 +596,75 @@ def link_tumblr():
         cred.oauth_token = encrypt(form.oauth_token.data).decode()
         cred.oauth_secret = encrypt(form.oauth_secret.data).decode()
         cred.blog_name = form.blog_name.data
+        cred.domain_id = current_user.domain_id
         cred.alias = form.alias.data
         db.session.add(cred)
         db.session.commit()
-        if form.schedule_monday.data != '0':
+        if form.schedule_monday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_tumblr'))
-        if form.schedule_tuesday.data != '0':
+        if form.schedule_tuesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_tumblr'))
-        if form.schedule_wednesday.data != '0':
+        if form.schedule_wednesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_tumblr'))
-        if form.schedule_thursday.data != '0':
+        if form.schedule_thursday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_tumblr'))
-        if form.schedule_friday.data != '0':
+        if form.schedule_friday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_tumblr'))
-        if form.schedule_saturday.data != '0':
+        if form.schedule_saturday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_tumblr'))
-        if form.schedule_sunday.data != '0':
+        if form.schedule_sunday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.tumblr_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
@@ -626,6 +675,7 @@ def link_tumblr():
         return redirect(url_for('auth.link_social'))
     return render_template('auth/link_tumblr.html', title='Link A Tumblr Account', form=form, time=datetime.utcnow())
 
+# Works, 2020-08-13
 @bp.route('/register/link-social/reddit', methods=['GET', 'POST'])
 @login_required
 def link_reddit():
@@ -641,19 +691,19 @@ def link_reddit():
     saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
     sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
-    monday_list.insert(0, ('0', "I don't want to post on Mondays."))
+    monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
-    tuesday_list.insert(0, ('0', "I don't want to post on Tuesdays."))
+    tuesday_list.insert(0, (0, "I don't want to post on Tuesdays."))
     wednesday_list = [(i.id, i.time) for i in wednesday_availability]
-    wednesday_list.insert(0, ('0', "I don't want to post on Wednesdays."))
+    wednesday_list.insert(0, (0, "I don't want to post on Wednesdays."))
     thursday_list = [(i.id, i.time) for i in thursday_availability]
-    thursday_list.insert(0, ('0', "I don't want to post on Thursdays."))
+    thursday_list.insert(0, (0, "I don't want to post on Thursdays."))
     friday_list = [(i.id, i.time) for i in friday_availability]
-    friday_list.insert(0, ('0', "I don't want to post on Fridays."))
+    friday_list.insert(0, (0, "I don't want to post on Fridays."))
     saturday_list = [(i.id, i.time) for i in saturday_availability]
-    saturday_list.insert(0, ('0', "I don't want to post on Saturdays."))
+    saturday_list.insert(0, (0, "I don't want to post on Saturdays."))
     sunday_list = [(i.id, i.time) for i in sunday_availability]
-    sunday_list.insert(0, ('0', "I don't want to post on Sundays."))
+    sunday_list.insert(0, (0, "I don't want to post on Sundays."))
     form = RedditCreds()
     form.schedule_monday.choices = monday_list
     form.schedule_tuesday.choices = tuesday_list
@@ -670,66 +720,74 @@ def link_reddit():
         cred.password = encrypt(form.password.data).decode()
         cred.target_subreddit = form.target_subreddit.data
         cred.alias = form.alias.data
+        cred.domain_id = current_user.domain_id
         db.session.add(cred)
         db.session.commit()
-        if form.schedule_monday.data != '0':
+        if form.schedule_monday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_reddit'))
-        if form.schedule_tuesday.data != '0':
+        if form.schedule_tuesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_reddit'))
-        if form.schedule_wednesday.data != '0':
+        if form.schedule_wednesday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_reddit'))
-        if form.schedule_thursday.data != '0':
+        if form.schedule_thursday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_reddit'))
-        if form.schedule_friday.data != '0':
+        if form.schedule_friday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_reddit'))
-        if form.schedule_saturday.data != '0':
+        if form.schedule_saturday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
                 flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                 return redirect(url_for('auth.link_reddit'))
-        if form.schedule_sunday.data != '0':
+        if form.schedule_sunday.data != 0:
             slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
             if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                 slot.reddit_cred_id = cred.id
+                slot.domain_id = current_user.domain_id
                 db.session.add(slot)
                 db.session.commit()
             else:
@@ -740,6 +798,7 @@ def link_reddit():
         return redirect(url_for('auth.link_social'))
     return render_template('auth/link_reddit.html', title='Link A Reddit Account', form=form, time=datetime.utcnow())
 
+# Works, 2020-08-13
 @bp.route('/edit/cred/<platform>/<cred_id>', methods=['GET', 'POST'])
 @fresh_login_required
 def edit_cred(platform, cred_id):
@@ -755,19 +814,19 @@ def edit_cred(platform, cred_id):
     saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
     sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
-    monday_list.insert(0, ('0', "I don't want to post on Mondays."))
+    monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
-    tuesday_list.insert(0, ('0', "I don't want to post on Tuesdays."))
+    tuesday_list.insert(0, (0, "I don't want to post on Tuesdays."))
     wednesday_list = [(i.id, i.time) for i in wednesday_availability]
-    wednesday_list.insert(0, ('0', "I don't want to post on Wednesdays."))
+    wednesday_list.insert(0, (0, "I don't want to post on Wednesdays."))
     thursday_list = [(i.id, i.time) for i in thursday_availability]
-    thursday_list.insert(0, ('0', "I don't want to post on Thursdays."))
+    thursday_list.insert(0, (0, "I don't want to post on Thursdays."))
     friday_list = [(i.id, i.time) for i in friday_availability]
-    friday_list.insert(0, ('0', "I don't want to post on Fridays."))
+    friday_list.insert(0, (0, "I don't want to post on Fridays."))
     saturday_list = [(i.id, i.time) for i in saturday_availability]
-    saturday_list.insert(0, ('0', "I don't want to post on Saturdays."))
+    saturday_list.insert(0, (0, "I don't want to post on Saturdays."))
     sunday_list = [(i.id, i.time) for i in sunday_availability]
-    sunday_list.insert(0, ('0', "I don't want to post on Sundays."))
+    sunday_list.insert(0, (0, "I don't want to post on Sundays."))
     if platform == 'facebook':
         cred = FacebookCred.query.filter_by(id=cred_id).first()
         if cred is None:
@@ -784,68 +843,82 @@ def edit_cred(platform, cred_id):
             db.session.add(slot)
             db.session.commit()
         form = FacebookCreds(obj=cred)
+        form.schedule_monday.choices = monday_list
+        form.schedule_tuesday.choices = tuesday_list
+        form.schedule_wednesday.choices = wednesday_list
+        form.schedule_thursday.choices = thursday_list
+        form.schedule_friday.choices = friday_list
+        form.schedule_saturday.choices = saturday_list
+        form.schedule_sunday.choices = sunday_list
         if form.validate_on_submit():
             cred.alias = form.alias.data
             db.session.add(cred)
             db.session.commit()
-            if form.schedule_monday.data != '0':
+            if form.schedule_monday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_tuesday.data != '0':
+            if form.schedule_tuesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_wednesday.data != '0':
+            if form.schedule_wednesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_thursday.data != '0':
+            if form.schedule_thursday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_friday.data != '0':
+            if form.schedule_friday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_saturday.data != '0':
+            if form.schedule_saturday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_sunday.data != '0':
+            if form.schedule_sunday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.facebook_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
@@ -870,68 +943,82 @@ def edit_cred(platform, cred_id):
             db.session.add(slot)
             db.session.commit()
         form = TwitterCreds(obj=cred)
+        form.schedule_monday.choices = monday_list
+        form.schedule_tuesday.choices = tuesday_list
+        form.schedule_wednesday.choices = wednesday_list
+        form.schedule_thursday.choices = thursday_list
+        form.schedule_friday.choices = friday_list
+        form.schedule_saturday.choices = saturday_list
+        form.schedule_sunday.choices = sunday_list
         if form.validate_on_submit():
             cred.alias = form.alias.data
             db.session.add(cred)
             db.session.commit()
-            if form.schedule_monday.data != '0':
+            if form.schedule_monday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_tuesday.data != '0':
+            if form.schedule_tuesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_wednesday.data != '0':
+            if form.schedule_wednesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_thursday.data != '0':
+            if form.schedule_thursday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_friday.data != '0':
+            if form.schedule_friday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_saturday.data != '0':
+            if form.schedule_saturday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_sunday.data != '0':
+            if form.schedule_sunday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.twitter_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
@@ -956,69 +1043,83 @@ def edit_cred(platform, cred_id):
             db.session.add(slot)
             db.session.commit()
         form = TumblrCreds(obj=cred)
+        form.schedule_monday.choices = monday_list
+        form.schedule_tuesday.choices = tuesday_list
+        form.schedule_wednesday.choices = wednesday_list
+        form.schedule_thursday.choices = thursday_list
+        form.schedule_friday.choices = friday_list
+        form.schedule_saturday.choices = saturday_list
+        form.schedule_sunday.choices = sunday_list
         if form.validate_on_submit():
             cred.alias = form.alias.data
             cred.blog_name = form.blog_name.data
             db.session.add(cred)
             db.session.commit()
-            if form.schedule_monday.data != '0':
+            if form.schedule_monday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_tuesday.data != '0':
+            if form.schedule_tuesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_wednesday.data != '0':
+            if form.schedule_wednesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_thursday.data != '0':
+            if form.schedule_thursday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_friday.data != '0':
+            if form.schedule_friday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_saturday.data != '0':
+            if form.schedule_saturday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_sunday.data != '0':
+            if form.schedule_sunday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.tumblr_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
@@ -1043,69 +1144,83 @@ def edit_cred(platform, cred_id):
             db.session.add(slot)
             db.session.commit()
         form = RedditCreds(obj=cred)
+        form.schedule_monday.choices = monday_list
+        form.schedule_tuesday.choices = tuesday_list
+        form.schedule_wednesday.choices = wednesday_list
+        form.schedule_thursday.choices = thursday_list
+        form.schedule_friday.choices = friday_list
+        form.schedule_saturday.choices = saturday_list
+        form.schedule_sunday.choices = sunday_list
         if form.validate_on_submit():
             cred.alias = form.alias.data
             cred.target_subreddit = form.target_subreddit.data
             db.session.add(cred)
             db.session.commit()
-            if form.schedule_monday.data != '0':
+            if form.schedule_monday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_monday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Monday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_tuesday.data != '0':
+            if form.schedule_tuesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_tuesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Tuesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_wednesday.data != '0':
+            if form.schedule_wednesday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_wednesday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Wednesday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_thursday.data != '0':
+            if form.schedule_thursday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_thursday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Thursday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_friday.data != '0':
+            if form.schedule_friday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_friday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Friday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_saturday.data != '0':
+            if form.schedule_saturday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_saturday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
                     flash("We just double-checked and that Saturday time slot isn't available anymore. Sorry!")
                     return redirect(url_for("auth.edit_cred, platform=platform, cred_id=cred_id"))
-            if form.schedule_sunday.data != '0':
+            if form.schedule_sunday.data != 0:
                 slot = TimeSlot.query.filter_by(id=form.schedule_sunday.data).first()
                 if slot.facebook_cred_id is None and slot.twitter_cred_id is None and slot.tumblr_cred_id is None and slot.reddit_cred_id is None:
                     slot.reddit_cred_id = cred.id
+                    slot.domain_id = current_user.domain_id
                     db.session.add(slot)
                     db.session.commit()
                 else:
@@ -1120,6 +1235,7 @@ def edit_cred(platform, cred_id):
         return redirect(url_for('auth.link_social'))
     return render_template('auth/edit_cred.html', title='Update Your {} Account'.format(str(platform).capitalize()), form=form, platform=str(platform).capitalize(), time=datetime.utcnow())
 
+# Works, 2020-08-13
 @bp.route('/delete/cred/<platform>/<cred_id>')
 @fresh_login_required
 def delete_cred(platform, cred_id):
@@ -1223,10 +1339,7 @@ def delete_cred(platform, cred_id):
         flash("ERROR: Malformed request; platform not found.")
         return redirect(url_for('auth.link_social'))
 
+# Works, 2020-08-13
 @bp.route('/literature/<document_name>')
 def send_literature(document_name):
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    document_folder = os.path.join(basedir, 'app', 'static', 'resources')
-    document_folder = document_folder.replace('\\', '/')
-    filename = '{}.pdf'.format(document_name)
-    return send_from_directory(document_folder, filename, as_attachment=True)
+    return send_from_directory('static/resources', document_name)

@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
+<!---Fix timeslot rendering--->
+
 {% block app_content %}
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
         rel="stylesheet">
@@ -29,7 +31,7 @@
         <br>
         <h3><b>{{ facebook_creds[x].alias }}</b></h3>
         <p>{{ facebook_times[x] }} (UTC)</p>
-        <table class="facebook">
+        <table class="facebook" width=100%>
             <tr>
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
@@ -79,8 +81,10 @@
     {% for x in range(twitter_creds|length) %}
         <br>
         <h3><b>{{ twitter_creds[x].alias }}</b></h3>
-        <p>{{ twitter_times[x] }} (UTC)</p>
-        <table class="twitter">
+        {% for x in range(twitter_times|length) %}
+            <p>{{ twitter_times[x] }} (UTC)</p>
+        {% endfor %}
+        <table class="twitter" width=100%>
             <tr>
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
@@ -129,9 +133,9 @@
     <h2>Tumblr Queues</h2>
     {% for x in range(tumblr_creds|length) %}
         <br>
-        <h3><b>{{ tumblr_cred[x].alias }}</b></h3>
+        <h3><b>{{ tumblr_creds[x].alias }}</b></h3>
         <p>{{ tumblr_times[x] }} (UTC)</p>
-        <table class="tumblr">
+        <table class="tumblr" width=100%>
             <tr>
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
@@ -184,7 +188,7 @@
         <br>
         <h3><b>{{ reddit_creds[x].alias }}</b></h3>
         <p>{{ reddit_times[x] }} (UTC)</p>
-        <table class="reddit">
+        <table class="reddit" width=100%>
             <tr>
                 <th>Post type</th>
                 <th>Timestamp (local)</th>

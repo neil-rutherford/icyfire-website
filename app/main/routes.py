@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app
 from app import db
-from app.models import Sentry, FacebookPost, TwitterPost, TumblrPost, RedditPost, FacebookCred, TwitterCred, TumblrCred, RedditCred, Domain
+from app.models import Sentry, FacebookPost, TwitterPost, TumblrPost, RedditPost, FacebookCred, TwitterCred, TumblrCred, RedditCred, Domain, TimeSlot
 from app.main.forms import short_text_builder, long_text_builder, image_builder, video_builder
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
@@ -47,37 +47,7 @@ def upload_s3(file, bucket_name, acl='public-read'):
         raise e
     return "{}{}".format(current_app.config["S3_LOCATION"], file.filename)
 
-
-# Trying client-side upload ;)
-#@bp.route('/sign-s3')
-#def sign_s3():
-    #AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY')
-    #AWS_SECRET_KEY = os.environ.get('AWS_SECRET_KEY')
-    #S3_BUCKET = os.environ.get('S3_BUCKET')
-    
-    #file_name = request.args.get('file-name')
-    #file_type = request.args.get('file-type')
-
-    #s3 = boto3.client(
-        #'s3',
-        #aws_access_key=AWS_ACCESS_KEY,
-        #aws_secret_key=AWS_SECRET_KEY)
-
-    #presigned_post = s3.generate_presigned_post(
-        #Bucket=S3_BUCKET, 
-        #Key=file_name, 
-        #Fields={'acl': 'public-read', 'Content-Type': file_type},
-        #Conditions=[
-            #{'acl': 'public-read'},
-            #{'Content-Type': file_type}
-        #],
-        #ExpiresIn=3600)
-
-    #return json.dumps({
-        #'data': presigned_post,
-        #'url': 'https://{}.s3.amazonaws.com/{}'.format(S3_BUCKET, file_name)
-    #})
-
+# Needs work
 # DASHBOARD
 @bp.route('/dashboard', methods=['GET'])
 @login_required

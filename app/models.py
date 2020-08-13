@@ -6,6 +6,7 @@ from app import login
 import jwt
 from time import time
 from flask import current_app
+import os
 
 '''
 API RESOURCES:
@@ -192,15 +193,15 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
     
     def get_reset_password(self, expires_in=600):
-        return jwt.encode({'reset_password': self.id, 'exp': time() + expires_in}, current_app.config['SECRET_KEY'], algorithm='HS256').decode('utf-8')
+        return jwt.encode({'reset_password': self.id, 'exp': time() + expires_in}, os.environ['SECRET_KEY'], algorithm='HS256').decode('utf-8')
     
     @staticmethod
     def verify_reset_password_token(token):
         try:
-            id = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])['reset_password']
+            id = jwt.decode(token, os.environ['SECRET_KEY'], algorithms=['HS256'])['reset_password']
         except:
             return
-        return User.query.get(id)
+        return User.query.filter_by(id=id).first()
 
 
 class FacebookPost(db.Model):

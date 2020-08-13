@@ -57,9 +57,11 @@
 <hr>
 <h2>Your sales this month</h2>
 <br>
-<form action="{{ url_for('sales.create_sale') }}">
-    <input type="submit" value="Record new sale">
-</form>
+{% if subs is none %}
+    <form action="{{ url_for('sales.create_sale') }}">
+        <input type="submit" value="Record new sale">
+    </form>
+{% endif %}
 <br>
 <table width=100%>
     <tr>

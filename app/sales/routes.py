@@ -56,6 +56,9 @@ def dashboard():
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=403, status_message='Permission denied.')
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
+    if current_user.is_read is False:
+        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=403, status_message='Read permission denied.')
+        return render_template('main/dashboard_defense.html', title="Insufficient permissions")
     country = str(current_user.icyfire_crta).split('-')[0]
     region = str(current_user.icyfire_crta).split('-')[1]
     team = str(current_user.icyfire_crta).split('-')[2]
