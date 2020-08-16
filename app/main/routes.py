@@ -94,6 +94,54 @@ def dashboard():
 
     return render_template('main/dashboard.html', title='Dashboard', facebook_creds=facebook_creds, facebook_posts=facebook_posts, facebook_times=facebook_times, twitter_creds=twitter_creds, twitter_posts=twitter_posts, twitter_times=twitter_times, tumblr_creds=tumblr_creds, tumblr_posts=tumblr_posts, tumblr_times=tumblr_times, reddit_creds=reddit_creds, reddit_posts=reddit_posts, reddit_times=reddit_times)
 
+@bp.route('/view/post/<platform>/<post_id>')
+@login_required
+def view_post(platform, post_id):
+
+    if current_user.is_read is False:
+        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=403, status_message='Read permission denied.')
+        return render_template('main/dashboard_defense.html', title="Insufficient permissions")
+
+    if platform == 'facebook':
+        post = FacebookPost.query.filter_by(id=post_id).first()
+        if post is None:
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('main.dashboard'))
+
+    elif platform == 'twitter':
+        post = TwitterPost.query.filter_by(id=post_id).first()
+        if post is None:
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=404, status_message='Twitter|{}'.format(int(post_id)))
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('main.dashboard'))
+
+    elif platform == 'tumblr':
+        post = TumblrPost.query.filter_by(id=post_id).first()
+        if post is None:
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('main.dashboard'))
+
+    elif platform == 'reddit':
+        post = RedditPost.query.filter_by(id=post_id).first()
+        if post is None:
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
+            flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
+            return redirect(url_for('main.dashboard'))
+
+    else:
+        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=400, status_message='{}|{}'.format(str(platform), int(post_id)))
+        flash('ERROR: Malformed request; platform not found.')
+        return redirect(url_for('main.dashboard'))
+
+    if post.domain_id != current_user.domain_id:
+        make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=403, status_message='{}|{}'.format(str(platform), int(post_id)))
+        flash("ERROR: That post isn't part of your domain.")
+        return redirect(url_for('main.dashboard'))
+    
+    return render_template('main/view_post.html', title='View Post', post=post, platform=platform, post_id=post_id)
+
 # Works, 2020-08-15
 # CHOOSE QUEUES
 @bp.route('/pre/<post_type>/choose-queues', methods=['GET', 'POST'])

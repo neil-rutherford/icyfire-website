@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        rel="stylesheet">
+    
+    <h1>Post - {{ moment(post.timestamp).format('LLL') }}</h1>
+    <table width=100%>
+        <tr>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        <tr>
+            {% if post.post_type == 1 %}
+                <td><a href="{{ url_for('main.update_short_text', platform=platform, post_id=post_id) }}"><span class="material-icons">create</span></a></td>
+            {% elif post.post_type == 2 %}
+                <td><a href="{{ url_for('main.update_long_text', platform=platform, post_id=post_id) }}"><span class="material-icons">create</span></a></td>
+            {% elif post.post_type == 3 %}
+                <td><a href="{{ url_for('main.update_image', platform=platform, post_id=post_id) }}"><span class="material-icons">create</span></a></td>
+            {% else %}
+                <td><a href="{{ url_for('main.update_video', platform=platform, post_id=post_id) }}"><span class="material-icons">create</span></a></td>
+            {% endif %}
+            <td><a href="{{ url_for('main.delete_post', platform=platform, post_id=post_id) }}"><span class="material-icons">delete</span></td>
+        </tr>
+    </table>
+    <br>
+
+    {% if post.post_type == 1 %}
+        <p><b>Post type:</b> Short text</p>
+    {% elif post.post_type == 2 %}
+        <p><b>Post type:</b> Long text</p>
+    {% elif post.post_type == 3 %}
+        <p><b>Post type:</b> Image</p>
+    {% else %}
+        <p><b>Post type:</b> Video</p>
+    {% endif %}
+
+    <p><b>Body:</b> {{ post.body }}</p>
+    <p><b>Caption:</b> {{ post.caption }}</p>
+    <p><b>Tags:</b> {{ post.tags }}</p>
+    {% if post.link_url %}
+        <p><b>Link URL:</b> <a href="{{ post.link_url }}">Link</a></p>
+    {% endif %}
+    {% if post.post_type == 3 and platform != 'reddit' %}
+        <p><b>Image URL:</b> <a href="{{ post.multimedia_url }}">Link</a></p>
+    {% elif post.post_type == 3 and platform == 'reddit' %}
+        <p><b>Image URL:</b> <a href="{{ post.image_url }}">Link</a></p>
+    {% endif %}
+    {% if post.post_type == 4 and platform != 'reddit' %}
+        <p><b>Image URL:</b> <a href="{{ post.multimedia_url }}">Link</a></p>
+    {% elif post.post_type == 4 and platform == 'reddit' %}
+        <p><b>Image URL:</b> <a href="{{ post.video_url }}">Link</a></p>
+    {% endif %}
+{% endblock %}

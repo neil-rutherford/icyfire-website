@@ -90,6 +90,15 @@ def contact_sales():
         return redirect(url_for('promo.home'))
     return render_template('promo/contact_sales.html', title='Contact sales', form=form)
 
+@bp.route('/product/competition-weigh-in')
+def competition():
+    return "Competition weigh-in"
+
+@bp.route('/product/demo')
+def product_demo():
+    return "Product demo"
+
+
 ##############
 
 @bp.route('/products')
@@ -186,7 +195,6 @@ def pricing():
 def blog():
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.blog', status_code=200, status_message='OK')
     basedir = os.path.abspath(os.path.dirname(__file__))
-    #article_directory = os.path.join(basedir, 'app', 'templates', 'promo', 'articles', '*.html')
     article_directory = './app/templates/promo/articles/*.html'
     article_dict = collections.defaultdict(list)
     for article in glob.glob(article_directory):
@@ -198,7 +206,6 @@ def blog():
         article_dict[date].append(title)
         article_dict[date].append(article)
     ordered = collections.OrderedDict(sorted(article_dict.items(), key=lambda t: t[0], reverse=True))
-    #return str(article_dict)
     return render_template('promo/blog.html', title='IcyFire - Blog', article_dict=article_dict, ordered=ordered)
 
 @bp.route('/blog/<article_path>&<article_title>')
@@ -222,20 +229,14 @@ def landing(audience):
 def random_image(image_type):
     basedir = os.path.abspath(os.path.dirname(__file__))
     if image_type == 'scenic':
-        #scenic_directory = os.path.join(basedir, 'app', 'static', 'scenic_images')
-        #scenic_directory = scenic_directory.replace('\\', '/')
         scenic_directory = './app/static/scenic_images/*.*'
         scenic_list = glob.glob(scenic_directory)
         regular_list = []
         for x in scenic_list:
             x = os.path.split(x)
             regular_list.append(x[-1])
-        #return str(regular_list)
-        #return send_from_directory('./app/static/scenic_images', regular_list[random.randint(0, len(regular_list)-1)])
-        #return send_from_directory(os.path.join(basedir, 'app', 'static', 'scenic_images'), '1199px-Chicago_sunrise_1.jpg')
         return redirect(url_for('static', filename='scenic_images/{}'.format(regular_list[random.randint(0, len(regular_list)-1)])))
     elif image_type == 'people':
-        #people_directory = os.path.join(basedir, 'app', 'static', 'people_images', '*.*')
         people_directory = './app/static/people_images/*.*'
         people_list = glob.glob(people_directory)
         regular_list = []
@@ -243,7 +244,6 @@ def random_image(image_type):
             x = os.path.split(x)
             regular_list.append(x[-1])
         return redirect(url_for('static', filename='people_images/{}'.format(regular_list[random.randint(0, len(regular_list)-1)])))
-        #return send_from_directory(people_list[random.randint(0, len(people_list)-1)])
     else:
         return render_template('errors/404.html')
 

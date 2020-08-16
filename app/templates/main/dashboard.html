@@ -57,11 +57,7 @@
         <table width=100%>
             <tr class="facebook">
                 <th>Post type</th>
-                <th>Timestamp (local)</th>
-                <th>Body</th>
-                <th>Link URL</th>
-                <th>Multimedia URL</th>
-                <th>Tags</th>
+                <th>Preview</th>
                 <th>Update</th>
                 <th>Delete</th>
             </tr>
@@ -77,19 +73,19 @@
                         {% elif post.post_type|int == 4 %}
                             <td>Video</td>
                         {% endif %}
-                        <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                        <td>{{ post.body }}</td>
-                        {% if post.link_url is not none %}
-                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% if post.body != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='facebook', post_id=post.id) }}">{{ post.body | truncate(100) }}</a></td>
+                        {% elif post.caption != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='facebook', post_id=post.id) }}">{{ post.caption | truncate(100) }}</a></td>
+                        {% elif post.link_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='facebook', post_id=post.id) }}">{{ post.link_url | truncate(100) }}</a></td>
+                        {% elif post.multimedia_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='facebook', post_id=post.id) }}">{{ post.multimedia_url | truncate(100) }}</a></td>
+                        {% elif post.tags != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='facebook', post_id=post.id) }}">{{ post.tags | truncate(100) }}</a></td>
                         {% else %}
-                            <td>None</td>
+                            <td><a href="{{ url_for('main.view_post', platform='facebook', post_id=post.id) }}">No preview available</a></td>
                         {% endif %}
-                        {% if post.multimedia_url is not none %}
-                            <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
-                        {% else %}
-                            <td>None</td>
-                        {% endif %}
-                        <td>{{ post.tags }}</td>
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='facebook', post_id=post.id) }}">Update</a></td>
                         {% elif post.post_type|int == 2 %}
@@ -133,11 +129,7 @@
         <table width=100%>
             <tr class="twitter">
                 <th>Post type</th>
-                <th>Timestamp (local)</th>
-                <th>Body</th>
-                <th>Link URL</th>
-                <th>Multimedia URL</th>
-                <th>Tags</th>
+                <th>Preview</th>
                 <th>Update</th>
                 <th>Delete</th>
             </tr>
@@ -153,19 +145,19 @@
                         {% elif post.post_type|int == 4 %}
                             <td>Video</td>
                         {% endif %}
-                        <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                        <td>{{ post.body }}</td>
-                        {% if post.link_url is not none %}
-                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% if post.body != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='twitter', post_id=post.id) }}">{{ post.body | truncate(100) }}</a></td>
+                        {% elif post.caption != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='twitter', post_id=post.id) }}">{{ post.caption | truncate(100) }}</a></td>
+                        {% elif post.link_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='twitter', post_id=post.id) }}">{{ post.link_url | truncate(100) }}</a></td>
+                        {% elif post.multimedia_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='twitter', post_id=post.id) }}">{{ post.multimedia_url | truncate(100) }}</a></td>
+                        {% elif post.tags != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='twitter', post_id=post.id) }}">{{ post.tags | truncate(100) }}</a></td>
                         {% else %}
-                            <td>None</td>
+                            <td><a href="{{ url_for('main.view_post', platform='twitter', post_id=post.id) }}">No preview available</a></td>
                         {% endif %}
-                        {% if post.multimedia_url is not none %}
-                            <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
-                        {% else %}
-                            <td>None</td>
-                        {% endif %}
-                        <td>{{ post.tags }}</td>
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='twitter', post_id=post.id) }}">Update</a></td>
                         {% elif post.post_type|int == 2 %}
@@ -209,11 +201,7 @@
         <table width=100%>
             <tr class="tumblr">
                 <th>Post type</th>
-                <th>Timestamp (local)</th>
-                <th>Body</th>
-                <th>Link URL</th>
-                <th>Multimedia URL</th>
-                <th>Tags</th>
+                <th>Preview</th>
                 <th>Update</th>
                 <th>Delete</th>
             </tr>
@@ -229,24 +217,18 @@
                         {% elif post.post_type|int == 4 %}
                             <td>Video</td>
                         {% endif %}
-                        <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                        <td>{{ post.title }}</td>
-                        <td>{{ post.body }}</td>
-                        {% if post.link_url is not none %}
-                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% if post.body != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='tumblr', post_id=post.id) }}">{{ post.body | truncate(100) }}</a></td>
+                        {% elif post.caption != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='tumblr', post_id=post.id) }}">{{ post.caption | truncate(100) }}</a></td>
+                        {% elif post.link_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='tumblr', post_id=post.id) }}">{{ post.link_url | truncate(100) }}</a></td>
+                        {% elif post.multimedia_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='tumblr', post_id=post.id) }}">{{ post.multimedia_url | truncate(100) }}</a></td>
+                        {% elif post.tags != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='tumblr', post_id=post.id) }}">{{ post.tags | truncate(100) }}</a></td>
                         {% else %}
-                            <td>None</td>
-                        {% endif %}
-                        {% if post.multimedia_url is not none %}
-                            <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
-                        {% else %}
-                            <td>None</td>
-                        {% endif %}
-                        <td>{{ post.tags }}</td>
-                        {% if post.caption is not none %}
-                            <td>{{ post.caption }}</td>
-                        {% else %}
-                            <td>None</td>
+                            <td><a href="{{ url_for('main.view_post', platform='tumblr', post_id=post.id) }}">No preview available</a></td>
                         {% endif %}
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
@@ -291,11 +273,7 @@
         <table width=100%>
             <tr class="reddit">
                 <th>Post type</th>
-                <th>Timestamp (local)</th>
-                <th>Body</th>
-                <th>Link URL</th>
-                <th>Multimedia URL</th>
-                <th>Tags</th>
+                <th>Preview</th>
                 <th>Update</th>
                 <th>Delete</th>
             </tr>
@@ -311,23 +289,18 @@
                         {% elif post.post_type|int == 4 %}
                             <td>Video</td>
                         {% endif %}
-                        <td>{{ moment(post.timestamp).format('LLL') }}</td>
-                        <td>{{ post.title }}</td>
-                        <td>{{ post.body }}</td>
-                        {% if post.link_url is not none %}
-                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% if post.body != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='reddit', post_id=post.id) }}">{{ post.body | truncate(100) }}</a></td>
+                        {% elif post.caption != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='reddit', post_id=post.id) }}">{{ post.caption | truncate(100) }}</a></td>
+                        {% elif post.link_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='reddit', post_id=post.id) }}">{{ post.link_url | truncate(100) }}</a></td>
+                        {% elif post.multimedia_url != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='reddit', post_id=post.id) }}">{{ post.multimedia_url | truncate(100) }}</a></td>
+                        {% elif post.tags != none %}
+                            <td><a href="{{ url_for('main.view_post', platform='reddit', post_id=post.id) }}">{{ post.tags | truncate(100) }}</a></td>
                         {% else %}
-                            <td>None</td>
-                        {% endif %}
-                        {% if post.image_url is not none %}
-                            <td><a href="{{ post.image_url }}">Image URL</a></td>
-                        {% else %}
-                            <td>None</td>
-                        {% endif %}
-                        {% if post.video_url is not none %}
-                            <td><a href="{{ post.video_url }}">Video URL</a></td>
-                        {% else %}
-                            <td>None</td>
+                            <td><a href="{{ url_for('main.view_post', platform='reddit', post_id=post.id) }}">No preview available</a></td>
                         {% endif %}
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='reddit', post_id=post.id) }}">Update</a></td>
