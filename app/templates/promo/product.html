@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <article class="introduction">
+        <center><img src="static/scenic_images/focus_on_the_content.jpg" width=100% height="auto"></center>
+        <center><h2><b>Leave the posting to us.</b></h2></center>
+        <center><h3>Say hello to IcyFire, an automated social media scheduler that's engineered for consistency.</h3></center>
+        <center><h4>Designed to facilitate teamwork, streamline digital marketing, and more importantly, to open doors for your business.</h4></center>
+        <br>
+        <center><p><a href="{{ url_for('promo.buy_now') }}"><b>Get started »</b></a> | <a href="{{ url_for('promo.contact_sales') }}"><b>Contact sales »</b></a></p></center>
+    </article>
+    <hr>
+    <article class="consistent-schedules">
+        <center><img src="static/scenic_images/consistently_structured_posting_schedules.jpg" width=100% height="auto"></center>
+        <center><h2><b>We'll keep your team accountable and make your publishing run like clockwork.</b></h2></center>
+        <center><h3>All you have to do is come up with the content.</h3></center>
+        <br>
+        <center><p><b><a href="https://neilpatel.com/blog/how-to-create-a-social-media-branding-strategy-from-scratch/">The importance of consistency in digital marketing »</a></b></p></center>
+    </article>
+    <hr>
+    <!---
+    <article class="social-proof">
+    </article>
+    <hr>
+    --->
+    <article class="flat-price-unlimited-possibilities">
+        <center><img src="static/scenic_images/unlimited_possibilities_one_flat_price.jpg" width=100% height="auto"></center>
+        <table width=100%>
+            <tr>
+                <th><h2><b>One flat fee</b></h2></th>
+                <th><h2><b>Zero restrictions</b></h2></th>
+            </tr>
+            <tr>
+                <td><h4>No monthly payments<br/>
+                No subscription plans<br/>
+                No hidden fees<br/>
+                No funny business</h4></td>
+                <td><h4>Unlimited queue lengths<br/>
+                Unlimited number of collaborators<br/>
+                Unlimited number of social networks<br/>
+                No URL constraints</h4></td>
+            </tr>
+            <tr>
+                <td><a href="{{ url_for('promo.help_others') }}"><b>Learn how our users are owners »</b></a></td>
+                <td><a href="{{ url_for('promo.competition') }}"><b>Learn how we stack up »</b></a></td>
+            </tr>
+        </table>
+    </article>
+    <hr>
+    <article class="constant-improvement">
+        <center><img src="static/scenic_images/constant_improvement.jpg" width=100% height="auto"></center>
+        <center><h2><b>IcyFire is moving quickly.</b></h2></center>
+        <center><h3>We use your feedback to continuously improve our product.</h3></center>
+        <center><h4>And the best part? You won't have to pay another cent for an upgrade.</h4></center>
+        <br>
+        <center><p><a href="{{ url_for('promo.make_product_suggestion') }}"><b>Make a suggestion »</b></a> | <a href="{{ url_for('promo.blog') }}"><b>Read our blog »</b></a></p></center>
+    </article>
+    <hr>
+    <article class="easy-to-use">
+        <center><img src="static/scenic_images/intuitive_interface.jpg" width=100% height="auto"></center>
+        <center><h2><b>Your workspace, your way.</b></h2></center>
+        <table width=100%>
+            <tr>
+                <th style="width:45%;"><h3><b>Freedom to organize</b></h3></th>
+                <th style="width:45%;"><h3><b>Easy-to-use</b></h3></th>
+            </tr>
+            <tr>
+                <td style="width:45%;"><h4>Unlimited accounts mean you can organize your marketing<br/> campaigns however you want.</h4></td>
+                <td style="width:45%;"><h4>Everything's where it should be.</h4></td>
+            </tr>
+        </table>
+        <h3><b>Collaborate and outsource</b></h3>
+        <h4>Lower your risk when hiring contractors and freelancers.</h4>
+        <br>
+        <center><p><a href="{{ url_for('promo.product_demo') }}"><b>Check out our product demo »</b></a></p></center>
+    </article>
+    <hr>
+    <article class="security-at-the-core">
+        <center><img src="static/scenic_images/security_at_the_core.jpg" width=100% height="auto"></center>
+        <table width=100%>
+            <tr>
+                <th style="width:45%;"><h3><b>Encryption at rest</b></h3></th>
+                <th style="width:45%;"><h3><b>Granular permissions</b></h3></th>
+            </tr>
+            <tr>
+                <td style="width:45%;"><h4>Rest easy. Your sensitive information is protected by<br/> industry-standard security.</h4></td>
+                <td style="width:45%;"><h4>Control what every user can and cannot do.</h4></td>
+            </tr>
+        </table>
+        <table width=100%>
+            <tr>
+                <th style="width:45%;"><h3><b>Democratized security</b></h3></th>
+                <th style="width:45%;"><h3><b>Open-source audits</b></h3></th>
+            </tr>
+            <tr>
+                <td style="width:45%;"><h4>We make security logs available to every admin. If you <br>see something, escalate it.</h4></td>
+                <td style="width:45%;"><h4>We team up with white-hat hackers to find our <br/>platform's weaknesses.</h4></td>
+            </tr>
+        </table>
+        <br>
+        <p><a href="{{ url_for('main.help_topic', topic='auth') }}"><b>Read more about how we keep your data safe »</b></a></p>
+        <p><a href="{{ url_for('legal.vulnerability_disclosure_program') }}"><b>Learn more about our Vulnerability Disclosure Program (VDP) »</b></a></p>
+    </article>
+    <hr>
+    <article class="ready-to-get-started">
+        <center><img src="static/scenic_images/ready_to_get_started.jpg" width=100% height="auto"></center>
+        <br>
+        <center><p><a href="{{ url_for('promo.buy_now') }}"><b>Get started »</b></a> | <a href="{{ url_for('promo.contact_sales') }}"><b>Contact sales »</b></a></p></center>
+    </article>
+{% endblock %}

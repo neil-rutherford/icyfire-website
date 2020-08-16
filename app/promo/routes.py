@@ -24,7 +24,7 @@ def home():
 
 @bp.route('/product')
 def product():
-    return "Product page"
+    return render_template('promo/product.html', title='IcyFire Social Media Scheduler')
 
 @bp.route('/help-others')
 def help_others():
