@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request, send_from_directory, current_app
 from app import db
 from app.models import Sentry, FacebookPost, TwitterPost, TumblrPost, RedditPost, FacebookCred, TwitterCred, TumblrCred, RedditCred, Domain, TimeSlot
-from app.main.forms import short_text_builder, long_text_builder, image_builder, video_builder
+from app.main.forms import ShortTextForm, LongTextForm, ImageForm, VideoForm, EditImageForm, EditVideoForm, TestForm
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 import os
@@ -9,9 +9,13 @@ import uuid
 import json
 from app.main import bp
 from datetime import datetime, date
-import boto3, botocore
 import markdown
 import markdown.extensions.fenced_code
+from app.main.transfer import TransferData
+from dotenv import load_dotenv
+import dropbox
+
+load_dotenv('.env')
 
 # HELPER FUNCTIONS
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
@@ -39,15 +43,24 @@ def make_reddit(cred_id, domain_id, user_id, post_type, title, body, link_url, i
     db.session.add(post)
     db.session.commit()
 
-def upload_s3(file, bucket_name, acl='public-read'):
-    s3 = boto3.client("s3", aws_access_key_id=current_app.config['AWS_ACCESS_KET'], aws_secret_access_key=current_app.config['AWS_SECRET_KEY'])
-    try:
-        s3.upload_fileobj(file, bucket_name, file.filename, ExtraArgs={"ACL": acl, "ContentType": file.content_type})
-    except Exception as e:
-        raise e
-    return "{}{}".format(current_app.config["S3_LOCATION"], file.filename)
+# Works, 2020-08-15
+@bp.route('/download-multimedia/<file_name>')
+def download_multimedia(file_name):
+    if not os.path.exists('./app/static/resources/{}'.format(file_name)):
+        dbx = dropbox.Dropbox(os.environ['DROPBOX_ACCESS_KEY'])
+        with open(f"./app/static/resources/{file_name}", 'wb') as f:
+            metadata, res = dbx.files_download(path='/multimedia/{}'.format(file_name))
+            f.write(res.content)
+    return send_from_directory('static/resources', "{}".format(file_name))
 
-# Needs work
+# Works, 2020-08-15
+def delete_multimedia(file_name):
+    if os.path.exists('./app/static/resources/{}'.format(file_name)):
+        os.remove('./app/static/resources/{}'.format(file_name))
+    dbx = dropbox.Dropbox(os.environ['DROPBOX_ACCESS_KEY'])
+    dbx.files_delete_v2(path='/multimedia/{}'.format(file_name))
+
+# Works, 2020-08-14
 # DASHBOARD
 @bp.route('/dashboard', methods=['GET'])
 @login_required
@@ -72,49 +85,113 @@ def dashboard():
     tumblr_posts = TumblrPost.query.filter_by(domain_id=domain.id).order_by(TumblrPost.timestamp.asc()).all()
     reddit_posts = RedditPost.query.filter_by(domain_id=domain.id).order_by(RedditPost.timestamp.asc()).all()
 
-    times_dict = {1: 'Mondays at', 2: 'Tuesdays at', 3: 'Wednesdays at', 4: 'Thursdays at', 5: 'Fridays at', 6: 'Saturdays at', 7: 'Sundays at'}
-
-    facebook_times = []
-    twitter_times = []
-    tumblr_times = []
-    reddit_times = []
-
-    for cred in facebook_creds:
-        slot = TimeSlot.query.filter_by(facebook_cred_id=cred.id).first()
-        day_of_week = times_dict[slot.day_of_week]
-        facebook_times.append('{} {}'.format(day_of_week, slot.time))
-
-    for cred in twitter_creds:
-        slot = TimeSlot.query.filter_by(twitter_cred_id=cred.id).first()
-        day_of_week = times_dict[slot.day_of_week]
-        twitter_times.append('{} {}'.format(day_of_week, slot.time))
-
-    for cred in tumblr_creds:
-        slot = TimeSlot.query.filter_by(tumblr_cred_id=cred.id).first()
-        day_of_week = times_dict[slot.day_of_week]
-        tumblr_times.append('{} {}'.format(day_of_week, slot.time))
-
-    for cred in reddit_creds:
-        slot = TimeSlot.query.filter_by(reddit_cred_id=cred.id).first()
-        day_of_week = times_dict[slot.day_of_week]
-        reddit_times.append('{} {}'.format(day_of_week, slot.time))
+    facebook_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.facebook_cred_id != None).all()
+    twitter_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.twitter_cred_id != None).all()
+    tumblr_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.tumblr_cred_id != None).all()
+    reddit_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.reddit_cred_id != None).all()
 
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.dashboard', status_code=200, status_message='Successful dashboard access.')
 
     return render_template('main/dashboard.html', title='Dashboard', facebook_creds=facebook_creds, facebook_posts=facebook_posts, facebook_times=facebook_times, twitter_creds=twitter_creds, twitter_posts=twitter_posts, twitter_times=twitter_times, tumblr_creds=tumblr_creds, tumblr_posts=tumblr_posts, tumblr_times=tumblr_times, reddit_creds=reddit_creds, reddit_posts=reddit_posts, reddit_times=reddit_times)
 
-
-# CREATE SHORT TEXT
-@bp.route('/create/short-text', methods=['GET', 'POST'])
+# Works, 2020-08-15
+# CHOOSE QUEUES
+@bp.route('/pre/<post_type>/choose-queues', methods=['GET', 'POST'])
 @login_required
-def create_short_text():
+def choose_queues(post_type):
+        
+    if current_user.is_create is False:
+        flash("Talk to your domain admin about getting create permissions.")
+        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=403, status_message='Create permission denied.')
+        return redirect(url_for('main.dashboard'))
+
+    facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
+    twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
+    tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
+    reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
+
+    if post_type == 'short_text':
+        if request.method == 'POST':
+            queue_list = []
+            for x in request.form:
+                queue_list.append(x)
+            if len(queue_list) == 0:
+                flash("ERROR: Please select at least one queue.")
+                return redirect(url_for('main.choose_queues', post_type='short_text'))
+            queue_list = '/'.join(queue_list)
+            return redirect(url_for('main.create_short_text', queue_list=queue_list))
+        return render_template('main/landing_short_text.html', title='Choose your queues', facebook_creds=facebook_creds, twitter_creds=twitter_creds, tumblr_creds=tumblr_creds, reddit_creds=reddit_creds)
+    
+    elif post_type == 'long_text':
+        if request.method == 'POST':
+            queue_list = []
+            for x in request.form:
+                queue_list.append(x)
+            if len(queue_list) == 0:
+                flash("ERROR: Please select at least one queue.")
+                return redirect(url_for('main.choose_queues', post_type='long_text'))
+            queue_list = '/'.join(queue_list)
+            return redirect(url_for('main.create_long_text', queue_list=queue_list))
+        return render_template('main/landing_long_text.html', title='Choose your queues', facebook_creds=facebook_creds, twitter_creds=twitter_creds, tumblr_creds=tumblr_creds, reddit_creds=reddit_creds)
+    
+    elif post_type == 'image':
+        if request.method == 'POST':
+            queue_list = []
+            for x in request.form:
+                queue_list.append(x)
+            if len(queue_list) == 0:
+                flash("ERROR: Please select at least one queue.")
+                return redirect(url_for('main.choose_queues', post_type='image'))
+            queue_list = '/'.join(queue_list)
+            return redirect(url_for('main.create_image', queue_list=queue_list))
+        return render_template('main/landing_image.html', title='Choose your queues', facebook_creds=facebook_creds, twitter_creds=twitter_creds, tumblr_creds=tumblr_creds, reddit_creds=reddit_creds)
+    
+    elif post_type == 'video':
+        if request.method == 'POST':
+            queue_list = []
+            for x in request.form:
+                queue_list.append(x)
+            if len(queue_list) == 0:
+                flash("ERROR: Please select at least one queue.")
+                return redirect(url_for('main.choose_queues', post_type='video'))
+            queue_list = '/'.join(queue_list)
+            return redirect(url_for('main.create_video', queue_list=queue_list))
+        return render_template('main/landing_video.html', title='Choose your queues', facebook_creds=facebook_creds, twitter_creds=twitter_creds, tumblr_creds=tumblr_creds, reddit_creds=reddit_creds)
+    
+    else:
+        flash("ERROR: That post type doesn't exist. Make sure your post type is one of the following: 'short_text', 'long_text', 'image', or 'video'.")
+        return redirect(url_for('main.dashboard'))
+
+# Works, 2020-08-15
+# CREATE SHORT TEXT
+@bp.route('/create/short-text/<path:queue_list>', methods=['GET', 'POST'])
+@login_required
+def create_short_text(queue_list):
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=403, status_message='Create permission denied.')
         return redirect(url_for('main.dashboard'))
 
-    form = short_text_builder()
+    facebook_creds = []
+    twitter_creds = []
+    tumblr_creds = []
+    reddit_creds = []
+
+    queue_list = queue_list.split('/')
+
+    for x in queue_list:
+        var = str(x).split('_')
+        if var[0] == 'facebook':
+            facebook_creds.append(FacebookCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'twitter':
+            twitter_creds.append(TwitterCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'tumblr':
+            tumblr_creds.append(TumblrCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'reddit':
+            reddit_creds.append(RedditCred.query.filter_by(id=int(var[1])).first())
+
+    form = ShortTextForm()
 
     if form.validate_on_submit():
 
@@ -122,75 +199,123 @@ def create_short_text():
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
+        if len(facebook_creds) != 0:
+            for x in facebook_creds:
+                post = FacebookPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 1
+                post.body = form.body.data
+                post.multimedia_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Facebook|{}|{}'.format(x.id, post.id), flag=False)
+            
+        if len(twitter_creds) != 0:
+            for x in twitter_creds:
+                post = TwitterPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 1
+                post.body = form.body.data
+                post.multimedia_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Twitter|{}|{}'.format(x.id, post.id), flag=False)
 
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Facebook')
-                '''.format(x))
-
-        if len(twitter_creds) > 0:
-            for x in range(0, len(twitter_creds)-1):
-                exec('''
-                if form.twitter_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_twitter(cred_id=twitter_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Twitter')
-                '''.format(x))
+        if len(tumblr_creds) != 0:
+            for x in tumblr_creds:
+                post = TumblrPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 1
+                post.title = form.title.data
+                post.body = form.body.data
+                post.multimedia_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    post.tags = str(form.tags.data).split(', ')
+                else:
+                    post.tags = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Tumblr|{}|{}'.format(x.id, post.id), flag=False)
         
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(cred_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Tumblr')
-                '''.format(x))
-        
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Reddit')
-                '''.format(x))
+        if len(reddit_creds) != 0:
+            for x in reddit_creds:
+                post = RedditPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 1
+                post.title = form.title.data
+                post.body = form.body.data
+                post.image_url = None
+                post.video_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=200, status_message='Reddit|{}|{}'.format(x.id, post.id), flag=False)
 
-        flash('Successfully queued!')
+        flash("Successfully queued!")
         return redirect(url_for('main.dashboard'))
-    return render_template('main/create_short_text.html', title='New Short Text Post', form=form)
+    return render_template('main/create_short_text.html', title='New short text post', form=form, queues=len(queue_list))
 
-
+# Works, 2020-08-15
 # CREATE LONG TEXT
-@bp.route('/create/long-text', methods=['GET', 'POST'])
+@bp.route('/create/long-text/<path:queue_list>', methods=['GET', 'POST'])
 @login_required
-def create_long_text():
+def create_long_text(queue_list):
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=403, status_message='Create permission denied.')
         return redirect(url_for('main.dashboard'))
 
-    form = long_text_builder()
+    facebook_creds = []
+    twitter_creds = []
+    tumblr_creds = []
+    reddit_creds = []
+
+    queue_list = queue_list.split('/')
+
+    for x in queue_list:
+        var = str(x).split('_')
+        if var[0] == 'facebook':
+            facebook_creds.append(FacebookCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'twitter':
+            twitter_creds.append(TwitterCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'tumblr':
+            tumblr_creds.append(TumblrCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'reddit':
+            reddit_creds.append(RedditCred.query.filter_by(id=int(var[1])).first())
+    
+    form = LongTextForm()
 
     if form.validate_on_submit():
 
@@ -198,61 +323,101 @@ def create_long_text():
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
+        if len(facebook_creds) != 0:
+            for x in facebook_creds:
+                post = FacebookPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 2
+                post.body = form.body.data
+                post.multimedia_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Facebook|{}|{}'.format(x.id, post.id))
 
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Facebook')
-                '''.format(x))
+        if len(tumblr_creds) != 0:
+            for x in tumblr_creds:
+                post = TumblrPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 2
+                post.title = form.title.data
+                post.body = form.body.data
+                post.multimedia_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    post.tags = str(form.tags.data).split(', ')
+                else:
+                    post.tags = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Tumblr|{}|{}'.format(x.id, post.id))
         
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    if forms.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(cred_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Tumblr')
-                '''.format(x))
-        
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Reddit')
-                '''.format(x))
-        
+        if len(reddit_creds) != 0:
+            for x in reddit_creds:
+                post = RedditPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 2
+                post.title = form.title.data
+                post.body = form.body.data
+                post.image_url = None
+                post.video_url = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=200, status_message='Reddit|{}|{}'.format(x.id, post.id))
+
         flash("Successfully queued!")
         return redirect(url_for('main.dashboard'))
-    
-    return render_template('main/create_long_text.html', title='New Long Text Post', form=form)
+    return render_template('main/create_long_text.html', title='New long text post', form=form, queues=len(queue_list))
 
-
+# Works, 2020-08-15
 # CREATE IMAGE POST
-@bp.route('/create/image', methods=['GET', 'POST'])
+@bp.route('/create/image/<path:queue_list>', methods=['GET', 'POST'])
 @login_required
-def create_image():
+def create_image(queue_list):
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=403, status_message='Create permission denied.')
         return redirect(url_for('main.dashboard'))
 
-    form = image_builder()
+    facebook_creds = []
+    twitter_creds = []
+    tumblr_creds = []
+    reddit_creds = []
+
+    queue_list = queue_list.split('/')
+
+    for x in queue_list:
+        var = str(x).split('_')
+        if var[0] == 'facebook':
+            facebook_creds.append(FacebookCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'twitter':
+            twitter_creds.append(TwitterCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'tumblr':
+            tumblr_creds.append(TumblrCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'reddit':
+            reddit_creds.append(RedditCred.query.filter_by(id=int(var[1])).first())
+
+    form = ImageForm()
 
     if form.validate_on_submit():
 
@@ -260,89 +425,175 @@ def create_image():
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
-
         f = form.image.data
         file_list = str(f.filename).split('.')[-1:]
         for x in file_list:
             file_type = x
-        
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('facebook-' + image_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Facebook')
-                '''.format(x))
-            
-        if len(twitter_creds) > 0:
-            for x in range(0, len(twitter_creds)-1):
-                exec('''
-                if form.twitter_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('twitter-' + image_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_twitter(cred_id=twitter_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Twitter')
-                '''.format(x))
 
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('tumblr-' + image_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(client_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tags, caption=str(form.caption.data))
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Tumblr')
-                '''.format(x))
+        if len(facebook_creds) != 0:
+            for x in facebook_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = FacebookPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 3
+                if form.caption.data != '':
+                    post.caption = form.caption.data
+                    post.body = None
+                else:
+                    post.caption = None
+                    post.body = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Facebook|{}|{}'.format(x.id, post.id))
         
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('reddit-' + image_name + '.' + file_type)
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), video_url=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Reddit')
-                '''.format(x))
+        if len(twitter_creds) != 0:
+            for x in twitter_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = TwitterPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 3
+                if form.caption.data != '':
+                    post.caption = form.caption.data
+                    post.body = None
+                else:
+                    post.caption = None
+                    post.body = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Twitter|{}|{}'.format(x.id, post.id))
+
+        if len(tumblr_creds) != 0:
+            for x in tumblr_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = TumblrPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 3
+                post.title = form.title.data
+                post.body = None
+                if form.caption.data != '':
+                    post.caption = form.caption.data
+                else:
+                    post.caption = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    post.tags = str(form.tags.data).split(', ')
+                else:
+                    post.tags = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Tumblr|{}|{}'.format(x.id, post.id))
+
+        if len(reddit_creds) != 0:
+            for x in reddit_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = RedditPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 3
+                post.title = form.title.data
+                if form.caption.data != '':
+                    post.body = None
+                    post.caption = form.caption.data
+                else:
+                    post.body = None
+                    post.caption = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.image_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Reddit|{}|{}'.format(x.id, post.id))
         
         flash("Successfully queued!")
         return redirect(url_for('main.dashboard'))
 
-    return render_template('main/create_image.html', title='New Image Post', form=form)
+    return render_template('main/create_image.html', title='New Image Post', form=form, queues=len(queue_list))
 
-
+# Works, 2020-08-15
 # CREATE VIDEO POST
-@bp.route('/create/video', methods=['GET', 'POST'])
+@bp.route('/create/video/<path:queue_list>', methods=['GET', 'POST'])
 @login_required
-def create_video():
+def create_video(queue_list):
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=403, status_message='Create permission denied.')
         return redirect(url_for('main.dashboard'))
 
-    form = video_builder()
+    facebook_creds = []
+    twitter_creds = []
+    tumblr_creds = []
+    reddit_creds = []
+
+    queue_list = queue_list.split('/')
+
+    for x in queue_list:
+        var = str(x).split('_')
+        if var[0] == 'facebook':
+            facebook_creds.append(FacebookCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'twitter':
+            twitter_creds.append(TwitterCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'tumblr':
+            tumblr_creds.append(TumblrCred.query.filter_by(id=int(var[1])).first())
+        elif var[0] == 'reddit':
+            reddit_creds.append(RedditCred.query.filter_by(id=int(var[1])).first())
+
+    form = VideoForm()
 
     if form.validate_on_submit():
 
@@ -350,78 +601,146 @@ def create_video():
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
-
         f = form.video.data
         file_list = str(f.filename).split('.')[-1:]
         for x in file_list:
             file_type = x
 
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('facebook-' + video_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Facebook')
-                '''.format(x))
+        if len(facebook_creds) != 0:
+            for x in facebook_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = FacebookPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 4
+                if form.caption.data != '':
+                    post.body = None
+                    post.caption = form.caption.data
+                else:
+                    post.body = None
+                    post.caption = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Facebook|{}|{}'.format(x.id, post.id))
 
-        if len(twitter_creds) > 0:
-            for x in range(0, len(twitter_creds)-1):
-                exec('''
-                if form.twitter_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('twitter-' + video_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_twitter(cred_id=twitter_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Twitter')
-                '''.format(x))
-        
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('tumblr-' + video_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(cred_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tags, caption=str(form.caption.data))
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Tumblr')
-                '''.format(x))
+        if len(twitter_creds) != 0:
+            for x in twitter_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = TwitterPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 4
+                if form.caption.data != '':
+                    post.caption = form.caption.data
+                    post.body = None
+                else:
+                    post.body = None
+                    post.caption = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    tags = str(form.tags.data).split(', ')
+                    tagline = ' #'.join(tags)
+                    post.tags = '#' + tagline
+                else:
+                    post.tags = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Twitter|{}|{}'.format(x.id, post.id))
 
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('reddit-' + video_name + '.' + file_type)
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=None, video_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'))
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Reddit')
-                '''.format(x))
+        if len(tumblr_creds) != 0:
+            for x in tumblr_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = TumblrPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 4
+                post.title = form.title.data
+                post.body = None
+                if form.caption.data != '':
+                    post.caption = form.caption.data
+                else:
+                    post.caption = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                if form.tags.data != '':
+                    post.tags = str(form.tags.data).split(', ')
+                else:
+                    post.tags = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Tumblr|{}|{}'.format(x.id, post.id))
+
+        if len(reddit_creds) != 0:
+            for x in reddit_creds:
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                post = RedditPost(domain_id=current_user.domain_id)
+                post.cred_id = x.id
+                post.user_id = current_user.id
+                post.post_type = 4
+                post.title = form.title.data
+                if form.caption.data != '':
+                    post.caption = form.caption.data
+                    post.body = None
+                else:
+                    post.body = None
+                    post.caption = None
+                if form.link_url.data != '':
+                    post.link_url = form.link_url.data
+                else:
+                    post.link_url = None
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.video_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+                db.session.add(post)
+                db.session.commit()
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Reddit|{}|{}'.format(x.id, post.id))
         
         flash("Successfully queued!")
         return redirect(url_for('main.dashboard'))
-    
-    return render_template('main/create_video.html', title='New Video Post', form=form)
 
+    return render_template('main/create_video.html', title='New Video Post', form=form, queues=len(queue_list))
 
+# Works, 2020-08-15
 # UPDATE SHORT TEXT
 @bp.route('/update/short-text/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
@@ -470,7 +789,7 @@ def update_short_text(platform, post_id):
         flash("ERROR: That post isn't part of your domain.")
         return redirect(url_for('main.dashboard'))
 
-    form = short_text_builder(obj=post)
+    form = ShortTextForm(obj=post)
 
     if form.validate_on_submit():
 
@@ -478,65 +797,74 @@ def update_short_text(platform, post_id):
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
+        if platform == 'facebook':
+            post.user_id = current_user.id
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Facebook|{}|{}'.format(post.cred_id, post.id))
 
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
-                '''.format(x))
+        elif platform == 'twitter':
+            post.user_id = current_user.id
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Twitter|{}|{}'.format(post.cred_id, post.id))
+        
+        elif platform == 'tumblr':
+            post.user_id = current_user.id
+            post.title = form.title.data
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                post.tags = str(form.tags.data).split(', ')
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Tumblr|{}|{}'.format(post.cred_id, post.id))
 
-        if len(twitter_creds) > 0:
-            for x in range(0, len(twitter_creds)-1):
-                exec('''
-                if form.twitter_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_twitter(cred_id=twitter_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Twitter|{}'.format(int(post_id)))
-                '''.format(x))
-        
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(cred_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
-                '''.format(x))
-        
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=1, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
-                '''.format(x))
+        elif platform == 'reddit':
+            post.user_id = current_user.id
+            post.title = form.title.data
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=200, status_message='Reddit|{}|{}'.format(post.cred_id, post.id))
 
         flash('Successfully updated!')
         return redirect(url_for('main.dashboard'))
 
     return render_template('main/update_short_text.html', title='Update Short Text Post', form=form)
 
-
+# Works, 2020-08-15
 # UPDATE LONG POST
 @bp.route('/update/long-text/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
@@ -578,7 +906,7 @@ def update_long_text(platform, post_id):
         flash("ERROR: That post isn't part of your domain.")
         return redirect(url_for('main.dashboard'))
 
-    form = long_text_builder(obj=post)
+    form = LongTextForm(obj=post)
 
     if form.validate_on_submit():
 
@@ -586,50 +914,57 @@ def update_long_text(platform, post_id):
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
+        if platform == 'facebook':
+            post.user_id = current_user.id
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Facebook|{}|{}'.format(post.cred_id, post.id))
 
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
-                '''.format(x))
-        
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    if forms.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(cred_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), multimedia_url=None, tags=tags, caption=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
-                '''.format(x))
-        
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=2, title=str(form.title.data), body=str(form.body.data), link_url=str(form.link_url.data), image_url=None, video_url=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
-                '''.format(x))
-        
+        elif platform == 'tumblr':
+            post.user_id = current_user.id
+            post.title = form.title.data
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                post.tags = str(form.tags.data).split(', ')
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Tumblr|{}|{}'.format(post.cred_id, post.id))
+
+        elif platform == 'reddit':
+            post.user_id = current_user.id
+            post.title = form.title.data
+            post.body = form.body.data
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=200, status_message='Reddit|{}|{}'.format(post.cred_id, post.id))
+
         flash("Successfully updated!")
         return redirect(url_for('main.dashboard'))
 
     return render_template('main/update_long_text.html', title='Update Long Text Post', form=form)
 
-
+# Works, 2020-08-15
 # UPDATE IMAGE
 @bp.route('/update/image/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
@@ -646,6 +981,8 @@ def update_image(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            image_url = post.multimedia_url
 
     elif platform == 'twitter':
         post = TwitterPost.query.filter_by(id=int(post_id)).first()
@@ -653,6 +990,8 @@ def update_image(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Twitter|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            image_url = post.multimedia_url
 
     elif platform == 'tumblr':
         post = TumblrPost.query.filter_by(id=int(post_id)).first()
@@ -660,6 +999,8 @@ def update_image(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            image_url = post.multimedia_url
 
     elif platform == 'reddit':
         post = RedditPost.query.filter_by(id=int(post_id)).first()
@@ -667,6 +1008,8 @@ def update_image(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            image_url = post.image_url
 
     else:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=400, status_message='{}|{}'.format(str(platform), int(post_id)))
@@ -678,7 +1021,7 @@ def update_image(platform, post_id):
         flash("ERROR: That post isn't part of your domain.")
         return redirect(url_for('main.dashboard'))
 
-    form = image_builder(obj=post)
+    form = EditImageForm(obj=post)
 
     if form.validate_on_submit():
 
@@ -686,78 +1029,153 @@ def update_image(platform, post_id):
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
-
         f = form.image.data
-        file_list = str(f.filename).split('.')[-1:]
-        for x in file_list:
-            file_type = x
-        
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('facebook-' + image_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
-                '''.format(x))
-            
-        if len(twitter_creds) > 0:
-            for x in range(0, len(twitter_creds)-1):
-                exec('''
-                if form.twitter_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('twitter-' + image_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_twitter(cred_id=twitter_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Twitter|{}'.format(int(post_id)))
-                '''.format(x))
+        if f.filename != '':
+            file_list = str(f.filename).split('.')[-1:]
+            for x in file_list:
+                file_type = x
+        else:
+            f = None
 
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('tumblr-' + image_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(client_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=None, link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tags, caption=str(form.caption.data))
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
-                '''.format(x))
+        if platform == 'facebook':
+            if f is not None:
+                file_name = str(image_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            if form.caption.data != '':
+                post.caption = form.caption.data
+                post.body = None
+            else:
+                post.caption = None
+                post.body = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Facebook|{}|{}'.format(post.cred_id, post.id))
+
+        elif platform == 'twitter':
+            if f is not None:
+                file_name = str(image_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            if form.caption.data != '':
+                post.caption = form.caption.data
+                post.body = None
+            else:
+                post.caption = None
+                post.body = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Twitter|{}|{}'.format(post.cred_id, post.id))
+
+        elif platform == 'tumblr':
+            if f is not None:
+                file_name = str(image_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            post.title = form.title.data
+            post.body = None
+            if form.caption.data != '':
+                post.caption = form.caption.data
+            else:
+                post.caption = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                post.tags = str(form.tags.data).split(', ')
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Tumblr|{}|{}'.format(post.cred_id, post.id))
         
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    image_name = str(uuid.uuid4())
-                    f.filename = secure_filename('reddit-' + image_name + '.' + file_type)
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=3, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), video_url=None)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
-                '''.format(x))
+        elif platform == 'reddit':
+            if f is not None:
+                file_name = str(image_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.image_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            post.title = form.title.data
+            if form.caption.data != '':
+                post.body = None
+                post.caption = form.caption.data
+            else:
+                post.body = None
+                post.caption = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=200, status_message='Reddit|{}|{}'.format(post.cred_id, post.id))
         
-        flash("Successfully queued!")
+        flash("Successfully updated!")
         return redirect(url_for('main.dashboard'))
 
-    return render_template('main/update_image.html', title='Update Image Post', form=form)
+    return render_template('main/update_image.html', title='Update Image Post', form=form, image_url=image_url)
 
-
+# Should work...
 # UPDATE VIDEO POST
 @bp.route('/update/video/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
@@ -774,6 +1192,8 @@ def update_video(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Facebook|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            video_url = post.multimedia_url
 
     elif platform == 'twitter':
         post = TwitterPost.query.filter_by(id=int(post_id)).first()
@@ -781,6 +1201,8 @@ def update_video(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Twitter|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            video_url = post.multimedia_url
 
     elif platform == 'tumblr':
         post = TumblrPost.query.filter_by(id=int(post_id)).first()
@@ -788,6 +1210,8 @@ def update_video(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Tumblr|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            video_url = post.multimedia_url
 
     elif platform == 'reddit':
         post = RedditPost.query.filter_by(id=int(post_id)).first()
@@ -795,6 +1219,8 @@ def update_video(platform, post_id):
             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=404, status_message='Reddit|{}'.format(int(post_id)))
             flash("ERROR: Post not found. Are you sure it hasn't already been deleted?")
             return redirect(url_for('main.dashboard'))
+        else:
+            video_url = post.video_url
 
     else:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=400, status_message='{}|{}'.format(str(platform), int(post_id)))
@@ -806,7 +1232,7 @@ def update_video(platform, post_id):
         flash("ERROR: That post isn't part of your domain.")
         return redirect(url_for('main.dashboard'))
 
-    form = video_builder(obj=post)
+    form = EditVideoForm(obj=post)
 
     if form.validate_on_submit():
 
@@ -814,77 +1240,153 @@ def update_video(platform, post_id):
         db.session.add(current_user)
         db.session.commit()
 
-        facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-        twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-        tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-        reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
-
         f = form.video.data
-        file_list = str(f.filename).split('.')[-1:]
-        for x in file_list:
-            file_type = x
+        if f.filename != '':
+            file_list = str(f.filename).split('.')[-1:]
+            for x in file_list:
+                file_type = x
+        else:
+            f = None
 
-        if len(facebook_creds) > 0:
-            for x in range(0, len(facebook_creds)-1):
-                exec('''
-                if form.facebook_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('facebook-' + video_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_facebook(cred_id=facebook_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Facebook|{}'.format(int(post_id)))
-                '''.format(x))
+        if platform == 'facebook':
+            if f is not None:
+                file_name = str(video_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            if form.caption.data != '':
+                post.caption = form.caption.data
+                post.body = None
+            else:
+                post.caption = None
+                post.body = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Facebook|{}|{}'.format(post.cred_id, post.id))
 
-        if len(twitter_creds) > 0:
-            for x in range(0, len(twitter_creds)-1):
-                exec('''
-                if form.twitter_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('twitter-' + video_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                        tagline = ' #'.join(tags)
-                        tagline = '#' + tagline
-                    else:
-                        tagline = None
-                    make_twitter(cred_id=twitter_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, body=str(form.caption.data), link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tagline)
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Twitter|{}'.format(int(post_id)))
-                '''.format(x))
-        
-        if len(tumblr_creds) > 0:
-            for x in range(0, len(tumblr_creds)-1):
-                exec('''
-                if form.tumblr_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('tumblr-' + video_name + '.' + file_type)
-                    if form.tags.data is not None:
-                        tags = str(form.tags.data).split(', ')
-                    else:
-                        tags = None
-                    make_tumblr(cred_id=tumblr_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=None, link_url=None, multimedia_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'), tags=tags, caption=str(form.caption.data))
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Tumblr|{}'.format(int(post_id)))
-                '''.format(x))
+        elif platform == 'twitter':
+            if f is not None:
+                file_name = str(video_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            if form.caption.data != '':
+                post.caption = form.caption.data
+                post.body = None
+            else:
+                post.caption = None
+                post.body = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                tags = str(form.tags.data).split(', ')
+                tagline = ' #'.join(tags)
+                post.tags = '#' + tagline
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Twitter|{}|{}'.format(post.cred_id, post.id))
 
-        if len(reddit_creds) > 0:
-            for x in range(0, len(reddit_creds)-1):
-                exec('''
-                if form.reddit_{}.data is True:
-                    video_name = str(uuid.uuid4())
-                    f.filename = secure_filename('reddit-' + video_name + '.' + file_type)
-                    make_reddit(cred_id=reddit_creds[{}].id, domain_id=current_user.domain_id, user_id=current_user.id, post_type=4, title=str(form.title.data), body=str(form.caption.data), link_url=None, image_url=None, video_url=upload_s3(file=f, bucket_name=current_app.config["S3_BUCKET_NAME"], acl='public-read'))
-                    make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Reddit|{}'.format(int(post_id)))
-                '''.format(x))
+        elif platform == 'tumblr':
+            if f is not None:
+                file_name = str(video_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            post.title = form.title.data
+            post.body = None
+            if form.caption.data != '':
+                post.caption = form.caption.data
+            else:
+                post.caption = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            if form.tags.data != '':
+                post.tags = str(form.tags.data).split(', ')
+            else:
+                post.tags = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Tumblr|{}|{}'.format(post.cred_id, post.id))
+
+        elif platform == 'reddit':
+            if f is not None:
+                file_name = str(video_url).split('/')[-1:]
+                for x in file_name:
+                    file_name = x
+                delete_multimedia(file_name)
+                file_name = str(uuid.uuid4()) + '.' + file_type
+                f.save(f'./app/static/resources/{file_name}')
+                transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
+                file_from = './app/static/resources/{}'.format(file_name)
+                file_to = '/multimedia/{}'.format(file_name)
+                transfer_data.upload_file(file_from, file_to)
+                post.video_url = url_for('main.download_multimedia', file_name=file_name)
+                os.remove('./app/static/resources/{}'.format(file_name))
+            post.user_id = current_user.id
+            post.title = form.title.data
+            if form.caption.data != '':
+                post.body = None
+                post.caption = form.caption.data
+            else:
+                post.body = None
+                post.caption = None
+            if form.link_url.data != '':
+                post.link_url = form.link_url.data
+            else:
+                post.link_url = None
+            db.session.add(post)
+            db.session.commit()
+            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=200, status_message='Reddit|{}|{}'.format(post.cred_id, post.id))
         
         flash("Successfully updated!")
         return redirect(url_for('main.dashboard'))
 
     return render_template('main/update_video.html', title='Update Video Post', form=form)
 
+# Should work...
 # DELETE POST
 @bp.route('/delete/post/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
@@ -895,52 +1397,77 @@ def delete_post(platform, post_id):
         if platform == 'facebook':
             post = FacebookPost.query.filter_by(id=int(post_id)).first()
             if post.domain_id == current_user.domain_id:
+                if post.multimedia_url is not None:
+                    file_name = str(post.multimedia_url).split('/')[-1:]
+                    for x in file_name:
+                        file_name = x
+                    delete_multimedia(file_name)
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Facebook|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Facebook|{}|{}'.format(post.cred_id, post.id))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Facebook|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Facebook|{}|{}'.format(post.cred_id, post.id))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
 
         elif platform == 'twitter':
             post = TwitterPost.query.filter_by(id=int(post_id)).first()
             if post.domain_id == current_user.domain_id:
+                if post.multimedia_url is not None:
+                    file_name = str(post.multimedia_url).split('/')[-1:]
+                    for x in file_name:
+                        file_name = x
+                    delete_multimedia(file_name)
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Twitter|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Twitter|{}|{}'.format(post.cred_id, post.id))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Twitter|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Twitter|{}|{}'.format(post.cred_id, post.id))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
 
         elif platform == 'tumblr':
             post = TumblrPost.query.filter_by(id=int(post_id)).first()
             if post.domain_id == current_user.domain_id:
+                if post.multimedia_url is not None:
+                    file_name = str(post.multimedia_url).split('/')[-1:]
+                    for x in file_name:
+                        file_name = x
+                    delete_multimedia(file_name)
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Tumblr|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Tumblr|{}|{}'.format(post.cred_id, post.id))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Tumblr|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Tumblr|{}|{}'.format(post.cred_id, post.id))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
 
         elif platform == 'reddit':
             post = RedditPost.query.filter_by(id=int(post_id)).first()
             if post.domain_id == current_user.domain_id:
+                if post.image_url is not None:
+                    file_name = str(post.image_url).split('/')[-1:]
+                    for x in file_name:
+                        file_name = x
+                    delete_multimedia(file_name)
+                if post.video_url is not None:
+                    file_name = str(post.video_url).split('/')[-1:]
+                    for x in file_name:
+                        file_name = x
+                    delete_multimedia(file_name)
                 db.session.delete(post)
                 db.session.commit()
-                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Reddit|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=204, status_message='Reddit|{}|{}'.format(post.cred_id, post.id))
                 flash('Successfully deleted!')
                 return redirect(url_for('main.dashboard'))
             else:
-                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Reddit|{}'.format(int(post_id)))
+                make_sentry(user_id=current_user.id, domain_id=post.domain_id, ip_address=request.remote_addr, endpoint='main.delete_post', status_code=403, status_message='Reddit|{}|{}'.format(post.cred_id, post.id))
                 flash("ERROR: That post doesn't belong to your domain.")
                 return redirect(url_for('main.dashboard'))
 
@@ -954,12 +1481,13 @@ def delete_post(platform, post_id):
         flash("Talk to your domain admin about getting delete permissions.")
         return redirect(url_for('main.dashboard'))
 
-
+# Works, 2020-08-15
 # HELP
 @bp.route('/help')
 def help():
     return render_template('help/help.html', title='Help Topics')
 
+# Works, 2020-08-15
 @bp.route('/help/<topic>')
 def help_topic(topic):
     try:

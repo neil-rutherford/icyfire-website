@@ -2,6 +2,10 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
+
 	<h1>New Short Text</h1>
+	<p>{{ queues }} queues on deck...</p>
+
 	{{ wtf.quick_form(form) }}
+	
 {% endblock %}

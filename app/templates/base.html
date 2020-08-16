@@ -51,10 +51,10 @@
                     <li><a href="{{ url_for('admin.dashboard') }}">Admin Console</a></li>
                     {% endif %}
                     <li><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('main.create_short_text') }}"> + Short Text</a></li>
-                    <li><a href="{{ url_for('main.create_long_text') }}"> + Long Text</a></li>
-                    <li><a href="{{ url_for('main.create_image') }}"> + Image</a></li>
-                    <li><a href="{{ url_for('main.create_video') }}"> + Video</a></li>
+                    <li><a href="{{ url_for('main.choose_queues', post_type='short_text') }}"> + Short Text</a></li>
+                    <li><a href="{{ url_for('main.choose_queues', post_type='long_text') }}"> + Long Text</a></li>
+                    <li><a href="{{ url_for('main.choose_queues', post_type='image') }}"> + Image</a></li>
+                    <li><a href="{{ url_for('main.choose_queues', post_type='video') }}"> + Video</a></li>
                     <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
                     {% endif %}
                 </ul>

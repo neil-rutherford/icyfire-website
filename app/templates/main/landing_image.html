@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Choose your queues</h1>
+    <p>Where do you want this image post published? Choose as many queues as you like.</p>
+
+    <form action="" method="post">
+        <hr>
+        <h2>Facebook</h2>
+        {% for x in facebook_creds %}
+            <input type="checkbox" id="facebook_{{ x.id }}" name="facebook_{{ x.id }}">
+            <label for="facebook_{{ x.id }}">{{ x.alias }}</label><br>
+        {% endfor %}
+        
+        <hr>
+        <h2>Twitter</h2>
+        {% for x in twitter_creds %}
+            <input type="checkbox" id="twitter_{{ x.id }}" name="twitter_{{ x.id }}">
+            <label for="twitter_{{ x.id }}">{{ x.alias }}</label><br>
+        {% endfor %}
+        
+        <hr>
+        <h2>Tumblr</h2>
+        {% for x in tumblr_creds %}
+            <input type="checkbox" id="tumblr_{{ x.id }}" name="tumblr_{{ x.id }}">
+            <label for="tumblr_{{ x.id }}">{{ x.alias }}</label><br>
+        {% endfor %}
+
+        <hr>
+        <h2>Reddit</h2>
+        {% for x in reddit_creds %}
+            <input type="checkbox" id="reddit_{{ x.id }}" name="reddit_{{ x.id }}">
+            <label for="reddit_{{ x.id }}">{{ x.alias }}</label><br>
+        {% endfor %}
+
+        <input type="submit" value="Next >>">
+    </form>
+{% endblock %}

@@ -3,5 +3,8 @@
 
 {% block app_content %}
 	<h1>Update Image</h1>
+	<p><a href="{{ image_url }}">Existing image URL</a></p>
+	<p>(Leave "New image file" field blank to keep this image. Upload a new file to replace it.)</p>
+
 	{{ wtf.quick_form(form) }}
 {% endblock %}

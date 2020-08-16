@@ -42,139 +42,55 @@ def check_reddit(form, field):
             raise ValidationError("REDDIT: Reddit titles can't be longer than 300 characters.")
 
 
-def short_text_builder(obj=None):
-
-    domain = Domain.query.filter_by(id=current_user.domain_id).first()
-    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
-    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
-
-    class ShortTextPostForm(FlaskForm):
-        pass
-
-    setattr(ShortTextPostForm, 'title', StringField('Title'))
-    setattr(ShortTextPostForm, 'body', TextAreaField('Body', validators=[DataRequired()]))
-    setattr(ShortTextPostForm, 'tags', StringField('Tags (comma-separated list)'))
-    setattr(ShortTextPostForm, 'link_url', StringField('Link URL'))
-    
-    if len(facebook_creds) > 0:
-        for (i, cred) in enumerate(facebook_creds):
-            setattr(ShortTextPostForm, 'facebook_{}'.format(i), BooleanField('Post to {}', validators=[check_facebook]).format(cred.alias))
-
-    if len(twitter_creds) > 0:
-        for (i, cred) in enumerate(twitter_creds):
-            setattr(ShortTextPostForm, 'twitter_{}'.format(i), BooleanField('Post to {}', validators=[check_twitter]).format(cred.alias))
-
-    if len(tumblr_creds) > 0:
-        for (i, cred) in enumerate(tumblr_creds):
-            setattr(ShortTextPostForm, 'tumblr_{}'.format(i), BooleanField('Post to {}', validators=[check_tumblr]).format(cred.alias))
-
-    if len(reddit_creds) > 0:
-        for (i, cred) in enumerate(reddit_creds):
-            setattr(ShortTextPostForm, 'reddit_{}'.format(i), BooleanField('Post to {}', validators=[check_reddit]).format(cred.alias))
-
-    setattr(ShortTextPostForm, 'submit', SubmitField('Done'))
-    return ShortTextPostForm(obj=obj)
+class ShortTextForm(FlaskForm):
+    title = StringField('Title')
+    body = TextAreaField('Body', validators=[DataRequired()])
+    tags = StringField('Tags (comma-separated list)')
+    link_url = StringField('Link URL')
+    submit = SubmitField('Done')
 
 
-def long_text_builder(obj=None):
-
-    domain = Domain.query.filter_by(id=current_user.domain_id).first()
-    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
-
-    class LongTextPostForm(FlaskForm):
-        pass
-
-    setattr(LongTextPostForm, 'title', StringField('Title'))
-    setattr(LongTextPostForm, 'body', TextAreaField('Body', validators=[DataRequired()]))
-    setattr(LongTextPostForm, 'tags', StringField('Tags (comma-separated list)'))
-
-    if len(facebook_creds) > 0:
-        for (i, cred) in enumerate(facebook_creds):
-            setattr(LongTextPostForm, 'facebook_{}'.format(i), BooleanField('Post to {}', validators=[check_facebook]).format(cred.alias))
-
-    if len(tumblr_creds) > 0:
-        for (i, cred) in enumerate(tumblr_creds):
-            setattr(LongTextPostForm, 'tumblr_{}'.format(i), BooleanField('Post to {}', validators=[check_tumblr]).format(cred.alias))
-
-    if len(reddit_creds) > 0:
-        for (i, cred) in enumerate(reddit_creds):
-            setattr(LongTextPostForm, 'reddit_{}'.format(i), BooleanField('Post to {}', validators=[check_reddit]).format(cred.alias))
-
-    setattr(LongTextPostForm, 'submit', SubmitField('Done'))
-    return LongTextPostForm(obj=obj)
+class LongTextForm(FlaskForm):
+    title = StringField('Title')
+    body = TextAreaField('Body', validators=[DataRequired()])
+    tags = StringField('Tags (comma-separated list)')
+    link_url = StringField('Link URL')
+    submit = SubmitField('Done')
 
 
-def image_builder(obj=None):
+class ImageForm(FlaskForm):
+    title = StringField('Title')
+    image = FileField('Image file (.png, .jpg, .jpeg)', validators=[FileRequired(), FileAllowed(['png', 'jpg', 'jpeg'], 'Image files only!')])
+    caption = TextAreaField('Caption')
+    link_url = StringField('Link URL')
+    tags = StringField('Tags (comma-separated list)')
+    submit = SubmitField('Done')
 
-    domain = Domain.query.filter_by(id=current_user.domain_id).first()
-    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
-    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
-
-    class ImagePostForm(FlaskForm):
-        pass
-
-    setattr(ImagePostForm, 'title', StringField('Title'))
-    setattr(ImagePostForm, 'image', FileField('Image file (.png, .jpg, .jpeg)', validators=[FileRequired(), FileAllowed(['png', 'jpg', 'jpeg'], 'Image files only!')]))
-    setattr(ImagePostForm, 'caption', StringField('Caption'))
-    setattr(ImagePostForm, 'tags', StringField('Tags (comma-separated list)'))
-
-    if len(facebook_creds) > 0:
-        for (i, cred) in enumerate(facebook_creds):
-            setattr(ImagePostForm, 'facebook_{}'.format(i), BooleanField('Post to {}', validators=[check_facebook]).format(cred.alias))
-
-    if len(twitter_creds) > 0:
-        for (i, cred) in enumerate(twitter_creds):
-            setattr(ImagePostForm, 'twitter_{}'.format(i), BooleanField('Post to {}', validators=[check_twitter]).format(cred.alias))
-
-    if len(tumblr_creds) > 0:
-        for (i, cred) in enumerate(tumblr_creds):
-            setattr(ImagePostForm, 'tumblr_{}'.format(i), BooleanField('Post to {}', validators=[check_tumblr]).format(cred.alias))
-
-    if len(reddit_creds) > 0:
-        for (i, cred) in enumerate(reddit_creds):
-            setattr(ImagePostForm, 'reddit_{}'.format(i), BooleanField('Post to {}', validators=[check_reddit]).format(cred.alias))
-
-    setattr(ImagePostForm, 'submit', SubmitField('Done'))
-    return ImagePostForm(obj=obj)
+class EditImageForm(FlaskForm):
+    title = StringField('Title')
+    image = FileField('New image file (.png, .jpg, .jpeg)', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Image files only!')])
+    caption = TextAreaField('Caption')
+    link_url = StringField('Link URL')
+    tags = StringField('Tags (comma-separated list)')
+    submit = SubmitField('Done')
 
 
-def video_builder(obj=None):
+class VideoForm(FlaskForm):
+    title = StringField('Title')
+    caption = TextAreaField('Caption')
+    video = FileField('Video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[FileRequired(), FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')])
+    link_url = StringField('Link URL')
+    tags = StringField('Tags (comma-separated list')
+    submit = SubmitField('Done')
 
-    domain = Domain.query.filter_by(id=current_user.domain_id).first()
-    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
-    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
+class EditVideoForm(FlaskForm):
+    title = StringField('Title')
+    caption = TextAreaField('Caption')
+    video = FileField('New video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')])
+    link_url = StringField('Link URL')
+    tags = StringField('Tags (comma-separated list')
+    submit = SubmitField('Done')
 
-    class VideoPostForm(FlaskForm):
-        pass
-
-    setattr(VideoPostForm, 'title', StringField('Title'))
-    setattr(VideoPostForm, 'caption', StringField('Caption'))
-    setattr(VideoPostForm, 'video', FileField('Video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[DataRequired(), FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')]))
-    setattr(VideoPostForm, 'tags', StringField('Tags (comma-separated list)'))
-
-    if len(facebook_creds) > 0:
-        for (i, cred) in enumerate(facebook_creds):
-            setattr(VideoPostForm, 'facebook_{}'.format(i), BooleanField('Post to {} (4 hour limit)', validators=[check_facebook]).format(cred.alias))
-
-    if len(twitter_creds) > 0:
-        for (i, cred) in enumerate(twitter_creds):
-            setattr(VideoPostForm, 'twitter_{}'.format(i), BooleanField('Post to {} (2 minute 20 second limit)', validators=[check_twitter]).format(cred.alias))
-
-    if len(tumblr_creds) > 0:
-        for (i, cred) in enumerate(tumblr_creds):
-            setattr(VideoPostForm, 'tumblr_{}'.format(i), BooleanField('Post to {} (5 minute limit)', validators=[check_tumblr]).format(cred.alias))
-
-    if len(reddit_creds) > 0:
-        for (i, cred) in enumerate(reddit_creds):
-            setattr(VideoPostForm, 'reddit_{}'.format(i), BooleanField('Post to {} (15 minute limit)', validators=[check_reddit]).format(cred.alias))
-
-    setattr(VideoPostForm, 'submit', SubmitField('Done'))
-    return VideoPostForm(obj=obj)
+class TestForm(FlaskForm):
+    image = FileField('New image file (.png, .jpg, .jpeg)', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Image files only!')])
+    submit = SubmitField('Go')

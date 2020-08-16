@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
-<!---Fix timeslot rendering--->
 
 {% block app_content %}
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
         rel="stylesheet">
 
     <h1>Dashboard</h1>
+    {% if current_user.is_admin is true %}
+        <center>
+        <h3><a href="{{ url_for('auth.link_social') }}">Link social accounts</a></h3>
+        </center>
+        <hr>
+    {% endif %}
     <br>
     <table width=100%>
         <tr>
@@ -17,22 +22,40 @@
             <th>New Video</th>
         </tr>
         <tr>
-            <td><a href="{{ url_for('main.create_short_text') }}"><span class="material-icons">short_text</span></a></td>
-            <td><a href="{{ url_for('main.create_long_text') }}"><span class="material-icons">format_align_left</span></a></td>
-            <td><a href="{{ url_for('main.create_image') }}"><span class="material-icons">insert_photo</span></a></td>
-            <td><a href="{{ url_for('main.create_video') }}"><span class="material-icons">movie</span></a></td>
+            <td><a href="{{ url_for('main.choose_queues', post_type='short_text') }}"><span class="material-icons">short_text</span></a></td>
+            <td><a href="{{ url_for('main.choose_queues', post_type='long_text') }}"><span class="material-icons">format_align_left</span></a></td>
+            <td><a href="{{ url_for('main.choose_queues', post_type='image') }}"><span class="material-icons">insert_photo</span></a></td>
+            <td><a href="{{ url_for('main.choose_queues', post_type='video') }}"><span class="material-icons">movie</span></a></td>
         </tr>
     </table>
     <br>
 
     <hr>
     <h2>Facebook Queues</h2>
-    {% for x in range(facebook_creds|length) %}
+    {% for x in facebook_creds %}
+        <h3><b>{{ x.alias }}</b></h3>
+        {% for y in facebook_times %}
+            {% if y.facebook_cred_id == x.id %}
+                {% if y.day_of_week == 1 %}
+                    <p>Mondays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 2 %}
+                    <p>Tuesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 3 %}
+                    <p>Wednesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 4 %}
+                    <p>Thursdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 5 %}
+                    <p>Fridays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 6 %}
+                    <p>Saturdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 7 %}
+                    <p>Sundays at {{ y.time }} UTC</p>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
         <br>
-        <h3><b>{{ facebook_creds[x].alias }}</b></h3>
-        <p>{{ facebook_times[x] }} (UTC)</p>
-        <table class="facebook" width=100%>
-            <tr>
+        <table width=100%>
+            <tr class="facebook">
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
                 <th>Body</th>
@@ -43,7 +66,7 @@
                 <th>Delete</th>
             </tr>
             {% for post in facebook_posts %}
-                {% if post.cred_id == facebook_creds[x].id %}
+                {% if post.cred_id == x.id %}
                     <tr>
                         {% if post.post_type|int == 1 %}
                             <td>Short Text</td>
@@ -56,8 +79,16 @@
                         {% endif %}
                         <td>{{ moment(post.timestamp).format('LLL') }}</td>
                         <td>{{ post.body }}</td>
-                        <td><a href="{{ post.link_url }}">Link URL</a></td>
-                        <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                        {% if post.link_url is not none %}
+                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
+                        {% if post.multimedia_url is not none %}
+                            <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
                         <td>{{ post.tags }}</td>
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='facebook', post_id=post.id) }}">Update</a></td>
@@ -73,19 +104,34 @@
                 {% endif %}
             {% endfor %}
         </table>
-        <hr>
     {% endfor %}
 
     <hr>
     <h2>Twitter Queues</h2>
-    {% for x in range(twitter_creds|length) %}
-        <br>
-        <h3><b>{{ twitter_creds[x].alias }}</b></h3>
-        {% for x in range(twitter_times|length) %}
-            <p>{{ twitter_times[x] }} (UTC)</p>
+    {% for x in twitter_creds %}
+        <h3><b>{{ x.alias }}</b></h3>
+        {% for y in twitter_times %}
+            {% if y.twitter_cred_id == x.id %}
+                {% if y.day_of_week == 1 %}
+                    <p>Mondays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 2 %}
+                    <p>Tuesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 3 %}
+                    <p>Wednesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 4 %}
+                    <p>Thursdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 5 %}
+                    <p>Fridays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 6 %}
+                    <p>Saturdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 7 %}
+                    <p>Sundays at {{ y.time }} UTC</p>
+                {% endif %}
+            {% endif %}
         {% endfor %}
-        <table class="twitter" width=100%>
-            <tr>
+        <br>
+        <table width=100%>
+            <tr class="twitter">
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
                 <th>Body</th>
@@ -96,7 +142,7 @@
                 <th>Delete</th>
             </tr>
             {% for post in twitter_posts %}
-                {% if post.cred_id == twitter_creds[x].id %}
+                {% if post.cred_id == x.id %}
                     <tr>
                         {% if post.post_type|int == 1 %}
                             <td>Short Text</td>
@@ -109,8 +155,16 @@
                         {% endif %}
                         <td>{{ moment(post.timestamp).format('LLL') }}</td>
                         <td>{{ post.body }}</td>
-                        <td><a href="{{ post.link_url }}">Link URL</a></td>
-                        <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                        {% if post.link_url is not none %}
+                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
+                        {% if post.multimedia_url is not none %}
+                            <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
                         <td>{{ post.tags }}</td>
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='twitter', post_id=post.id) }}">Update</a></td>
@@ -126,17 +180,34 @@
                 {% endif %}
             {% endfor %}
         </table>
-        <hr>
     {% endfor %}
 
     <hr>
     <h2>Tumblr Queues</h2>
-    {% for x in range(tumblr_creds|length) %}
+    {% for x in tumblr_creds %}
+        <h3><b>{{ x.alias }}</b></h3>
+        {% for y in tumblr_times %}
+            {% if y.tumblr_cred_id == x.id %}
+                {% if y.day_of_week == 1 %}
+                    <p>Mondays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 2 %}
+                    <p>Tuesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 3 %}
+                    <p>Wednesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 4 %}
+                    <p>Thursdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 5 %}
+                    <p>Fridays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 6 %}
+                    <p>Saturdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 7 %}
+                    <p>Sundays at {{ y.time }} UTC</p>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
         <br>
-        <h3><b>{{ tumblr_creds[x].alias }}</b></h3>
-        <p>{{ tumblr_times[x] }} (UTC)</p>
-        <table class="tumblr" width=100%>
-            <tr>
+        <table width=100%>
+            <tr class="tumblr">
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
                 <th>Body</th>
@@ -147,7 +218,7 @@
                 <th>Delete</th>
             </tr>
             {% for post in tumblr_posts %}
-                {% if post.cred_id == tumblr_creds[x].id %}
+                {% if post.cred_id == x.id %}
                     <tr>
                         {% if post.post_type|int == 1 %}
                             <td>Short Text</td>
@@ -161,10 +232,22 @@
                         <td>{{ moment(post.timestamp).format('LLL') }}</td>
                         <td>{{ post.title }}</td>
                         <td>{{ post.body }}</td>
-                        <td><a href="{{ post.link_url }}">Link URL</a></td>
-                        <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                        {% if post.link_url is not none %}
+                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
+                        {% if post.multimedia_url is not none %}
+                            <td><a href="{{ post.multimedia_url }}">Image / Video URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
                         <td>{{ post.tags }}</td>
-                        <td>{{ post.caption }}</td>
+                        {% if post.caption is not none %}
+                            <td>{{ post.caption }}</td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='tumblr', post_id=post.id) }}">Update</a></td>
                         {% elif post.post_type|int == 2 %}
@@ -179,17 +262,34 @@
                 {% endif %}
             {% endfor %}
         </table>
-        <hr>
     {% endfor %}
 
     <hr>
     <h2>Reddit Queues</h2>
-    {% for x in range(reddit_creds|length) %}
+    {% for x in reddit_creds %}
+        <h3><b>{{ x.alias }}</b></h3>
+        {% for y in reddit_times %}
+            {% if y.reddit_cred_id == x.id %}
+                {% if y.day_of_week == 1 %}
+                    <p>Mondays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 2 %}
+                    <p>Tuesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 3 %}
+                    <p>Wednesdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 4 %}
+                    <p>Thursdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 5 %}
+                    <p>Fridays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 6 %}
+                    <p>Saturdays at {{ y.time }} UTC</p>
+                {% elif y.day_of_week == 7 %}
+                    <p>Sundays at {{ y.time }} UTC</p>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
         <br>
-        <h3><b>{{ reddit_creds[x].alias }}</b></h3>
-        <p>{{ reddit_times[x] }} (UTC)</p>
-        <table class="reddit" width=100%>
-            <tr>
+        <table width=100%>
+            <tr class="reddit">
                 <th>Post type</th>
                 <th>Timestamp (local)</th>
                 <th>Body</th>
@@ -200,7 +300,7 @@
                 <th>Delete</th>
             </tr>
             {% for post in reddit_posts %}
-                {% if post.cred_id == reddit_creds[x].id %}
+                {% if post.cred_id == x.id %}
                     <tr>
                         {% if post.post_type|int == 1 %}
                             <td>Short Text</td> 
@@ -214,9 +314,21 @@
                         <td>{{ moment(post.timestamp).format('LLL') }}</td>
                         <td>{{ post.title }}</td>
                         <td>{{ post.body }}</td>
-                        <td><a href="{{ post.link_url }}">Link URL</a></td>
-                        <td><a href="{{ post.image_url }}">Image URL</a></td>
-                        <td><a href="{{ post.video_url }}">Video URL</a></td>
+                        {% if post.link_url is not none %}
+                            <td><a href="{{ post.link_url }}">Link URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
+                        {% if post.image_url is not none %}
+                            <td><a href="{{ post.image_url }}">Image URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
+                        {% if post.video_url is not none %}
+                            <td><a href="{{ post.video_url }}">Video URL</a></td>
+                        {% else %}
+                            <td>None</td>
+                        {% endif %}
                         {% if post.post_type|int == 1 %}
                             <td><a href="{{ url_for('main.update_short_text', platform='reddit', post_id=post.id) }}">Update</a></td>
                         {% elif post.post_type|int == 2 %}
@@ -231,7 +343,6 @@
                 {% endif %}
             {% endfor %}
         </table>
-        <hr>
     {% endfor %}
 
 {% endblock %}
