@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-    <center><img src="static/help_others_cropped.jpg" width=100% height="auto"></center>
+    <center><img src="{{ url_for('static', filename='help_others_cropped.jpg') }}" width=100% height="auto"></center>
     <h1><b>Help Others:</b> How IcyFire provides value to our customers</h1>
     <br>
     <p><i>Thanks for taking the time to learn more about our company and our three guiding principles: "help others", <a href="{{ url_for('promo.what_if') }}">"what if"</a>, and <a href="{{ url_for('promo.do_good') }}">"do good."</a></i></p>

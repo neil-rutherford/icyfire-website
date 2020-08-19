@@ -15,7 +15,7 @@
     <article class="product">
         <br>
         <center><h2><b>Digital marketing runs on time with IcyFire.</b></h2></center>
-        <center><a href="{{ url_for('promo.product') }}"><img src="static/flagship_product.png" width=100% height="auto"></a></center>
+        <center><a href="{{ url_for('promo.product') }}"><img src="{{ url_for('static', filename='flagship_product.png') }}" width=100% height="auto"></a></center>
     </article>
     <br>
     <hr>
@@ -23,7 +23,7 @@
 
     <article class="help-others">
         <center><h2><b>We're a tech startup with a different approach to software.</b></h2></center>
-        <center><a href=" {{ url_for('promo.help_others') }}"><img src="static/help_others_cropped.jpg" width=100% height="auto"></a></center>
+        <center><a href=" {{ url_for('promo.help_others') }}"><img src="{{ url_for('static', filename='help_others_cropped.jpg') }}" width=100% height="auto"></a></center>
     </article>
     <br>
     <hr>
@@ -31,7 +31,7 @@
 
     <article class="what-if">
         <center><h2><b>We question everything.</b></h2></center>
-        <center><a href="{{ url_for('promo.what_if') }}"><img src="static/what_if_cropped.jpg" width=100% height="auto"></a></center>
+        <center><a href="{{ url_for('promo.what_if') }}"><img src="{{ url_for('static', filename='what_if_cropped.jpg') }}" width=100% height="auto"></a></center>
     </article>
     <br>
     <hr>
@@ -39,6 +39,6 @@
 
     <article class="do-good">
         <center><h2><b>"Always remember, you have within you the strength, the patience, and the passion to reach for the stars and change the world." - Harriet Tubman</b></h2></center>
-        <center><a href="{{ url_for('promo.do_good') }}"><img src="static/do_good_cropped.jpg" width=100% height="auto"></a></center>
+        <center><a href="{{ url_for('promo.do_good') }}"><img src="{{ url_for('static', filename='do_good_cropped.jpg') }}" width=100% height="auto"></a></center>
     </article>
 {% endblock %}
