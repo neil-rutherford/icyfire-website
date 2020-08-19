@@ -75,8 +75,8 @@ def create_demo_account():
 create_app().app_context().push()
 db.create_all()
 
-#create_server()
-#create_icyfire_domain()
-#create_meta_user()
+create_server()
+create_icyfire_domain()
+create_meta_user()
 create_country_lead()
 create_demo_account()
