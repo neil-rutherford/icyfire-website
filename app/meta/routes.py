@@ -127,7 +127,7 @@ def create_country_lead():
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         db.session.add(cl)
@@ -153,7 +153,7 @@ def create_region_lead():
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         country_lead = CountryLead.query.filter_by(crta_code=form.country_lead_id.data).first()
@@ -181,7 +181,7 @@ def create_team_lead():
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         region_lead = RegionLead.query.filter_by(crta_code=form.region_lead_id.data).first()
@@ -209,7 +209,7 @@ def create_agent():
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         team_lead = TeamLead.query.filter_by(crta_code=form.team_lead_id.data).first()
@@ -251,7 +251,7 @@ def create_sale():
         sale.client_country = form.client_country.data
         sale.client_zip = form.client_zip.data
         sale.client_phone_country = int(form.client_phone_country.data)
-        sale.client_phone_number = int(form.client_phone_number.data)
+        sale.client_phone_number = str(form.client_phone_number.data)
         sale.client_email = form.client_email.data
         sale.unit_price = form.unit_price.data
         sale.quantity = form.quantity.data
@@ -289,7 +289,7 @@ def create_lead():
         lead.job_title = form.job_title.data
         lead.number_of_employees = form.number_of_employees.data
         lead.time_zone = form.time_zone.data
-        lead.phone_number = int(form.phone_number.data)
+        lead.phone_number = str(form.phone_number.data)
         lead.contact_preference = form.contact_preference.data
         lead.time_preference = form.time_preference.data
         lead.email_opt_in = bool(form.email_opt_in.data)
@@ -446,7 +446,7 @@ def edit_country_lead(country_lead_id):
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         db.session.add(cl)
@@ -473,7 +473,7 @@ def edit_region_lead(region_lead_id):
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         cl.country_lead_id = form.country_lead_id.data
@@ -501,7 +501,7 @@ def edit_team_lead(team_lead_id):
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         cl.region_lead_id = form.region_lead_id.data
@@ -529,7 +529,7 @@ def edit_agent(agent_id):
         cl.first_name = form.first_name.data
         cl.last_name = form.last_name.data
         cl.phone_country = 1
-        cl.phone_number = int(form.phone_number.data)
+        cl.phone_number = str(form.phone_number.data)
         cl.email = form.email.data
         cl.crta_code = form.crta_code.data
         cl.team_lead_id = form.team_lead_id.data
@@ -571,7 +571,7 @@ def edit_sale(sale_id):
         sale.client_country = form.client_country.data
         sale.client_zip = form.client_zip.data
         sale.client_phone_country = int(form.client_phone_country.data)
-        sale.client_phone_number = int(form.client_phone_number.data)
+        sale.client_phone_number = str(form.client_phone_number.data)
         sale.client_email = form.client_email.data
         sale.unit_price = form.unit_price.data
         sale.quantity = form.quantity.data
@@ -610,7 +610,7 @@ def edit_lead(lead_id):
         lead.job_title = form.job_title.data
         lead.number_of_employees = form.number_of_employees.data
         lead.time_zone = form.time_zone.data
-        lead.phone_number = int(form.phone_number.data)
+        lead.phone_number = str(form.phone_number.data)
         lead.contact_preference = form.contact_preference.data
         lead.time_preference = form.time_preference.data
         lead.email_opt_in = bool(form.email_opt_in.data)
