@@ -18,7 +18,7 @@
             <tr>
                 <td>{{ moment(post.timestamp).format('LLL') }}</td>
                 {% if current_user.id != post.user_id %}
-                    <td><a href="{{ url_for('get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
+                    <td><a href="{{ url_for('admin.get_user_info', user_id=post.user_id) }}">User {{ post.user_id }}</a></td>
                 {% else %}
                     <td>You</td>
                 {% endif %}
