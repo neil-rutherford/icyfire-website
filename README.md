@@ -1,10 +1,3 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 <p align="center">
     <a href="http://www.icy-fire.com">
         <img src="app/static/new_logo_transparent600.png" alt="IcyFire logo" width="80" height="80">
@@ -12,18 +5,18 @@
 
     <h3 align="center">IcyFire website</h3>
 
-    <p align="center">
-        Digital marketing runs on time with IcyFire.
-        <br />
-        <a href="https://github.com/neil-rutherford/icyfire-website"><strong>Explore the docs »</strong></a>
-        <br />
-        <br />
-        <a href="http://www.icy-fire.com/product/demo">View demo</a>
+<p align="center">
+    Digital marketing runs on time with IcyFire.
+    <br />
+    <a href="https://github.com/neil-rutherford/icyfire-website"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="http://www.icy-fire.com/product/demo">View demo</a>
         ·
-        <a href="https://github.com/neil-rutherford/icyfire-website/issues">Report bug</a>
+    <a href="https://github.com/neil-rutherford/icyfire-website/issues">Report bug</a>
         ·
-        <a href="https://github.com/neil-rutherford/icyfire-website/issues">Request feature</a>
-    </p>
+    <a href="https://github.com/neil-rutherford/icyfire-website/issues">Request feature</a>
+</p>
 </p>
 
 ## Table of contents
@@ -64,7 +57,6 @@ This website is designed to be run on a hosting service with an ephemeral filesy
 * [PyTumblr](https://github.com/tumblr/pytumblr)
 * [PRAW](https://praw.readthedocs.io/en/latest/)
 * [Dropbox](https://www.dropbox.com/developers/documentation/python#documentation)
-* 
 
 ## Getting started
 
@@ -205,13 +197,20 @@ Finally, run the Flask app:
 ## Usage
 
 _Register the sales team_: Log in as meta user -> go to `/meta/dashboard` -> "New Region Lead" -> "New Team Lead" -> "New Agent"
+
 _Register a new sale_: Log in as an Agent -> go to `/create/sale` -> input information -> download receipt and give it to the client
+
 _Register a new domain_: Go to `/register/domain` -> use activation code on receipt to register
+
 _Link social accounts_: Log in as domain admin -> go to `/register/link-social` -> follow instructions to get API credentials -> input credentials -> choose UTC timeslots
-_Register as a new user_: Go to `register/user` -> input domain name -> wait for domain admin to grant CRUD permissions
+
 _Grant CRUD permissions_: Log in as domain admin -> go to `/admin/dashboard` -> find the user in the table -> click "Grant"/"Revoke"
-_Queue a post_: Log in as a user with create permissions -> go to `/dashboard` -> at the top, click the type of post you want to make -> choose which social sites you want to publish to -> compose your post -> click "Done"
+
 _See security data_: Log in as domain admin -> go to `/admin/dashboard` -> scroll down and pick the option you would like to see -> for iffy incidents, follow directions on whether or not to escalate to the IcyFire security team
+
+_Queue a post_: Log in as a user with create permissions -> go to `/dashboard` -> at the top, click the type of post you want to make -> choose which social sites you want to publish to -> compose your post -> click "Done"
+
+_Register as a new user_: Go to `register/user` -> input domain name -> wait for domain admin to grant CRUD permissions
 
 For more complete documentation, please refer to the "docs" folder in the Github repository or visit the <a href="http://www.icy-fire.com/help">help section of the IcyFire website</a>.
 
