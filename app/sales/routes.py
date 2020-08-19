@@ -269,7 +269,7 @@ def create_sale():
         sale.subtotal = 3000
         sale.sales_tax = float(sales_tax)
         sale.total = float(total)
-        sale.receipt_url = 'dropbox/home/Apps/icyfire/receipts/{}.pdf'.format(form.client_name.data)
+        sale.receipt_url = 'dropbox/home/Apps/icyfire/receipts/{}_receipt.pdf'.format(form.client_name.data)
         sale.payment_reference = form.payment_reference.data
 
         domain = Domain(activation_code=activation_code)

@@ -9,6 +9,8 @@
 	{{ super() }}
 	{{ moment.include_moment() }}
     <script type="text/javascript" id="cookiebanner" src="https://cdn.jsdelivr.net/gh/dobarkod/cookie-banner@1.2.2/dist/cookiebanner.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="{{ url_for('static', filename='client.js') }}" defer></script>
 {% endblock %}
 
 {% block title %}
@@ -43,7 +45,7 @@
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     {% if current_user.is_anonymous %}
-                    <li><a href="{{ url_for('promo.buy_now') }}"><b>Buy Now</b></a></li>
+                    <li><a href="{{ url_for('promo.pricing') }}"><b>Pricing</b></a></li>
                     <li><a href="{{ url_for('auth.register') }}">Register</a></li>
                     <li><a href="{{ url_for('auth.login') }}">Login</a></li>
                     {% else %}
@@ -86,12 +88,13 @@
                     <th><b>SECURITY</b></th>
                 </tr>
                 <tr>
-                    <td><ul class="list-unstyled"><li><a href="{{ url_for('auth.register_domain') }}">Register your domain</a></li>
-                    <li><a href="{{ url_for('promo.products') }}">Product information</a></li>
-                    <li><a href="{{ url_for('promo.landing', audience='general') }}">Success stories</a></li>
+                    <td><ul class="list-unstyled"><li><a href="{{ url_for('promo.product') }}">Product information</a></li>
                     <li><a href="{{ url_for('promo.pricing') }}">Pricing</a></li>
+                    <li><a href="{{ url_for('auth.register_domain') }}">Register your domain</a></li>
+                    <li><a href="{{ url_for('auth.link_social') }}">Link social media accounts</a></li>
                     <li><a href="{{ url_for('promo.contact_us') }}">Contact us</a></li>
-                    <li><a href="{{ url_for('promo.make_product_suggestion') }}">Feedback</a></li></ul></td>
+                    <li><a href="{{ url_for('promo.make_product_suggestion') }}">Feedback</a></li>
+                    <li><a href="{{ url_for('main.help') }}">Help</a></li></ul></td>
 
                     <td><ul class="list-unstyled"><li><a href="{{ url_for('promo.about') }}">About us</a></li>
                     <li><a href="{{ url_for('promo.blog') }}">Blog</a></li>
@@ -99,10 +102,11 @@
                     <li><a href="{{ url_for('legal.privacy_policy') }}">Privacy policy</a></li>
                     <li><a href="{{ url_for('legal.terms_of_service') }}">Terms of service</a></li>
                     <li><a href="{{ url_for('auth.register_contractor') }}">Employee registration</a></li>
-                    <li><a href="#">Careers</a></li></ul></td>
+                    <li><a href="{{ url_for('promo.careers') }}">Careers</a></li></ul></td>
 
                     <td><ul class="list-unstyled"><li><a href="{{ url_for('legal.vulnerability_disclosure_program') }}">Vulnerability disclosure program</a></li>
                     <li><a href="{{ url_for('legal.report_vulnerability') }}">Report a vulnerability</a></li>
+                    <li><a href="{{ url_for('meta.system_status') }}">System status</a></li>
                     <li><a href="mailto:security@icy-fire.com">Contact security</a></li></ul></td>
                 </tr>
             </table>

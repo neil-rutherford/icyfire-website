@@ -4,71 +4,87 @@
 {% block app_content %}
     <img src="{{ url_for('promo.random_image', image_type='scenic') }}" width=100% height="auto">
     <hr>
-    <h1>IcyFire Social Media Automation</h1>
-    <h2>Pricing</h2>
-    <p><b>Our one-time fee of $3000 (not including applicable taxes) includes:</b></p>
+    <center>
+    <h1>IcyFire Social</h1>
+    <h2>Introduction</h2>
+    </center>
+    <p>In today’s marketplace, online presence is vital for any business trying to get their name out there. In a <a href="https://www.socialmediaexaminer.com/wp-content/uploads/2016/05/SocialMediaMarketingIndustryReport2016.pdf">2016 survey</a>, 90% of small business marketers said that social media was important to their business. Here are some of the perks of using social media marketing:</p>
     <ul>
-        <li>Unlimited queue length.</li>
-        <li>Unlimited number of team members.</li>
-        <li>Constantly improving software.</li>
-        <li>A promise to post on your behalf for as long as the company is in existence.</li>
-        <li>Unrivaled ownership and transparency.</li>
-        <li>Security that you are in control of.</li>
-        <li>No limits on branding or use of custom URLs.</li>
+        <li>Build brand awareness;</li>
+        <li>Engage current customers;</li>
+        <li>Generate leads and increase customer base;</li>
+        <li>Respond to customer reviews;</li>
+        <li>Give your business a friendly face with multimedia content that customers might not have otherwise seen;</li>
+        <li>Collaborate with other businesses;</li>
+        <li>Piggyback on trends and big advertising campaigns, like <a href="https://www.americanexpress.com/us/small-business/shop-small/">American Express's Small Business Saturday</a>.</li>
     </ul>
+    <p>The list goes on. To successfully implement social media marketing, it is important to be consistent in your posting schedule, content, and aesthetics. A regular schedule keeps your audience engaged and coming back for more, while a sporadic schedule will inevitably cause users to lose interest. This requires a substantial time investment to schedule and curate content.</p>
+    <p>Unfortunately, many small businesses may not have this luxury. The nature of the work may not allow staff members to periodically sit down at a computer and post a social media post that is consistent with the company’s branding. Supervisors may choose to prioritize other tasks over social media posts. According to the same survey, more than a third of marketers spend 5 hours or less on social media each week. How do you think that is affecting the company’s online presence?</p>
+    <p>We recognize that sometimes, workers might be swamped and not have the time or means to update social media. Other times, they might just forget or not feel like it. Other times, they may be in the perfect mental headspace and have the means to post, but think better of it because it is late at night and no one will see it. IcyFire lets workers bridge that gap by providing them a way to queue their posts for later. They can use their downtime to curate and queue content, and then not have to worry about it.</p>
+    <p>For existing digital marketing teams, IcyFire can complement existing solutions and make teams more effective. With IcyFire’s scheduling and automation, teams can focus on what they are good at – content creation and responding to customers.</p>
+    
+    <hr>
 
-    <h2>How we stack up</h2>
-    <p>We get it. $3,000 is a lot to pay all at once. But just for fun, let's see how we compare to our competition.</p>
-    <br>
-    <p>Later Brand Account:</p>
-    <ul>
-        <li>5 team members</li>
-        <li><strong>5.1 years</strong> to break even</li>
-    </ul>
+    <center><h2>Product details</h2></center>
+    <table width=100%>
+        <tr>
+            <td style="background-color:#add8e6"><b>Post types:</b></td>
+            <td style="background-color:#add8e6">Short text<br/>Long text<br/>Images<br/>Videos<br/></td>
+        </tr>
+        <tr>
+            <td><b>Social media platform integrations:</b></td>
+            <td>Facebook<br/>Twitter<br/>Tumblr<br/>Reddit</td>
+        </tr>
+        <tr>
+            <td style="background-color:#add8e6"><b>Max users:</b></td>
+            <td style="background-color:#add8e6">Unlimited</td>
+        </tr>
+        <tr>
+            <td><b>Max social accounts:</b></td>
+            <td>Unlimited</td>
+        </tr>
+        <tr>
+            <td style="background-color:#add8e6"><b>Max queue length:</b></td>
+            <td style="background-color:#add8e6">Unlimited</td>
+        </tr>
+        <tr>
+            <td><b>Integrated security measures:</b></td>
+            <td>User-level CRUD permission control<br/>Incident log access & democratized security model<br/>Credential encryption at rest<br/>Password hashing<br/>Helpful security team</td>
+        </tr>
+        <tr>
+            <td style="background-color:#add8e6"><b>Reliable system architecture:</b></td>
+            <td style="background-color:#add8e6">Built on industry-leading cloud infrastructure<br/>Isolated systems ensure continuity</td>
+        </tr>
+        <tr>
+            <td><b>Intuitive UI:</b></td>
+            <td>Bulk scheduling<br/>Easy to use</td>
+        </tr>
+        <tr>
+            <td style="background-color:#add8e6"><b>Support:</b></td>
+            <td style="background-color:#add8e6">Free upgrades for the life of the product<br/>You say how the product develops</td>
+        </tr>
+        <tr>
+            <td style="background-color:#D15641"><b>Your one-time implementation fee:</b></td>
+            <td style="background-color:#D15641"><h4>$3000</h4></td>
+        </tr>
+    </table>
     <hr>
-    <p>Loomly Standard Account:<p>
-    <ul>
-        <li>6 team members</li>
-        <li>Limits on branding</li>
-        <li>Limits on collaboration and permissions</li>
-        <li><strong>4.3 years</strong> to break even</li>
-    </ul>
+    <center><h2>Ready to make a purchase?</h2>
+    <h4><a href="{{ url_for('legal.service_agreement') }}">Read the Service Agreement »</a> | <a href="{{ url_for('promo.checkout') }}">Get started »</a></h4></center>
+    <!---
+    <h3>Great! Here's what you need to do first.</h3>
+    <ol>
+        <li>Read and understand the <a href="{{ url_for('legal.service_agreement') }}">Service Agreement</a>.</li><br>
+        <li>Complete the form below. By checking the box and clicking the "Next >>" button, you agree to the following terms:<ul>
+            <li>You consent to doing business electronically.</li>
+            <li>You acknowledge that you are electronically signing the Service Agreement, and that under the UETA and ESIGN Acts of 1999 and 2000, a digital signature has the same status as a wet ink signature.</li>
+            <li>You acknowledge that you are only signing the Service Agreement at this time.</li>
+            <li>You will receive a copy of the contract after the transaction is complete.</li></ul><br>
+        <li>You will be directed to a payment page. Clicking the "Pay now" button will incur a $3000 charge, plus any applicable local taxes.</li><br>
+        <li>After the payment is processed, you will receive a copy of your receipt and your Service Agreement in your browser. Download this - you will need the activation code to register your domain.</li><br>
+        <li>After that, you're all set! Thank you for choosing IcyFire!</li>
+    </ol>
     <hr>
-    <p>Buffer Premium Account:</p>
-    <ul>
-        <li>2 team members</li>
-        <li>Limited queue limit</li>
-        <li><strong>3.8 years</strong> to break even</li>
-    </ul>
-    <hr>
-    <p>HootSuite Team Plan:</p>
-    <ul>
-        <li>3 team members</li>
-        <li>Limits on branding</li>
-        <li>Security infrastructure that is purposely withheld if you don't upgrade your account</li>
-        <li><strong>1.9 years</strong> to break even</li>
-    </ul>
-    <hr>
-    <p>Agorapulse Large Account:</p>
-    <ul>
-        <li>4 team members</li>
-        <li><strong>1.6 years</strong> to break even</li>
-    </ul>
-    <hr>
-    <p>Sprout Social Standard Account:</p>
-    <ul>
-        <li>3 team members</li>
-        <li><strong>0.8 years</strong> to break even</li>
-    </ul>
+    --->
 
-    <h2>Still have questions?</h2>
-    <p>We would love to talk with you and see how IcyFire could fit your company's needs.</p>
-    <p>Here's the contact info for one of our representatives. To learn more, feel free to reach out at a reasonable time!</p>
-    <button type="button" class="collapsible">Contact Info</button>
-    <div class="content">
-        <p><b>Name:</b> {{ name }}<br>
-        <b>Phone:</b> {{ phone_number }}<br>
-        <b>Email:</b> {{ email }}
-        </p>
-    </div>
 {% endblock %}

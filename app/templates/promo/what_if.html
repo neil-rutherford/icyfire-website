@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <center><img src="static/what_if_cropped.jpg" width=100% height="auto"></center>
+    <h1><b>What If:</b> How IcyFire innovates</h1>
+    <br>
+    <p><i>Thanks for taking the time to learn more about our company and our three guiding principles: <a href="{{ url_for('promo.help_others') }}">"help others"</a>, "what if", and <a href="{{ url_for('promo.do_good') }}">"do good."</a></i></p>
+    <br>
+    <p>These two words are incredibly powerful. "What if" not only allows us to challenge the status quo, it also allows us to begin charting a course into the unknown. It encourages creativity and innovation while discouraging complacency.</p>
+    <p>At IcyFire, we embrace "what if." We use it to let our voices be heard. We use it to dream of big things and then make them real. We let it decide our tack and put wind in our sails. And when we don’t like how the table is set, we use "what if" to turn it over.</p>
+
+    <h2>Here are some ways we have challenged the status quo recently:</h2>
+    <ul>
+        <li><b>What if</b> users could queue their posts with no restrictions? Can we do that?</li>
+        <li><b>What if</b> we could offer our service for a fixed fee instead of a monthly fee? Would that make it easier for small businesses in the long run?</li>
+        <li><b>What if</b> we were transparent with how much we paid people? Would that help combat the wage gap and make us more antiracist?</li>
+        <li><a href="{{ url_for('promo.do_good') }}"><b>What if</b> we set out to make our society better than we found it?</a></li>
+    </ul>
+    <p>As we grow, we look forward to adding to this list!</p>
+{% endblock %}

@@ -77,12 +77,12 @@ def terms_of_service():
     return render_template('legal/terms_of_service.html', title='Terms of Service')
 
 # Tested 2020-08-04
-@bp.route('/legal/vulnerability-disclosure-program')
+@bp.route('/legal/hacker/vulnerability-disclosure-program')
 def vulnerability_disclosure_program():
     return render_template('legal/vdp.html', title='IcyFire - Vulnerability Disclosure Program (VDP)')
 
 # Tested 2020-08-04
-@bp.route('/legal/report-vulnerability')
+@bp.route('/legal/hacker/report-vulnerability')
 def report_vulnerability():
     return redirect('https://docs.google.com/forms/d/e/1FAIpQLSdz9635l_yBfSXg9-a3aXOejkOqVQcVCQf-3svF8VEdQekmNw/viewform?usp=sf_link')
 
@@ -96,3 +96,7 @@ def email_opt_out(email):
     db.session.add(var)
     db.session.commit()
     return render_template('legal/email_opt_out.html', title='Email opt-out successful!', email=email)
+
+@bp.route('/legal/client/service-agreement')
+def service_agreement():
+    return send_from_directory('static/agreements', 'service_agreement.pdf')

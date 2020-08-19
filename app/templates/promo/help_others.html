@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <center><img src="static/help_others_cropped.jpg" width=100% height="auto"></center>
+    <h1><b>Help Others:</b> How IcyFire provides value to our customers</h1>
+    <br>
+    <p><i>Thanks for taking the time to learn more about our company and our three guiding principles: "help others", <a href="{{ url_for('promo.what_if') }}">"what if"</a>, and <a href="{{ url_for('promo.do_good') }}">"do good."</a></i></p>
+    <br>
+    <p>IcyFire is a technology company based out of Denver, Colorado. We build simple yet powerful tools that save small businesses money, streamline processes, and facilitate collaboration. Our goal is to empower our clients so they can focus on doing what they do best – making their mark on the world.</p>
+
+    <p>We are enormously proud of the products we create, and we view them as an extension of our values. Here are the principles that are hard-coded into each and every one of IcyFire’s products:</p>
+
+    <h2>Ownership</h2>
+    <p>Instead of monthly fees and plans, we charge a flat fee. This is important because it fundamentally changes the dynamic between you and us. Instead of convincing you every month to stay with us and continue your subscription, we can focus on providing genuine value. If we find a really good article by our competition, we can share it with you without being scared that you will switch providers. We can be transparent with you and encourage you to take responsibility for your tool. We can show you how some things work under the hood and encourage your creativity and curiosity. Finally, we will listen to your suggestions and try our best to make them a reality.</p>
+    <hr>
+    <h2>Improvement</h2>
+    <p>We pledge to continuously support and improve our products. The product you buy today will be better a year from now, and you will automatically reap the benefits of that upgrade with no additional cost.</p>
+    <hr>
+    <h2>Innovation</h2>
+    <p>Your personal feedback is crucial to our innovation process and is what gives us a competitive advantage in the tech industry. We want to hear your opinions about existing products and ideas for new ones, since we can't fix your pain points unless you tell us what they are. Working cooperatively will enable us to better serve your needs.</p>
+{% endblock %}

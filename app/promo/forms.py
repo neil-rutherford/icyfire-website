@@ -19,7 +19,7 @@ class LeadForm(FlaskForm):
     last_name = StringField("Last name", validators=[DataRequired(), Length(max=50)])
     company_name = StringField("Company name", validators=[DataRequired(), Length(max=100)])
     job_title = StringField("Job title", validators=[DataRequired(), Length(max=100)])
-    number_of_employees = SelectField("How many employees does your company you have?", choices=[
+    number_of_employees = SelectField("How many employees does your company have?", choices=[
         ("1", "Just me"),
         ("2", "2-10"),
         ("3", "11-50"),
@@ -57,14 +57,3 @@ class LeadForm(FlaskForm):
     email_opt_in = BooleanField("Want to subscribe to our mailing list? (No spam, we promise.)")
     submit = SubmitField("Let's talk")
 
-class SaleForm(FlaskForm):
-    client_name = StringField
-    client_street_address = StringField
-    client_city = StringField
-    client_state = StringField
-    client_country = StringField
-    client_zip = StringField
-    client_phone_country = StringField
-    client_phone_number = StringField
-    client_email = StringField
-    submit = SubmitField
