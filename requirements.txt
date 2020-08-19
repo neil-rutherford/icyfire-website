@@ -17,6 +17,8 @@ cryptography
 markdown
 dropbox
 stripe
+WTForms==2.1
+SQLAlchemy==1.1.14
 
 psycopg2==2.7.3.1
 gunicorn==19.7.1
