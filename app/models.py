@@ -396,7 +396,7 @@ class CountryLead(db.Model):
     [first_name]    : str : Individual's given name.
     [last_name]     : str : Individual's family name.
     [phone_country] : int : Individual's country code (e.g. 1 for USA, 86 for China).
-    [phone_number]  : int : Individual's phone number.
+    [phone_number]  : str : Individual's phone number.
     [crta_code]     : str : Country-Region-Team-Agent code. (e.g. USA-0-0-0)
     [region_leads]  : rel : List of Region Leads that report to this individual.
     [sales]         : rel : List of sales that have occurred in this individual's jurisdiction.
@@ -427,7 +427,7 @@ class RegionLead(db.Model):
     [first_name]        : str : Individual's given name.
     [last_name]         : str : Individual's family name.
     [phone_country]     : int : Individual's country code (e.g. 1 for USA, 86 for China).
-    [phone_number]      : int : Individual's phone number.
+    [phone_number]      : str : Individual's phone number.
     [crta_code]         : str : Country-Region-Team-Agent code. (e.g. USA-PACIFIC-0-0)
     [country_lead_id]   : int : Foreign key. The Country Lead this individual reports up to.
     [team_leads]        : rel : List of Team Leads that report to this individual.
@@ -460,7 +460,7 @@ class TeamLead(db.Model):
     [first_name]        : str : Individual's given name.
     [last_name]         : str : Individual's family name.
     [phone_country]     : int : Individual's country code (e.g. 1 for USA, 86 for China).
-    [phone_number]      : int : Individual's phone number.
+    [phone_number]      : str : Individual's phone number.
     [crta_code]         : str : Country-Region-Team-Agent code. (e.g. USA-PACIFIC-H-0)
     [region_lead_id]    : int : Foreign key. The Region Lead this individual reports up to.
     [agents]            : rel : List of Agents that report to this individual.
@@ -493,7 +493,7 @@ class Agent(db.Model):
     [first_name]    : str : Individual's given name.
     [last_name]     : str : Individual's family name.
     [phone_country] : int : Individual's country code (e.g. 1 for USA, 86 for China).
-    [phone_number]  : int : Individual's phone number.
+    [phone_number]  : str : Individual's phone number.
     [crta_code]     : str : Country-Region-Team-Agent code. (e.g. USA-PACIFIC-H-12)
     [team_lead_id]  : int : Foreign key. The Team Lead this individual reports up to.
     [sales]         : rel : List of sales that have occurred in this individual's jurisdiction.
@@ -532,7 +532,7 @@ class Sale(db.Model):
     [client_country]        : str      : Country where the company is located, or equivalent.
     [client_zip]            : str      : Company's postal code, or equivalent.
     [client_phone_country]  : int      : Contact's country code (e.g. 1 for USA, 86 for China).
-    [client_phone_number]   : int      : Contact's phone number.
+    [client_phone_number]   : str      : Contact's phone number.
     [client_email]          : str      : Contact's email address.
     [unit_price]            : float    : Price per unit sold (USD).
     [quantity]              : int      : How many units were sold?
@@ -556,7 +556,7 @@ class Sale(db.Model):
     client_country = db.Column(db.String(55))
     client_zip = db.Column(db.String(15))
     client_phone_country = db.Column(db.Integer)
-    client_phone_number = db.Column(db.Integer)
+    client_phone_number = db.Column(db.String(15))
     client_email = db.Column(db.String(254))
     unit_price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
