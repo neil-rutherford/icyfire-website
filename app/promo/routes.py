@@ -29,6 +29,10 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
 def favicon():
     return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+@bp.route('/iuto0452x8pqsk6ujtpq5kr4bd13ru.html')
+def facebook():
+    return render_template('promo/iuto0452x8pqsk6ujtpq5kr4bd13ru.html')
+
 #-----------------------------------------------------------------------------------
 # INFORMATION PAGES
 
