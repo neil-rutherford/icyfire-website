@@ -217,6 +217,7 @@ For more complete documentation, please refer to the "docs" folder in the Github
 ## Roadmap
 
 See the [open issues](https://github.com/neil-rutherford/icyfire-website/issues) for a list of features and known issues curated by the open-source community.
+
 See the [Jira roadmap](https://icyfire.atlassian.net/jira/software/projects/ICYFIRE/boards/1/roadmap) for a list of features planned by the IcyFire team.
 
 ## Contributing
@@ -236,4 +237,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## Contact
 
 Neil Rutherford - [@neilbolyard](https://twitter.com/neilbolyard) - neilrutherford@icy-fire.com
+
 IcyFire Technologies - [@IcyFireTech](https://twitter.com/IcyFireTech) - support@icy-fire.com
