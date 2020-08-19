@@ -22,3 +22,4 @@ class Config(object):
     S3_LOCATION = 'https://{}.s3.amazonaws.com/'.format(S3_BUCKET)
     ADMINS = ['neilrutherford@icy-fire.com']
     TRAP_HTTP_EXCEPTIONS = True
+    LOG_TO_STDOUT = os.environ.get('LOG_TO_STDOUT')
