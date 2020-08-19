@@ -3,7 +3,7 @@
         <img src="app/static/new_logo_transparent600.png" alt="IcyFire logo" width="80" height="80">
     </a>
 
-    <h3 align="center">IcyFire website</h3>
+<h3 align="center">IcyFire website</h3>
 
 <p align="center">
     Digital marketing runs on time with IcyFire.
