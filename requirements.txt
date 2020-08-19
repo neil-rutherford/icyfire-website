@@ -19,6 +19,7 @@ dropbox
 stripe
 WTForms
 SQLAlchemy
+email_validator
 
 psycopg2
 gunicorn
