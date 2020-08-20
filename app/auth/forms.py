@@ -241,6 +241,7 @@ class ResetPasswordForm(FlaskForm):
 class FacebookCreds(FlaskForm):
     alias = StringField('Account alias (e.g. Facebook-1)', validators=[DataRequired(), Length(max=50)])
     access_token = StringField('Access token', validators=[DataRequired()])
+    page_id = StringField('Page ID', validators=[DataRequired()])
     schedule_monday = SelectField('Schedule post on Mondays', coerce=int)
     schedule_tuesday = SelectField('Schedule post on Tuesdays', coerce=int)
     schedule_wednesday = SelectField('Schedule post on Wednesdays', coerce=int)

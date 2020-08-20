@@ -77,6 +77,7 @@ class FacebookCred(db.Model):
     domain_id = db.Column(db.Integer, db.ForeignKey('domain.id'))
     time_slots = db.relationship('TimeSlot', backref='facebook_cred', lazy='dynamic')
     alias = db.Column(db.String(50))
+    page_id = db.Column(db.String(50))
     access_token = db.Column(db.String(300))
 
     def __repr__(self):

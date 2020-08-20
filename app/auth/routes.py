@@ -353,6 +353,7 @@ def link_facebook():
     form.schedule_sunday.choices = sunday_list
     if form.validate_on_submit():
         cred = FacebookCred(access_token=encrypt(form.access_token.data).decode())
+        cred.page_id = form.page_id.data
         cred.domain_id = current_user.domain_id
         cred.alias = form.alias.data
         db.session.add(cred)
