@@ -15,11 +15,11 @@ def make_error(endpoint, status, error_details, code):
 
 
 # READ API
-# TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
+# TESTED: GOOD FUNCTIONALITY
 @bp.route('/api/_r/<timeslot_id>/auth=<read_token>&<cred_token>&<server_id>')
 def read(timeslot_id, read_token, cred_token, server_id):
-    if read_token == 'read' and cred_token == 'cred':
-    #if read_token == current_app.config['READ_TOKEN'] and cred_token == current_app.config['CRED_TOKEN'] and server_id is not None:
+
+    if read_token == os.environ['READ_TOKEN'] and cred_token == os.environ['CRED_TOKEN'] and server_id is not None:
 
         timeslot = TimeSlot.query.filter_by(id=timeslot_id).first()
 
@@ -82,11 +82,11 @@ def read(timeslot_id, read_token, cred_token, server_id):
 
 
 # DELETE API
-# TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
+# TESTED: GOOD FUNCTIONALITY
 @bp.route('/api/_d/<timeslot_id>/auth=<read_token>&<delete_token>&<server_id>')
 def delete(timeslot_id, read_token, delete_token, server_id):
-    if read_token == 'read' and delete_token == 'delete':
-    #if read_token == current_app.config['READ_TOKEN'] and delete_token == current_app.config['DELETE_TOKEN'] and server_id is not None:
+
+    if read_token == os.environ['READ_TOKEN'] and delete_token == os.environ['DELETE_TOKEN'] and server_id is not None:
         
         timeslot = TimeSlot.query.filter_by(id=timeslot_id).first()
 
@@ -158,11 +158,11 @@ def delete(timeslot_id, read_token, delete_token, server_id):
 
 
 # SECURITY API
-# TESTED: GOOD FUNCTIONALITY, BUT DUMMY VARIABLES NEED TO BE REPLACED
+# TESTED: GOOD FUNCTIONALITY
 @bp.route('/api/_rs/auth=<read_token>&<security_token>/query=<argument>:<data>')
 def read_sentry(read_token, security_token, argument, data):
-    #if read_token == current_app.config['READ_TOKEN'] and security_token == current_app.config['SECURITY_TOKEN']:
-    if read_token == 'read' and security_token == 'security':
+
+    if read_token == os.environ['READ_TOKEN'] and security_token == os.environ['SECURITY_TOKEN']:
 
         if argument == 'sentry_id':
             try:
