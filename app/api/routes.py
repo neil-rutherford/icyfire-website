@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from app.models import FacebookPost, TwitterPost, TumblrPost, RedditPost, Sentry, TimeSlot, FacebookCred, TwitterCred, TumblrCred, RedditCred
 from app import db
 from app.api import bp
+import os
 
 # HELPER FUNCTION
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
