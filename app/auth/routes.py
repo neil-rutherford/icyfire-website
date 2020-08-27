@@ -841,6 +841,7 @@ def edit_cred(platform, cred_id):
         slots = TimeSlot.query.filter_by(facebook_cred_id=cred.id).all()
         for slot in slots:
             slot.facebook_cred_id = None
+            slot.domain_id = None
             db.session.add(slot)
             db.session.commit()
         form = FacebookCreds(obj=cred)
@@ -941,6 +942,7 @@ def edit_cred(platform, cred_id):
         slots = TimeSlot.query.filter_by(twitter_cred_id=cred.id).all()
         for slot in slots:
             slot.twitter_cred_id = None
+            slot.domain_id = None
             db.session.add(slot)
             db.session.commit()
         form = TwitterCreds(obj=cred)
@@ -1041,6 +1043,7 @@ def edit_cred(platform, cred_id):
         slots = TimeSlot.query.filter_by(tumblr_cred_id=cred.id).all()
         for slot in slots:
             slot.tumblr_cred_id = None
+            slot.domain_id = None
             db.session.add(slot)
             db.session.commit()
         form = TumblrCreds(obj=cred)
@@ -1142,6 +1145,7 @@ def edit_cred(platform, cred_id):
         slots = TimeSlot.query.filter_by(reddit_cred_id=cred.id).all()
         for slot in slots:
             slot.reddit_cred_id = None
+            slot.domain_id = None
             db.session.add(slot)
             db.session.commit()
         form = RedditCreds(obj=cred)
