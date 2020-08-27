@@ -321,13 +321,13 @@ def link_facebook():
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_facebook', status_code=403, status_message='Admin permission denied.')
         return redirect(url_for('main.dashboard'))
-    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).all()
-    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).all()
-    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).all()
-    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).all()
-    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).all()
-    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
-    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
+    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).order_by(TimeSlot.id).all()
+    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).order_by(TimeSlot.id).all()
+    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).order_by(TimeSlot.id).all()
+    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).order_by(TimeSlot.id).all()
+    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).order_by(TimeSlot.id).all()
+    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).order_by(TimeSlot.id).all()
+    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).order_by(TimeSlot.id).all()
     #
     monday_list = [(i.id, i.time) for i in monday_availability]
     monday_list.insert(0, (0, "I don't want to post on Mondays."))
@@ -441,13 +441,13 @@ def link_twitter():
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_twitter', status_code=403, status_message='Admin permission denied.')
         return redirect(url_for('main.dashboard'))
-    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).all()
-    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).all()
-    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).all()
-    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).all()
-    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).all()
-    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
-    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
+    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).order_by(TimeSlot.id).all()
+    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).order_by(TimeSlot.id).all()
+    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).order_by(TimeSlot.id).all()
+    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).order_by(TimeSlot.id).all()
+    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).order_by(TimeSlot.id).all()
+    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).order_by(TimeSlot.id).all()
+    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).order_by(TimeSlot.id).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
     monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
@@ -562,13 +562,13 @@ def link_tumblr():
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_tumblr', status_code=403, status_message='Admin permission denied.')
         return redirect(url_for('main.dashboard'))
-    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).all()
-    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).all()
-    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).all()
-    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).all()
-    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).all()
-    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
-    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
+    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).order_by(TimeSlot.id).all()
+    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).order_by(TimeSlot.id).all()
+    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).order_by(TimeSlot.id).all()
+    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).order_by(TimeSlot.id).all()
+    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).order_by(TimeSlot.id).all()
+    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).order_by(TimeSlot.id).all()
+    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).order_by(TimeSlot.id).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
     monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
@@ -684,13 +684,13 @@ def link_reddit():
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_reddit', status_code=403, status_message='Admin permission denied.')
         return redirect(url_for('main.dashboard'))
-    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).all()
-    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).all()
-    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).all()
-    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).all()
-    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).all()
-    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
-    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
+    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).order_by(TimeSlot.id).all()
+    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).order_by(TimeSlot.id).all()
+    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).order_by(TimeSlot.id).all()
+    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).order_by(TimeSlot.id).all()
+    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).order_by(TimeSlot.id).all()
+    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).order_by(TimeSlot.id).all()
+    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).order_by(TimeSlot.id).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
     monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
@@ -807,13 +807,13 @@ def edit_cred(platform, cred_id):
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.edit_cred', status_code=403, status_message='{}|{}'.format(platform, cred_id))
         return redirect(url_for('main.dashboard'))
-    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).all()
-    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).all()
-    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).all()
-    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).all()
-    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).all()
-    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).all()
-    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).all()
+    monday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 1).order_by(TimeSlot.id).all()
+    tuesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 2).order_by(TimeSlot.id).all()
+    wednesday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 3).order_by(TimeSlot.id).all()
+    thursday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 4).order_by(TimeSlot.id).all()
+    friday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 5).order_by(TimeSlot.id).all()
+    saturday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 6).order_by(TimeSlot.id).all()
+    sunday_availability = TimeSlot.query.filter(TimeSlot.facebook_cred_id == None, TimeSlot.twitter_cred_id == None, TimeSlot.tumblr_cred_id == None, TimeSlot.reddit_cred_id == None, TimeSlot.day_of_week == 7).order_by(TimeSlot.id).all()
     monday_list = [(i.id, i.time) for i in monday_availability]
     monday_list.insert(0, (0, "I don't want to post on Mondays."))
     tuesday_list = [(i.id, i.time) for i in tuesday_availability]
@@ -1261,6 +1261,7 @@ def delete_cred(platform, cred_id):
             db.session.commit()
             for slot in slots:
                 slot.facebook_cred_id = None
+                slot.domain_id = None
                 db.session.add(slot)
                 db.session.commit()
             for post in posts:
@@ -1284,6 +1285,7 @@ def delete_cred(platform, cred_id):
             db.session.commit()
             for slot in slots:
                 slot.twitter_cred_id = None
+                slot.domain_id = None
                 db.session.add(slot)
                 db.session.commit()
             for post in posts:
@@ -1307,6 +1309,7 @@ def delete_cred(platform, cred_id):
             db.session.commit()
             for slot in slots:
                 slot.tumblr_cred_id = None
+                slot.domain_id = None
                 db.session.add(slot)
                 db.session.commit()
             for post in posts:
@@ -1330,6 +1333,7 @@ def delete_cred(platform, cred_id):
             db.session.commit()
             for slot in slots:
                 slot.reddit_cred_id = None
+                slot.domain_id = None
                 db.session.add(slot)
                 db.session.commit()
             for post in posts:
