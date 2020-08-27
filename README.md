@@ -85,6 +85,7 @@ python3 -m pip install -r requirements.txt
 
 # Set environmental variables
 export DROPBOX_ACCESS_KEY=<dropbox_access_key>
+export CRED_TOKEN=<cred_token>
 export READ_TOKEN=<read_token>
 export DELETE_TOKEN=<delete_token>
 export SECURITY_TOKEN=<security_token>
@@ -96,13 +97,11 @@ export MAIL_USE_TLS=<mail_use_tls>
 export MAIL_USERNAME=<mail_username>
 export MAIL_PASSWORD=<mail_password>
 
-# Initialize the Alembic migration repository
-flask db init
-flask db migrate -m "Initial commit"
-flask db upgrade
+# Set up database
+python3 make_db.py
 ```
 
-Prior to running the Flask app, the database must be populated with certain objects so that things don't error out. Run the following Python script to take care of this:
+The database must be populated with certain objects prior to running the Flask app so that things don't error out. You can either take care of this by running the `make_db.py` file or manually running the following Python script:
 
 ```py
 #!/usr/bin/env python3
