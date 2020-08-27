@@ -75,20 +75,20 @@ def dashboard():
 
     domain = Domain.query.filter_by(id=current_user.domain_id).first()
 
-    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
-    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
+    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).order_by(FacebookCred.id).all()
+    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).order_by(TwitterCred.id).all()
+    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).order_by(TumblrCred.id).all()
+    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).order_by(RedditCred.id).all()
 
     facebook_posts = FacebookPost.query.filter_by(domain_id=domain.id).order_by(FacebookPost.timestamp.asc()).all()
     twitter_posts = TwitterPost.query.filter_by(domain_id=domain.id).order_by(TwitterPost.timestamp.asc()).all()
     tumblr_posts = TumblrPost.query.filter_by(domain_id=domain.id).order_by(TumblrPost.timestamp.asc()).all()
     reddit_posts = RedditPost.query.filter_by(domain_id=domain.id).order_by(RedditPost.timestamp.asc()).all()
 
-    facebook_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.facebook_cred_id != None).all()
-    twitter_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.twitter_cred_id != None).all()
-    tumblr_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.tumblr_cred_id != None).all()
-    reddit_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.reddit_cred_id != None).all()
+    facebook_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.facebook_cred_id != None).order_by(TimeSlot.id).all()
+    twitter_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.twitter_cred_id != None).order_by(TimeSlot.id).all()
+    tumblr_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.tumblr_cred_id != None).order_by(TimeSlot.id).all()
+    reddit_times = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.reddit_cred_id != None).order_by(TimeSlot.id).all()
 
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.dashboard', status_code=200, status_message='Successful dashboard access.')
 

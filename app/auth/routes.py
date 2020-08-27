@@ -298,17 +298,17 @@ def link_social():
         return redirect(url_for('main.dashboard'))
     domain = Domain.query.filter_by(id=current_user.domain_id).first()
 
-    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).all()
-    facebook_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.facebook_cred_id != None).all()
+    facebook_creds = FacebookCred.query.filter_by(domain_id=domain.id).order_by(FacebookCred.id).all()
+    facebook_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.facebook_cred_id != None).order_by(TimeSlot.id).all()
 
-    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).all()
-    twitter_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.twitter_cred_id != None).all()
+    twitter_creds = TwitterCred.query.filter_by(domain_id=domain.id).order_by(TwitterCred.id).all()
+    twitter_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.twitter_cred_id != None).order_by(TimeSlot.id).all()
 
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).all()
-    tumblr_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.tumblr_cred_id != None).all()
+    tumblr_creds = TumblrCred.query.filter_by(domain_id=domain.id).order_by(TumblrCred.id).all()
+    tumblr_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.tumblr_cred_id != None).order_by(TimeSlot.id).all()
 
-    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).all()
-    reddit_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.reddit_cred_id != None).all()
+    reddit_creds = RedditCred.query.filter_by(domain_id=domain.id).order_by(RedditCred.id).all()
+    reddit_timeslots = TimeSlot.query.filter(TimeSlot.domain_id == domain.id, TimeSlot.reddit_cred_id != None).order_by(TimeSlot.id).all()
 
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.link_social', status_code=200, status_message='OK')
     return render_template('auth/link_social.html', title="Link Your Social Media Accounts", domain=domain, facebook_creds=facebook_creds, facebook_timeslots=facebook_timeslots, twitter_creds=twitter_creds, twitter_timeslots=twitter_timeslots, tumblr_creds=tumblr_creds, tumblr_timeslots=tumblr_timeslots, reddit_creds=reddit_creds, reddit_timeslots=reddit_timeslots)
