@@ -101,7 +101,7 @@ def blog():
         date = os.path.getmtime(article)
         date = datetime.datetime.fromtimestamp(date).strftime('%Y-%m-%d')
         article_dict[date].append(title)
-        article_dict[date].append(article)
+        article_dict[date].append(filename)
     ordered = collections.OrderedDict(sorted(article_dict.items(), key=lambda t: t[0], reverse=True))
     return render_template('promo/blog.html', title='IcyFire - Blog', article_dict=article_dict, ordered=ordered)
 
