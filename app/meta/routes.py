@@ -366,9 +366,25 @@ def system_status():
         for x in server_list:
             limit = datetime.utcnow() - timedelta(days=7)
             weekly_possible_requests = 10080
-            good_calls = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 200, Sentry.status_code == 404, str(Sentry.status_message).split('|')[-1] == str(x), Sentry.timestamp >= limit).all()
-            fines = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 218, str(Sentry.status_message) == str(x), Sentry.timestamp >= limit).all()
-            errors = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 400, Sentry.status_code == 403, str(Sentry.status_code).split('|')[-1] == str(x), Sentry.timestamp >= limit).all()
+            all_requests = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.timestamp >= limit).all()
+            good_calls = []
+            fines = []
+            errors = []
+            for y in all_requests:
+                if y.status_code == 200 and str(y.status_message).split('|')[-1] == str(x):
+                    good_calls.append(y)
+                elif y.status_code == 404 and str(y.status_message).split('|')[-1] == str(x):
+                    good_calls.append(y)
+                elif y.status_code == 218 and str(y.status_message).split('|')[-1] == str(x):
+                    fines.append(y)
+                elif y.status_code == 400 and str(y.status_message).split('|')[-1] == str(x):
+                    errors.append(y)
+                elif y.status_code == 403 and str(y.status_message).split('|')[-1] == str(x):
+                    errors.append(y)
+
+            #good_calls = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 200, Sentry.status_code == 404, str(Sentry.status_message).split('|')[-1] == str(x), Sentry.timestamp >= limit).all()
+            #fines = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 218, str(Sentry.status_message) == str(x), Sentry.timestamp >= limit).all()
+            #errors = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 400, Sentry.status_code == 403, str(Sentry.status_code).split('|')[-1] == str(x), Sentry.timestamp >= limit).all()
             downtime = weekly_possible_requests - (len(good_calls) + len(fines) + len(errors))
             server_status = {'server_id': x, 'good_calls': int((len(good_calls)/weekly_possible_requests)*100), 'fines': int((len(fines)/weekly_possible_requests)*100), 'errors': int((len(errors)/weekly_possible_requests)*100), 'downtime': int((downtime/weekly_possible_requests)*100)}
             system_status.append(server_status)
