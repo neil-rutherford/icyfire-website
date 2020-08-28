@@ -154,3 +154,109 @@ Possible errors:
 
 ### /register/link-social
 
+This endpoint is used as an entrypoint for linking and managing social media accounts. In order for the functionality to work as you expect it to, please note that all times are in UTC. You can use [time converstion software] (https://www.worldtimebuddy.com/utc-to-est-converter) to convert your desired time into UTC. We use UTC to keep things standardized for all of our customers across the world.
+
+For each social network that IcyFire supports, there will be an instruction link ("Set-up instructions") and a connect link ("Connect a new X account"). If this is your first time connecting an account, please open the instructions and read them. If you have done this before and already have your credentials, click the connect link.
+
+If you have any existing social media accounts, they will be displayed on this page. There are links to edit and delete social media accounts as well. Feel free to organize your accounts however you like. At IcyFire, we organize our accounts by theme so that it's easier to manage and sort. But it's really up to you!
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts.
+
+### /register/link-social/facebook
+
+This endpoint is used to choose timeslots for a Facebook account. After you input your Facebook credentials, you can choose an alias for your account. An alias is a name that describes the account and is completely up to you. (At IcyFire, our Twitter account aliases are all hashtags so that we can group things by theme.)
+
+You can also choose timeslots. Remember that the timeslots are in UTC, so be sure to convert your local time into UTC before choosing a slot. You must have at least one time slot. If you don't want to post on a certain day, select the "I don't want to post on ..." option.
+
+On success, you will be redirected to the "link social" page and will see a message saying "Facebook account linked". You should also see your account displayed in the Facebook section.
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts.
+- "We just double-checked and that time slot isn't available anymore!": Between when you loaded the page and when you clicked submit, someone snatched up your timeslot. Please choose another.
+
+### /register/link-social/twitter
+
+This endpoint is used to choose timeslots for a Twitter account. After you input your Twitter credentials, you can choose an alias for your account. An alias is a name that describes the account and is completely up to you. (At IcyFire, our Twitter account aliases are all hashtags so that we can group things by theme.)
+
+You can also choose timeslots. Remember that the timeslots are in UTC, so be sure to convert your local time into UTC before choosing a slot. You must have at least one time slot. If you don't want to post on a certain day, select the "I don't want to post on ..." option.
+
+On success, you will be redirected to the "link social" page and will see a message saying "Twitter account linked". You should also see your account displayed in the Twitter section.
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts.
+- "We just double-checked and that time slot isn't available anymore!": Between when you loaded the page and when you clicked submit, someone snatched up your timeslot. Please choose another.
+
+### /register/link-social/tumblr
+
+This endpoint is used to choose timeslots for a Tumblr account. After you input your Tumblr credentials, you can choose an alias for your account. An alias is a name that describes the account and is completely up to you. (At IcyFire, our Twitter account aliases are all hashtags so that we can group things by theme.)
+
+You can also choose timeslots. Remember that the timeslots are in UTC, so be sure to convert your local time into UTC before choosing a slot. You must have at least one time slot. If you don't want to post on a certain day, select the "I don't want to post on ..." option.
+
+On success, you will be redirected to the "link social" page and will see a message saying "Tumblr account linked". You should also see your account displayed in the Tumblr section.
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts.
+- "We just double-checked and that time slot isn't available anymore!": Between when you loaded the page and when you clicked submit, someone snatched up your timeslot. Please choose another.
+
+### /register/link-social/reddit
+
+This endpoint is used to choose timeslots for a Reddit account. After you input your Reddit credentials, you can choose an alias for your account. An alias is a name that describes the account and is completely up to you. (At IcyFire, our Twitter account aliases are all hashtags so that we can group things by theme.)
+
+You can also choose timeslots. Remember that the timeslots are in UTC, so be sure to convert your local time into UTC before choosing a slot. You must have at least one time slot. If you don't want to post on a certain day, select the "I don't want to post on ..." option.
+
+On success, you will be redirected to the "link social" page and will see a message saying "Reddit account linked". You should also see your account displayed in the Reddit section.
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts.
+- "We just double-checked and that time slot isn't available anymore!": Between when you loaded the page and when you clicked submit, someone snatched up your timeslot. Please choose another.
+
+### /edit/cred/{platform}/{cred_id}
+
+This endpoint allows you to edit your accounts. The `cred_id` variable is expected to be an integer, and the `platform` variable is expected to be on of the following lowercase strings:
+
+- "facebook"
+- "twitter"
+- "tumblr"
+- "reddit"
+
+When you initiate an edit, your timeslot is lost. Because of the order in which the page loads, your timeslot may appear unavailable at first. However, if you refresh the page, you will likely see your original timeslot again.
+
+When editing, you are unable to edit the credentials. We encrypt your credentials before storing them in our database. Our company security policy dictates that social media credentials are not to be decrypted on the IcyFire site, allowing us to quickly identify and stop malicious behavior on our site. If you would like to change your credential (i.e. if you made a mistake with your OAuth token), kindly delete the social media account and make a new one.
+
+On success, you will be redirected to the Link Social page and see a message saying that the account has been updated. You should also be able to see proof when you examine the account itself.
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts. In this context, this error is also displayed if attempt to edit another domain's account.
+- "ERROR: Account not found.": We searched the database for the `platform` and `cred_id` provided and could not find an account. Perhaps the account was deleted, or perhaps there was a typo.
+- "We just double-checked and that time slot isn't available anymore!": Between when you loaded the page and when you clicked submit, someone snatched up your timeslot. Please choose another.
+- "ERROR: Malformed request": The `platform` variable was not one of the four accepted strings.
+
+### /delete/cred/{platform}/{cred_id}
+
+This endpoint allows you to delete your accounts. The `cred_id` variable is expected to be an integer, and the `platform` variable is expected to be on of the following lowercase strings:
+
+- "facebook"
+- "twitter"
+- "tumblr"
+- "reddit"
+
+On success, you will be redirected to the Link Social page and see a message saying that the account has been deleted. You should also be able to see proof when you look for the account.
+
+Possible errors:
+
+- "ERROR: You don't have permission to do that.": You are not a domain admin. Only domain admins are able to handle social accounts. In this context, this error is also displayed if attempt to edit another domain's account.
+- "ERROR: Account not found.": We searched the database for the `platform` and `cred_id` provided and could not find an account. Perhaps the account was deleted, or perhaps there was a typo.
+- "ERROR: Malformed request": The `platform` variable was not one of the four accepted strings.
+
+### /literature/{document_name}
+
+This endpoint displays instructional PDFs. The `document_name` variable is expected to be a valid file name and extension for an instructional file in the "static/resources" folder. On success, the file should be visible in the browser.
+
+Example usage: `/literature/facebook.pdf` would render the Facebook instructions.
