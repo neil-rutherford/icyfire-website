@@ -153,10 +153,10 @@ def choose_queues(post_type):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_short_text', status_code=403, status_message='Create permission denied.')
         return redirect(url_for('main.dashboard'))
 
-    facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).all()
-    twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).all()
-    tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).all()
-    reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).all()
+    facebook_creds = FacebookCred.query.filter_by(domain_id=current_user.domain_id).order_by(FacebookCred.id).all()
+    twitter_creds = TwitterCred.query.filter_by(domain_id=current_user.domain_id).order_by(TwitterCred.id).all()
+    tumblr_creds = TumblrCred.query.filter_by(domain_id=current_user.domain_id).order_by(TumblrCred.id).all()
+    reddit_creds = RedditCred.query.filter_by(domain_id=current_user.domain_id).order_by(RedditCred.id).all()
 
     if post_type == 'short_text':
         if request.method == 'POST':
