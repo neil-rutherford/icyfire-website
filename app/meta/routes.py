@@ -52,7 +52,7 @@ def read(model):
         results = TimeSlot.query.filter_by().all()
         return render_template('meta/results.html', title='Search results', model=model, results=results)
     else:
-        flash("What???????")
+        flash("Couldn't understand that model.")
         return redirect(url_for('meta.dashboard'))
 
 # Works, 2020-08-08
