@@ -9,7 +9,7 @@
     </center>
     <hr>
     {% for date in ordered %}
-        <p>{{ date }} - <a href="{{ url_for('promo.article', article_path= article_dict[date][1], article_title= article_dict[date][0]) }}">{{ article_dict[date][0] }}</a></p>
+        <h3>{{ date }} - <a href="{{ url_for('promo.article', article_path= article_dict[date][1], article_title= article_dict[date][0]) }}">{{ article_dict[date][0] }}</a></h3>
         <hr>
     {% endfor %}
 
