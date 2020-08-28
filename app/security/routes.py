@@ -26,7 +26,7 @@ def get_flags():
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.get_flags', status_code=403, status_message='Access denied.')
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
-    flags = Sentry.query.filter_by(flag=True).all()
+    flags = Sentry.query.filter_by(flag=True).order_by(Sentry.timestamp.desc()).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.get_flags', status_code=200, status_message='OK')
     return render_template('security/flags.html', title='SENTRY - Flagged Incidents', flags=flags)
 
@@ -48,7 +48,7 @@ def sort_by_user(user_id):
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
     user = User.query.filter_by(id=user_id).first()
-    activity = Sentry.query.filter_by(user_id=user_id).all()
+    activity = Sentry.query.filter_by(user_id=user_id).order_by(Sentry.timestamp.desc()).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_user', status_code=200, status_message='{}'.format(user_id))
     return render_template('security/user.html', title='User Profile', user=user, activity=activity)
 
@@ -70,7 +70,7 @@ def sort_by_domain(domain_id):
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
     domain = Domain.query.filter_by(id=domain_id).first()
-    activity = Sentry.query.filter_by(domain_id=domain_id).all()
+    activity = Sentry.query.filter_by(domain_id=domain_id).order_by(Sentry.timestamp.desc()).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_domain', status_code=200, status_message='{}'.format(domain_id))
     return render_template('security/domain.html', title='Domain Profile', domain=domain, activity=activity)
 
@@ -91,7 +91,7 @@ def sort_by_ip(ip_address):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_ip', status_code=403, status_message='{}'.format(ip_address))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
-    activity = Sentry.query.filter_by(ip_address=ip_address).all()
+    activity = Sentry.query.filter_by(ip_address=ip_address).order_by(Sentry.timestamp.desc()).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_ip', status_code=200, status_message='{}'.format(ip_address))
     return render_template('security/ip.html', title='IP Address Profile', ip_address=ip_address, activity=activity)
 
@@ -111,7 +111,7 @@ def sort_by_status_code(status_code):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_status_code', status_code=403, status_message='{}'.format(status_code))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
-    results = Sentry.query.filter_by(status_code=int(status_code)).all()
+    results = Sentry.query.filter_by(status_code=int(status_code)).order_by(Sentry.timestamp.desc()).all()
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_status_code', status_code=200, status_message='{}'.format(status_code))
     return render_template('security/status_code.html', title='{} Status Code Records'.format(status_code), status_code=status_code, results=results)
 
@@ -139,8 +139,8 @@ def view_blueprint(blueprint_name):
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=403, status_message='{}'.format(blueprint_name))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
-    grants = Sentry.query.filter((Sentry.status_code == 200) | (Sentry.status_code == 218)).all()
-    denies = Sentry.query.filter((Sentry.status_code == 403) | (Sentry.status_code == 401) | (Sentry.status_code == 400)).all()
+    grants = Sentry.query.filter((Sentry.status_code == 200) | (Sentry.status_code == 218)).order_by(Sentry.timestamp.desc()).all()
+    denies = Sentry.query.filter((Sentry.status_code == 403) | (Sentry.status_code == 401) | (Sentry.status_code == 400)).order_by(Sentry.timestamp.desc()).all()
     granted = []
     denied = []
     if blueprint_name == 'admin':
