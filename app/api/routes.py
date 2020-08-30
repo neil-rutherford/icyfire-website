@@ -39,7 +39,7 @@ def read(timeslot_id, read_token, cred_token, server_id):
                 return make_error(endpoint='api/_r/facebook', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
                 make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='facebook|{}|{}'.format(cred.id, server_id))
-                return jsonify(platform='facebook', access_token=cred.access_token, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
+                return jsonify(platform='facebook', access_token=cred.access_token, page_id=cred.page_id, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
 
         elif timeslot.twitter_cred_id is not None:
             cred = TwitterCred.query.filter_by(id=timeslot.twitter_cred_id).first()
