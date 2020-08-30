@@ -1,0 +1,27 @@
+{% extends "base.html" %} 
+{% block app_content %}
+    <img src="{{ url_for('promo.random_image', image_type='scenic') }}" width=100% height="auto">
+    <h1>When is the best time to post on Twitter?</h1>
+
+    <p>The short answer is: it depends. Not all tweets are created equal, so your ideal posting time will depend on what your goals are for the post. Do you want people to engage with the post, or do you want people to click your link and visit your site? Depending on what your needs are, your “golden hour” could be at noon, dinner-time, or in the wee hours of the morning. Hopefully this can help guide your IcyFire timeslot selection.</p>
+    <p>Before we begin, an important note about time. This data is from a <a href="https://buffer.com/resources/best-time-to-tweet-research/">2016 Buffer research study</a> that analyzed almost 5 million tweets across 10,000 profiles. The times in this article are worldwide averages, so they are in your local time. We recommend using <a href="https://www.worldtimebuddy.com/">World Time Buddy</a> to convert your local time into UTC time, which IcyFire uses for timeslot standardization.</p>
+
+    <h2>For clicks, there is no silver bullet</h2>
+    <p>The original study made the surprising assertion that posting in the dead of night (~2 am) would get more clicks on average. This data was later to proven to be heavily biased toward accounts that post late at night.</p>
+    <p>After normalizing the data, the best worldwide average time for clicks was calculated to be 6 – 7 am. However, there are huge regional variations:</p>
+    <ul>
+        <li><b>Pacific Time:</b> 10:00pm</li>
+        <li><b>Mountain Time:</b> 7:00pm</li>
+        <li><b>Central Time:</b> 2:00am</li>
+        <li><b>Eastern Time:</b> 2:00pm</li>
+    </li>
+
+    <h2>For engagement, post after dinner</h2>
+    <img src="{{ url_for('static', 'twitter_engagement.jpg') }}" width=100% height="auto">
+    <p>Engagement is defined as people clicking on, replying to, favoriting, or retweeting your tweets. The smallest amount of engagement was during normal work hours, and the largest amount was after work hours.</p>
+    <p>Generally speaking, if you want people to notice and interact with your tweet, post when people aren’t posting as often. This follows the same logic as late-night infomercials, when less volume makes your content stand out and makes your readers feel more comfortable about interacting with it.</p>
+
+    <h2>People are online around midday</h2>
+    <img src="{{ url_for('static', 'twitter_usage.jpg') }}" width=100% height="auto">
+    <p>The highest volume of tweets (and, by extension, the highest number of people online) is around lunchtime. One way to interpret this is that your tweet will be drowned out by other tweets during this time. Another way to interpret this is that there are more people online during this time, and your potential audience is therefore larger. We encourage you to experiment with this and see what works for you.</p>
+{% endblock %}
