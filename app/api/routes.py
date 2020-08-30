@@ -39,7 +39,7 @@ def read(timeslot_id, read_token, cred_token, server_id):
                 return make_error(endpoint='api/_r/facebook', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
                 make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='facebook|{}|{}'.format(cred.id, server_id))
-                return jsonify(platform='facebook', access_token=cred.access_token, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
+                return jsonify(platform='facebook', access_token=cred.access_token, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
 
         elif timeslot.twitter_cred_id is not None:
             cred = TwitterCred.query.filter_by(id=timeslot.twitter_cred_id).first()
@@ -50,7 +50,7 @@ def read(timeslot_id, read_token, cred_token, server_id):
                 return make_error(endpoint='api/_r/twitter', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
                 make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='twitter|{}|{}'.format(cred.id, server_id))
-                return jsonify(platform='twitter', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, access_token_key=cred.access_token_key, access_token_secret=cred.access_token_secret, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags), 200
+                return jsonify(platform='twitter', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, access_token_key=cred.access_token_key, access_token_secret=cred.access_token_secret, post_type=post.post_type, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, tags=post.tags, caption=post.caption), 200
 
         elif timeslot.tumblr_cred_id is not None:
             cred = TumblrCred.query.filter_by(id=timeslot.tumblr_cred_id).first()
@@ -61,7 +61,7 @@ def read(timeslot_id, read_token, cred_token, server_id):
                 return make_error(endpoint='api/_r/tumblr', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
                 make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=200, status_message='tumblr|{}|{}'.format(cred.id, server_id))
-                return jsonify(platform='tumblr', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, oauth_token=cred.oauth_token, oauth_secret=cred.oauth_secret, blog_name=cred.blog_name, post_type=post.post_type, title=post.title, body=post.body, tags=post.tags, link_url=post.link_url, multimedia_url=post.multimedia_url, caption=post.caption)
+                return jsonify(platform='tumblr', consumer_key=cred.consumer_key, consumer_secret=cred.consumer_secret, oauth_token=cred.oauth_token, oauth_secret=cred.oauth_secret, blog_name=cred.blog_name, post_type=post.post_type, title=post.title, body=post.body, tags=post.tags, link_url=post.link_url, multimedia_url=post.multimedia_url, caption=post.caption), 200
 
         elif timeslot.reddit_cred_id is not None:
             cred = RedditCred.query.filter_by(id=timeslot.reddit_cred_id).first()
@@ -71,7 +71,7 @@ def read(timeslot_id, read_token, cred_token, server_id):
                 make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='reddit|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_r/reddit', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                return jsonify(platform='reddit', client_id=cred.client_id, client_secret=cred.client_secret, user_agent=cred.user_agent, username=cred.username, password=cred.password, post_type=post.post_type, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url)
+                return jsonify(platform='reddit', client_id=cred.client_id, client_secret=cred.client_secret, user_agent=cred.user_agent, username=cred.username, password=cred.password, post_type=post.post_type, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url, caption=post.caption), 200
         
         else:
             make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=218, status_message='{}'.format(server_id))
