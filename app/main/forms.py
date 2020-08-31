@@ -79,7 +79,7 @@ class VideoForm(FlaskForm):
     title = StringField('Title')
     video = FileField('Video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[FileRequired(), FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')])
     caption = TextAreaField('Caption')
-    tags = StringField('Tags (comma-separated list')
+    tags = StringField('Tags (comma-separated list)')
     link_url = StringField('Link URL')
     submit = SubmitField('Done')
 
@@ -87,7 +87,7 @@ class EditVideoForm(FlaskForm):
     title = StringField('Title')
     video = FileField('New video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')])
     caption = TextAreaField('Caption')
-    tags = StringField('Tags (comma-separated list')
+    tags = StringField('Tags (comma-separated list)')
     link_url = StringField('Link URL')
     submit = SubmitField('Done')
 
