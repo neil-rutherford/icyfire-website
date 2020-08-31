@@ -14,14 +14,14 @@
         <li><b>Mountain Time:</b> 7:00pm</li>
         <li><b>Central Time:</b> 2:00am</li>
         <li><b>Eastern Time:</b> 2:00pm</li>
-    </li>
+    </ul>
 
     <h2>For engagement, post after dinner</h2>
-    <img src="{{ url_for('static', 'twitter_engagement.jpg') }}" width=100% height="auto">
+    <img src="{{ url_for('static', filename='twitter_engagement.jpg') }}" width=100% height="auto">
     <p>Engagement is defined as people clicking on, replying to, favoriting, or retweeting your tweets. The smallest amount of engagement was during normal work hours, and the largest amount was after work hours.</p>
     <p>Generally speaking, if you want people to notice and interact with your tweet, post when people aren’t posting as often. This follows the same logic as late-night infomercials, when less volume makes your content stand out and makes your readers feel more comfortable about interacting with it.</p>
 
     <h2>People are online around midday</h2>
-    <img src="{{ url_for('static', 'twitter_usage.jpg') }}" width=100% height="auto">
+    <img src="{{ url_for('static', filename='twitter_usage.jpg') }}" width=100% height="auto">
     <p>The highest volume of tweets (and, by extension, the highest number of people online) is around lunchtime. One way to interpret this is that your tweet will be drowned out by other tweets during this time. Another way to interpret this is that there are more people online during this time, and your potential audience is therefore larger. We encourage you to experiment with this and see what works for you.</p>
 {% endblock %}
