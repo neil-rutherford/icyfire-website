@@ -467,13 +467,10 @@ def create_image(queue_list):
         db.session.add(current_user)
         db.session.commit()
 
-        f = form.image.data
-        file_list = str(f.filename).split('.')[-1:]
-        for x in file_list:
-            file_type = x
-
         if len(facebook_creds) != 0:
             for x in facebook_creds:
+                f = form.image.data
+                file_type = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = FacebookPost(domain_id=current_user.domain_id)
@@ -506,6 +503,8 @@ def create_image(queue_list):
         
         if len(twitter_creds) != 0:
             for x in twitter_creds:
+                f = form.image.data
+                file_type = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = TwitterPost(domain_id=current_user.domain_id)
@@ -538,6 +537,8 @@ def create_image(queue_list):
 
         if len(tumblr_creds) != 0:
             for x in tumblr_creds:
+                f = form.image.data
+                file_type = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = TumblrPost(domain_id=current_user.domain_id)
@@ -570,6 +571,8 @@ def create_image(queue_list):
 
         if len(reddit_creds) != 0:
             for x in reddit_creds:
+                f = form.image.data
+                file_type = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = RedditPost(domain_id=current_user.domain_id)
@@ -639,13 +642,10 @@ def create_video(queue_list):
         db.session.add(current_user)
         db.session.commit()
 
-        f = form.video.data
-        file_list = str(f.filename).split('.')[-1:]
-        for x in file_list:
-            file_type = x
-
         if len(facebook_creds) != 0:
             for x in facebook_creds:
+                f = form.video.data
+                file_list = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = FacebookPost(domain_id=current_user.domain_id)
@@ -678,6 +678,8 @@ def create_video(queue_list):
 
         if len(twitter_creds) != 0:
             for x in twitter_creds:
+                f = form.video.data
+                file_list = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = TwitterPost(domain_id=current_user.domain_id)
@@ -710,6 +712,8 @@ def create_video(queue_list):
 
         if len(tumblr_creds) != 0:
             for x in tumblr_creds:
+                f = form.video.data
+                file_list = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = TumblrPost(domain_id=current_user.domain_id)
@@ -742,6 +746,8 @@ def create_video(queue_list):
 
         if len(reddit_creds) != 0:
             for x in reddit_creds:
+                f = form.video.data
+                file_list = str(f.filename).split('.')[-1]
                 file_name = str(uuid.uuid4()) + '.' + file_type
                 f.save(f'./app/static/resources/{file_name}')
                 post = RedditPost(domain_id=current_user.domain_id)
