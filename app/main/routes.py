@@ -468,12 +468,13 @@ def create_image(queue_list):
         db.session.commit()
 
         f = form.image.data
+        file_type = str(f.filename).split('.')[-1]
+        string = str(uuid.uuid4())
+        file_name = string + '.' + file_type
+        f.save(f'./app/static/resources/{file_name}')
 
         if len(facebook_creds) != 0:
             for x in facebook_creds:
-                file_type = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
                 post = FacebookPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -494,10 +495,12 @@ def create_image(queue_list):
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                os.remove('./app/static/resources/{}'.format(file_name))
-                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=new_file_name)
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Facebook|{}|{}'.format(x.id, post.id))
@@ -505,9 +508,9 @@ def create_image(queue_list):
         if len(twitter_creds) != 0:
             for x in twitter_creds:
                 #f = form.image.data
-                file_type = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_type = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = TwitterPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -528,10 +531,12 @@ def create_image(queue_list):
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Twitter|{}|{}'.format(x.id, post.id))
@@ -539,9 +544,9 @@ def create_image(queue_list):
         if len(tumblr_creds) != 0:
             for x in tumblr_creds:
                 #f = form.image.data
-                file_type = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_type = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = TumblrPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -562,10 +567,12 @@ def create_image(queue_list):
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Tumblr|{}|{}'.format(x.id, post.id))
@@ -573,9 +580,9 @@ def create_image(queue_list):
         if len(reddit_creds) != 0:
             for x in reddit_creds:
                 #f = form.image.data
-                file_type = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_type = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = RedditPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -593,14 +600,18 @@ def create_image(queue_list):
                     post.link_url = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.image_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.image_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_image', status_code=200, status_message='Reddit|{}|{}'.format(x.id, post.id))
         
+        os.remove('./app/static/resources/{}'.format(file_name))
+
         flash("Successfully queued!")
         return redirect(url_for('main.dashboard'))
 
@@ -644,13 +655,16 @@ def create_video(queue_list):
         db.session.commit()
 
         f = form.video.data
+        file_type = str(f.filename).split('.')[-1]
+        file_name = str(uuid.uuid4()) + '.' + file_type
+        f.save(f'./app/static/resources/{file_name}')
 
         if len(facebook_creds) != 0:
             for x in facebook_creds:
                 #f = form.video.data
-                file_list = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_list = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = FacebookPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -671,10 +685,12 @@ def create_video(queue_list):
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Facebook|{}|{}'.format(x.id, post.id))
@@ -682,9 +698,9 @@ def create_video(queue_list):
         if len(twitter_creds) != 0:
             for x in twitter_creds:
                 #f = form.video.data
-                file_list = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_list = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = TwitterPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -705,10 +721,12 @@ def create_video(queue_list):
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Twitter|{}|{}'.format(x.id, post.id))
@@ -716,9 +734,9 @@ def create_video(queue_list):
         if len(tumblr_creds) != 0:
             for x in tumblr_creds:
                 #f = form.video.data
-                file_list = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_list = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = TumblrPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -739,10 +757,12 @@ def create_video(queue_list):
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.multimedia_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.multimedia_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Tumblr|{}|{}'.format(x.id, post.id))
@@ -750,9 +770,9 @@ def create_video(queue_list):
         if len(reddit_creds) != 0:
             for x in reddit_creds:
                 #f = form.video.data
-                file_list = str(f.filename).split('.')[-1]
-                file_name = str(uuid.uuid4()) + '.' + file_type
-                f.save(f'./app/static/resources/{file_name}')
+                #file_list = str(f.filename).split('.')[-1]
+                #file_name = str(uuid.uuid4()) + '.' + file_type
+                #f.save(f'./app/static/resources/{file_name}')
                 post = RedditPost(domain_id=current_user.domain_id)
                 post.cred_id = x.id
                 post.user_id = current_user.id
@@ -770,14 +790,18 @@ def create_video(queue_list):
                     post.link_url = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
                 file_from = './app/static/resources/{}'.format(file_name)
-                file_to = '/multimedia/{}'.format(file_name)
+                string = str(uuid.uuid4())
+                new_file_name = string + '.' + file_type
+                file_to = '/multimedia/{}'.format(new_file_name)
                 transfer_data.upload_file(file_from, file_to)
-                post.video_url = url_for('main.download_multimedia', file_name=file_name)
-                os.remove('./app/static/resources/{}'.format(file_name))
+                post.video_url = url_for('main.download_multimedia', file_name=new_file_name)
+                #os.remove('./app/static/resources/{}'.format(file_name))
                 db.session.add(post)
                 db.session.commit()
                 make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_video', status_code=200, status_message='Reddit|{}|{}'.format(x.id, post.id))
         
+        os.remove('./app/static/resources/{}'.format(file_name))
+
         flash("Successfully queued!")
         return redirect(url_for('main.dashboard'))
 
