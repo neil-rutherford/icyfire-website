@@ -12,12 +12,21 @@
             <label for="facebook_{{ x.id }}">{{ x.alias }}</label><br>
         {% endfor %}
         
+        <!--- 
+        
+        Tweepy doesn't currently support video uploads
+        https://github.com/tweepy/tweepy/issues/1271
+
+        Twython is iffy too
+        https://github.com/bear/python-twitter/issues/654
+
         <hr>
         <h2>Twitter</h2>
         {% for x in twitter_creds %}
             <input type="checkbox" id="twitter_{{ x.id }}" name="twitter_{{ x.id }}">
             <label for="twitter_{{ x.id }}">{{ x.alias }}</label><br>
         {% endfor %}
+        --->
         
         <hr>
         <h2>Tumblr</h2>
