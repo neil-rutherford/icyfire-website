@@ -260,9 +260,7 @@ def create_short_text(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 db.session.add(post)
@@ -282,9 +280,7 @@ def create_short_text(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 db.session.add(post)
@@ -305,7 +301,7 @@ def create_short_text(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    post.tags = str(form.tags.data).split(', ')
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 db.session.add(post)
@@ -384,9 +380,7 @@ def create_long_text(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 db.session.add(post)
@@ -407,7 +401,7 @@ def create_long_text(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    post.tags = str(form.tags.data).split(', ')
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 db.session.add(post)
@@ -497,9 +491,7 @@ def create_image(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
@@ -531,9 +523,7 @@ def create_image(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
@@ -565,7 +555,7 @@ def create_image(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    post.tags = str(form.tags.data).split(', ')
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
@@ -673,9 +663,7 @@ def create_video(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
@@ -707,9 +695,7 @@ def create_video(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    tags = str(form.tags.data).split(', ')
-                    tagline = ' #'.join(tags)
-                    post.tags = '#' + tagline
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
@@ -741,7 +727,7 @@ def create_video(queue_list):
                 else:
                     post.link_url = None
                 if form.tags.data != '':
-                    post.tags = str(form.tags.data).split(', ')
+                    post.tags = form.tags.data
                 else:
                     post.tags = None
                 transfer_data = TransferData(os.environ['DROPBOX_ACCESS_KEY'])
@@ -853,9 +839,7 @@ def update_short_text(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -870,9 +854,7 @@ def update_short_text(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -888,7 +870,7 @@ def update_short_text(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                post.tags = str(form.tags.data).split(', ')
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -970,9 +952,7 @@ def update_long_text(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -988,7 +968,7 @@ def update_long_text(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                post.tags = str(form.tags.data).split(', ')
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -1111,9 +1091,7 @@ def update_image(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -1146,9 +1124,7 @@ def update_image(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -1181,7 +1157,7 @@ def update_image(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                post.tags = str(form.tags.data).split(', ')
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -1322,9 +1298,7 @@ def update_video(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -1357,9 +1331,7 @@ def update_video(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                tags = str(form.tags.data).split(', ')
-                tagline = ' #'.join(tags)
-                post.tags = '#' + tagline
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
@@ -1392,7 +1364,7 @@ def update_video(platform, post_id):
             else:
                 post.link_url = None
             if form.tags.data != '':
-                post.tags = str(form.tags.data).split(', ')
+                post.tags = form.tags.data
             else:
                 post.tags = None
             db.session.add(post)
