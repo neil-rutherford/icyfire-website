@@ -62,33 +62,33 @@ class ImageForm(FlaskForm):
     title = StringField('Title')
     image = FileField('Image file (.png, .jpg, .jpeg)', validators=[FileRequired(), FileAllowed(['png', 'jpg', 'jpeg'], 'Image files only!')])
     caption = TextAreaField('Caption')
-    link_url = StringField('Link URL')
     tags = StringField('Tags (comma-separated list)')
+    link_url = StringField('Link URL')
     submit = SubmitField('Done')
 
 class EditImageForm(FlaskForm):
     title = StringField('Title')
     image = FileField('New image file (.png, .jpg, .jpeg)', validators=[FileAllowed(['png', 'jpg', 'jpeg'], 'Image files only!')])
     caption = TextAreaField('Caption')
-    link_url = StringField('Link URL')
     tags = StringField('Tags (comma-separated list)')
+    link_url = StringField('Link URL')
     submit = SubmitField('Done')
 
 
 class VideoForm(FlaskForm):
     title = StringField('Title')
-    caption = TextAreaField('Caption')
     video = FileField('Video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[FileRequired(), FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')])
-    link_url = StringField('Link URL')
+    caption = TextAreaField('Caption')
     tags = StringField('Tags (comma-separated list')
+    link_url = StringField('Link URL')
     submit = SubmitField('Done')
 
 class EditVideoForm(FlaskForm):
     title = StringField('Title')
-    caption = TextAreaField('Caption')
     video = FileField('New video file (.avi, .flv, .wmv, .mov, .mp4)', validators=[FileAllowed(['avi', 'flv', 'wmv', 'mov', 'mp4'], 'Video files only!')])
-    link_url = StringField('Link URL')
+    caption = TextAreaField('Caption')
     tags = StringField('Tags (comma-separated list')
+    link_url = StringField('Link URL')
     submit = SubmitField('Done')
 
 class TestForm(FlaskForm):
