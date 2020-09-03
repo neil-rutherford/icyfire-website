@@ -23,7 +23,13 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
     db.session.add(activity)
     db.session.commit()
 
+@bp.route('/robots.txt')
+def robots():
+    return send_from_directory('static/robots.txt')
 
+@bp.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory('static/sitemap.xml')
 
 @bp.route('/favicon.ico')
 def favicon():
