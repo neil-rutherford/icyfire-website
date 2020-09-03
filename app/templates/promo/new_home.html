@@ -1,6 +1,29 @@
 {% extends "base.html" %}
 
 {% block app_content %}
+
+    <script type="application/ld+json">
+    {
+        "@context" : "http://schema.org",
+        "@type" : "Organization",
+        "name" : "IcyFire Technologies, LLC",
+        "url" : "https://www.icy-fire.com",
+        "sameAs": [
+            "https://www.facebook.com/IcyFireTech",
+            "https://twitter.com/IcyFireTech",
+            "https://icyfiretech.tumblr.com/",
+            "https://www.linkedin.com/company/icyfire-technologies"
+        ],
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "6058 S Hill St",
+            "addressRegion": "CO",
+            "postalCode": "80120",
+            "addressCountry": "US"
+        }
+    }
+    </script>
+
     <header class="ac-full-width business-header">
     <div class="container">
         <div class="row">
