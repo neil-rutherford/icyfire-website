@@ -8,9 +8,16 @@
     <h1>IcyFire Blog</h1>
     </center>
     <hr>
+    <!---
+    Doesn't work on Heroku because of the ephemeral file system
     {% for date in ordered %}
         <h3>{{ date }} - <a href="{{ url_for('promo.article', article_path= article_dict[date][1], article_title= article_dict[date][0]) }}">{{ article_dict[date][0] }}</a></h3>
         <hr>
     {% endfor %}
+    --->
+    <h2>August 31, 2020 - <a href="{{ url_for('promo.article', article_path='The_best_times_to_post_on_Twitter.html', article_title='The best times to post on Twitter') }}"><b>The best times to post on Twitter</b></a></h2>
+    <hr>
+    <h2>August 27, 2020 - <a href="{{ url_for('promo.article', article_path='How_IcyFire_keeps_your_data_safe.html', article_title='How IcyFire keeps your data safe') }}"><b>How IcyFire keeps your data safe</b></a></h2>
+    <hr>
 
 {% endblock %}
