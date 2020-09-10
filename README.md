@@ -98,7 +98,7 @@ export MAIL_USE_TLS=<mail_use_tls>
 export MAIL_USERNAME=<mail_username>
 export MAIL_PASSWORD=<mail_password>
 export STRIPE_PUBLIC_KEY=<stripe_public_key>
-export STRIPE_PRIVATE_KEY=<stripe_private_key>
+export STRIPE_SECRET_KEY=<stripe_private_key>
 export STRIPE_ENDPOINT_SECRET=<stripe_endpoint_secret>
 
 # Set up database
