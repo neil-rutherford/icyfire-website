@@ -338,7 +338,7 @@ def us_checkout(state, filename, domain_id):
             customer=domain.stripe_customer_id,
             payment_method_types=['card'], 
             line_items=[{
-                'price': 'prod_HzwfSRB3FjJmry', 
+                'price': 'price_1HPwmGKcikwFuPuyIS5bNUJV', 
                 'quantity': 1
             }],
             mode='subscription', 
