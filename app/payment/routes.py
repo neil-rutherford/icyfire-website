@@ -323,7 +323,7 @@ def us_checkout(state, filename, domain_id):
             customer=domain.stripe_customer_id,
             payment_method_types=['card'], 
             line_items=[{
-                'price': 'price_1HOXYKKcikwFuPuy8tVSG6Hq', 
+                'price': 'prod_HzwfSRB3FjJmry', 
                 'quantity': 1
             }],
             subscription_data={
@@ -338,7 +338,7 @@ def us_checkout(state, filename, domain_id):
             customer=domain.stripe_customer_id,
             payment_method_types=['card'], 
             line_items=[{
-                'price': 'price_1HOXYKKcikwFuPuy8tVSG6Hq', 
+                'price': 'prod_HzwfSRB3FjJmry', 
                 'quantity': 1
             }],
             mode='subscription', 
