@@ -14,7 +14,6 @@ import json
 import pdfrw
 from app.main.transfer import TransferData
 from dotenv import load_dotenv
-#import stripe
 
 load_dotenv('.env')
 
@@ -196,40 +195,8 @@ def product_demo():
     flash("Welcome to the IcyFire product demo! This is a live environment, and these queues are connected to live accounts. Have a look around. You only have Read permission, so you can't create, update, or delete.")
     return redirect(url_for('main.dashboard'))
 
-# Pricing info, "get started" link redirects to "promo.checkout"
+# Pricing info, "get started" link redirects to "payment.us_new_landing"
 @bp.route('/pricing')
 def pricing(): 
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.pricing', status_code=200, status_message='OK')
     return render_template('promo/pricing.html', title='IcyFire - Pricing')
-
-#-----------------------------------------------------------------------------------
-# PAYMENT PATHWAY (NOT FINISHED)
-
-# NOW: Redirects to "promo.contact_sales"
-# FUTURE: This is included in the payments module, entrypoint is on the pricing page / in the upper menu
-#@bp.route('/checkout')
-#def checkout():
-    #flash("Our payment portal is undergoing scheduled maintenance. Please enter your contact information and one of our representatives will assist you with your purchase!")
-    #make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.checkout', status_code=200, status_message='OK')
-    #return redirect(url_for('promo.contact_sales'))
-    #return render_template('promo/pay_now.html', title='Pay now')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

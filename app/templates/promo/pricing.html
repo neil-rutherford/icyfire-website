@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <img src="{{ url_for('promo.random_image', image_type='scenic') }}" alt="A random scenic image." width=100% height="auto">
@@ -64,13 +63,13 @@
             <td style="background-color:#add8e6">Free upgrades for the life of the product<br/>You say how the product develops</td>
         </tr>
         <tr>
-            <td style="background-color:#D15641"><b>Your one-time implementation fee:</b></td>
-            <td style="background-color:#D15641"><h4>$3000</h4></td>
+            <td style="background-color:#D15641"><b>Your annual service charge:</b></td>
+            <td style="background-color:#D15641"><h4>$1000</h4></td>
         </tr>
     </table>
     <hr>
     <center><h2>Ready to make a purchase?</h2>
-    <h4><a href="{{ url_for('legal.service_agreement') }}">Read the Service Agreement »</a> | <a href="{{ url_for('promo.checkout') }}">Get started »</a></h4></center>
+    <h4><a href="{{ url_for('legal.service_agreement') }}">Read the Service Agreement »</a> | <a href="{{ url_for('payment.us_new_checkout_landing') }}">Get started »</a></h4></center>
     <!---
     <h3>Great! Here's what you need to do first.</h3>
     <ol>
