@@ -4,7 +4,7 @@
     <h1>Subscription information</h1>
     <p>Your subscription is currently <span style="color:green"><strong>active</strong></span>.</p>
     <p>Your subscription is set to automatically renew on or before <strong>{{ moment(domain.expires_on).format('LLL') }}</strong> using your previous payment method.</p>
-    <p>If you are aware of something that will interfere with automatic payments (e.g. the card is set to expire before the next billing cycle), <a href="{{ url_for('payment.us_renew_checkout', domain=domain.id) }}">click here to manually renew your subscription</a> and ensure service continuity.</p>
+    <p>If you are aware of something that will interfere with automatic payments (e.g. the card is set to expire before the next billing cycle), <a href="{{ url_for('payment.us_renew_checkout', domain_id=domain.id) }}">click here to manually renew your subscription</a> and ensure service continuity.</p>
     <hr>
     <h1>Manage user permissions</h1>
     <p>As domain admin, you are responsible for managing user permissions. You may grant or revoke permissions to any user registered to your domain, including yourself.</p>
