@@ -57,6 +57,7 @@ This website is designed to be run on a hosting service with an ephemeral filesy
 * [PyTumblr](https://github.com/tumblr/pytumblr)
 * [PRAW](https://praw.readthedocs.io/en/latest/)
 * [Dropbox](https://www.dropbox.com/developers/documentation/python#documentation)
+* [Stripe](https://stripe.com/docs)
 
 ## Getting started
 
@@ -96,6 +97,9 @@ export MAIL_PORT=<mail_port>
 export MAIL_USE_TLS=<mail_use_tls>
 export MAIL_USERNAME=<mail_username>
 export MAIL_PASSWORD=<mail_password>
+export STRIPE_PUBLIC_KEY=<stripe_public_key>
+export STRIPE_PRIVATE_KEY=<stripe_private_key>
+export STRIPE_ENDPOINT_SECRET=<stripe_endpoint_secret>
 
 # Set up database
 python3 make_db.py
@@ -108,6 +112,7 @@ The database must be populated with certain objects prior to running the Flask a
 
 from app import create_app, db
 from app.models import User, Domain, CountryLead, TimeSlot
+import datetime
 
 # Initializes one week's worth of time slots so that users can link their social media creds and servers can begin querying
 def create_server():
@@ -149,6 +154,7 @@ def create_server():
 # Creates an IcyFire domain object
 def create_icyfire_domain():
     icyfire = Domain(domain_name='IcyFire Technologies, LLC')
+    icyfire.expires_on = datetime.datetime(2038, 1, 18, 3, 14, 7)
     db.session.add(icyfire)
     db.session.commit()
     print("IcyFire domain successfully created.")
