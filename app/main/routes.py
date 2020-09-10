@@ -8,7 +8,7 @@ import os
 import uuid
 import json
 from app.main import bp
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import markdown
 import markdown.extensions.fenced_code
 from app.main.transfer import TransferData
@@ -60,11 +60,21 @@ def delete_multimedia(file_name):
     dbx = dropbox.Dropbox(os.environ['DROPBOX_ACCESS_KEY'])
     dbx.files_delete_v2(path='/multimedia/{}'.format(file_name))
 
+@bp.route('/subscription-elapsed')
+@login_required
+def subscription_elapsed():
+    flash("ERROR: Sorry, your request could not be completed.")
+    return render_template('main/subscription_elapsed.html', title="Your domain's subscription has elapsed.")
+
 # Works, 2020-08-14
 # DASHBOARD
 @bp.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.icyfire_crta is not None:
         return redirect(url_for('sales.dashboard'))
@@ -97,6 +107,10 @@ def dashboard():
 @bp.route('/view/post/<platform>/<post_id>')
 @login_required
 def view_post(platform, post_id):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.is_read is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.view_post', status_code=403, status_message='Read permission denied.')
@@ -147,6 +161,10 @@ def view_post(platform, post_id):
 @bp.route('/pre/<post_type>/choose-queues', methods=['GET', 'POST'])
 @login_required
 def choose_queues(post_type):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
         
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
@@ -215,6 +233,10 @@ def choose_queues(post_type):
 @bp.route('/create/short-text/<path:queue_list>', methods=['GET', 'POST'])
 @login_required
 def create_short_text(queue_list):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
@@ -336,6 +358,10 @@ def create_short_text(queue_list):
 @login_required
 def create_long_text(queue_list):
 
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
+
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.create_long_text', status_code=403, status_message='Create permission denied.')
@@ -435,6 +461,10 @@ def create_long_text(queue_list):
 @bp.route('/create/image/<path:queue_list>', methods=['GET', 'POST'])
 @login_required
 def create_image(queue_list):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
@@ -622,6 +652,10 @@ def create_image(queue_list):
 @bp.route('/create/video/<path:queue_list>', methods=['GET', 'POST'])
 @login_required
 def create_video(queue_list):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.is_create is False:
         flash("Talk to your domain admin about getting create permissions.")
@@ -813,6 +847,10 @@ def create_video(queue_list):
 @login_required
 def update_short_text(platform, post_id):
 
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
+
     if current_user.is_update is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_short_text', status_code=403, status_message='Update permission denied.')
         flash("Talk to your domain admin about getting update permissions.")
@@ -933,6 +971,10 @@ def update_short_text(platform, post_id):
 @login_required
 def update_long_text(platform, post_id):
 
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
+
     if current_user.is_update is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_long_text', status_code=403, status_message='Update permission denied.')
         flash("Talk to your domain admin about getting update permissions.")
@@ -1030,6 +1072,10 @@ def update_long_text(platform, post_id):
 @bp.route('/update/image/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
 def update_image(platform, post_id):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.is_update is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_image', status_code=403, status_message='Update permission denied.')
@@ -1238,6 +1284,10 @@ def update_image(platform, post_id):
 @login_required
 def update_video(platform, post_id):
 
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
+
     if current_user.is_update is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.update_video', status_code=403, status_message='Update permission denied.')
         flash("Talk to your domain admin about getting update permissions.")
@@ -1444,6 +1494,10 @@ def update_video(platform, post_id):
 @bp.route('/delete/post/<platform>/<post_id>', methods=['GET', 'POST'])
 @login_required
 def delete_post(platform, post_id):
+
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('main.subscription_elapsed'))
 
     if current_user.is_delete is True:
 
