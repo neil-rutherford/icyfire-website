@@ -1,5 +1,6 @@
 from app import create_app, db
 from app.models import User, Domain, TimeSlot, CountryLead
+import datetime
 
 # Initializes one week's worth of time slots so that users can link their social media creds and servers can begin querying
 def create_server():
@@ -74,9 +75,9 @@ def create_demo_account():
 
 # Creates app context
 create_app().app_context().push()
-db.create_all()
+#db.create_all()
 
-create_server()
+#create_server()
 create_icyfire_domain()
 create_meta_user()
 create_country_lead()
