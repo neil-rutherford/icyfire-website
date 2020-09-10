@@ -34,6 +34,27 @@ def write_fillable_pdf(input_pdf_path, output_pdf_path, data_dict):
     pdfrw.PdfWriter().write(output_pdf_path, template_pdf)
 
 
+def write_fillable_pdf2(input_pdf_path, output_pdf_path, data_dict):
+    ANNOT_KEY = '/Annots'
+    ANNOT_FIELD_KEY = '/T'
+    ANNOT_VAL_KEY = '/V'
+    ANNOT_RECT_KEY = '/Rect'
+    SUBTYPE_KEY = '/Subtype'
+    WIDGET_SUBTYPE_KEY = '/Widget'
+    template_pdf = pdfrw.PdfReader(input_pdf_path)
+    template_pdf.Root.AcroForm.update(pdfrw.PdfDict(NeedAppearances=pdfrw.PdfObject('true'))) 
+    annotations = template_pdf.pages[1][ANNOT_KEY]
+    for annotation in annotations:
+        if annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
+            if annotation[ANNOT_FIELD_KEY]:
+                key = annotation[ANNOT_FIELD_KEY][1:-1]
+                if key in data_dict.keys():
+                    annotation.update(
+                        pdfrw.PdfDict(V='{}'.format(data_dict[key]))
+                    )
+    pdfrw.PdfWriter().write(output_pdf_path, template_pdf)
+
+
 stripe_public_key = os.environ['STRIPE_PUBLIC_KEY']
 stripe_secret_key = os.environ['STRIPE_SECRET_KEY']
 stripe_endpoint_secret = os.environ['STRIPE_ENDPOINT_SECRET']
@@ -129,9 +150,10 @@ def us_new_checkout_landing():
             'client_rep_legal_name': str(form.contact_name.data).upper()
         }
         write_fillable_pdf(input_pdf_path='./app/static/agreements/us_sale_online.pdf', output_pdf_path='./app/static/agreements/{}_online.pdf'.format(form.client_name.data), data_dict=data_dict)
+        write_fillable_pdf2(input_pdf_path='./app/static/agreements/{}_online.pdf'.format(form.client_name.data), output_pdf_path='./app/static/agreements/{}_online.pdf'.format(form.client_name.data), data_dict=data_dict)
         transfer_data = TransferData(dropbox_key)
         file_from = './app/static/agreements/{}_online.pdf'.format(form.client_name.data)
-        file_to = '/receipts/{}_sale_online.pdf'.format(form.client_name.data)
+        file_to = '/receipts/{}_{}_sale_online.pdf'.format(form.client_name.data, datetime.datetime.utcnow().strftime('%Y%m%d'))
         transfer_data.upload_file(file_from, file_to)
 
         sale = Sale(agent_id=None)
@@ -157,7 +179,6 @@ def us_new_checkout_landing():
         db.session.commit()
 
         domain = Domain(activation_code=activation_code)
-        domain.expires_on = datetime.datetime.utcnow() + datetime.timedelta(days=365)
         domain.sale_id = sale.id
         domain.stripe_customer_id = stripe.Customer.create(description='{}'.format(sale.client_name))['id']
 
@@ -188,9 +209,9 @@ def us_new_checkout_landing():
         ]
 
         if form.client_state.data in listy:
-            return redirect(url_for('payment.us_checkout', state=form.client_state.data, filename='{}_sale_online.pdf'.format(form.client_name.data), domain_id=domain.id))
+            return redirect(url_for('payment.us_checkout', state=form.client_state.data, filename='{}_{}_sale_online.pdf'.format(form.client_name.data, datetime.datetime.utcnow().strftime('%Y%m%d')), domain_id=domain.id))
         else:
-            return redirect(url_for('payment.us_checkout', state='NA', filename='{}_sale_online.pdf'.format(form.client_name.data), domain_id=domain.id))
+            return redirect(url_for('payment.us_checkout', state='NA', filename='{}_{}_sale_online.pdf'.format(form.client_name.data, datetime.datetime.utcnow().strftime('%Y%m%d')), domain_id=domain.id))
     
     return render_template('payment/us_checkout_landing.html', form=form, title='Sign up')
 
@@ -258,12 +279,13 @@ def us_renew_checkout(domain_id):
     }
 
     write_fillable_pdf(input_pdf_path='./app/static/agreements/us_sale_online.pdf', output_pdf_path='./app/static/agreements/{}_online.pdf'.format(new_sale.client_name), data_dict=data_dict)
+    write_fillable_pdf2(input_pdf_path='./app/static/agreements/{}_online.pdf'.format(form.client_name.data), output_pdf_path='./app/static/agreements/{}_online.pdf'.format(form.client_name.data), data_dict=data_dict)
     transfer_data = TransferData(dropbox_key)
     file_from = './app/static/agreements/{}_online.pdf'.format(new_sale.client_name)
-    file_to = '/receipts/{}_sale_online.pdf'.format(new_sale.client_name)
+    file_to = '/receipts/{}_{}_sale_online.pdf'.format(new_sale.client_name, datetime.datetime.utcnow().strftime('%Y%m%d'))
     transfer_data.upload_file(file_from, file_to)
 
-    return redirect(url_for('payment.us_checkout', state=new_sale.client_state, filename='{}_sale_online.pdf'.format(new_sale.client_name), domain_id=domain.id))
+    return redirect(url_for('payment.us_checkout', state=new_sale.client_state, filename='{}_{}_sale_online.pdf'.format(new_sale.client_name, datetime.datetime.utcnow().strftime('%Y%m%d')), domain_id=domain.id))
 
 
 # CREATES CHECKOUT AND ADDS SALES TAX, IF APPLICABLE
@@ -333,12 +355,12 @@ def us_checkout(state, filename, domain_id):
 # SUCCESS PAGE
 @bp.route('/success?filename=<filename>&domain=<domain_id>')
 def success(filename, domain_id):
-    if not os.path.exists('./app/static/resources/{}'.format(filename)):
+    if not os.path.exists('./app/static/agreements/{}'.format(filename)):
         dbx = dropbox.Dropbox(dropbox_key)
-        with open(f"./app/static/resources/{filename}", 'wb') as f:
+        with open(f"./app/static/agreements/{filename}", 'wb') as f:
             metadata, res = dbx.files_download(path='/receipts/{}'.format(filename))
             f.write(res.content)
-    return send_from_directory('static/resources', "{}".format(filename))
+    return send_from_directory('static/agreements', "{}".format(filename))
 
 
 # UNIVERSAL PAYMENT PROCESSING
@@ -351,7 +373,7 @@ def stripe_webhook():
         abort(400)
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = 'YOUR_ENDPOINT_SECRET'
+    endpoint_secret = stripe_endpoint_secret
     event = None
 
     try:
@@ -371,14 +393,16 @@ def stripe_webhook():
     if event['type'] == 'checkout.session.completed':
         customer = event['data']['object']['customer']
         domain = Domain.query.filter_by(stripe_customer_id=customer).first()
-        time_left = domain.expires_on - datetime.datetime.utcnow()
-        if time_left > datetime.timedelta(0):
-            purchased_time = datetime.timedelta(days=365) + time_left
+        if domain.expires_on is not None:
+            time_left = domain.expires_on - datetime.datetime.utcnow()
         else:
-            purchased_time = datetime.timedelta(days=365)
+            time_left = datetime.timedelta(0)
+
+        purchased_time = datetime.timedelta(days=365) + time_left
         
         domain.expires_on = datetime.datetime.utcnow() + purchased_time
         db.session.add(domain)
         db.session.commit()
+        print("Added one year to Domain {}".format(domain.id))
 
     return {}
