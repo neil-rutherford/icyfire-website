@@ -11,6 +11,13 @@ def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_me
     db.session.add(activity)
     db.session.commit()
 
+@bp.route('/admin/subscription-elapsed')
+@login_required
+def subscription_elapsed():
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    flash("Your subscription has elasped. To continue using the service, please renew your subscription.")
+    return render_template('admin/subscription_elapsed.html', title='Please renew your subscription.', domain=domain)
+
 # ADMIN DASHBOARD - TESTED
 @bp.route('/admin/dashboard', methods=['GET'])
 @login_required
@@ -21,6 +28,10 @@ def dashboard():
         + 403 = `is_admin` is False
     - Displays a list of users for that domain, their CRUD permissions, and an option to grant/revoke permission
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.dashboard', status_code=403, status_message='Admin permission denied.')
@@ -44,6 +55,10 @@ def grant_permission(user_id, permission):
     - "u" = update
     - "d" = delete
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     user = User.query.filter_by(id=int(user_id)).first()
     if user is None:
         flash("ERROR: Can't find that user.")
@@ -106,6 +121,10 @@ def revoke_permission(user_id, permission):
     - "d" = delete
     - "kill" = delete user
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     user = User.query.filter_by(id=int(user_id)).first()
     if user is None:
         flash("ERROR: Can't find that user.")
@@ -187,6 +206,10 @@ def get_user_info(user_id):
     Provides basic information about the user's domain, email address, and post count. 
     Also shows what they have been doing over the past 14 days (for monitoring sketchy behavior).
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.get_user_info', status_code=403, status_message='{}'.format(user_id))
@@ -211,6 +234,10 @@ def sentry_create_success():
         + 403 = permission denied
     - This is a list of all incidents where users successfully created posts over the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_success', status_code=403, status_message='Access denied.')
@@ -234,6 +261,10 @@ def sentry_create_fail():
         + 403 = ok
     - This is a list of all incidents where users attempted to create posts (but failed) over the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_create_fail', status_code=403, status_message='Access denied.')
@@ -257,6 +288,10 @@ def sentry_read_success():
         + 403 = access denied
     - This is a list of all incidents where users had access to their dashboards (and could see all of the company's social queues) in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_success', status_code=403, status_message='Access denied.')
@@ -277,6 +312,10 @@ def sentry_read_fail():
         + 403 = access denied
     - This is a list of all incidents where users tried unsuccessfully to access the company's social queues in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_read_fail', status_code=403, status_message='Access denied.')
@@ -297,6 +336,10 @@ def sentry_update_success():
         + 403 = access denied
     - This is a list of all incidents where users successfully edited/updated posts in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_success', status_code=403, status_message='Access denied.')
@@ -319,6 +362,10 @@ def sentry_update_fail():
         + 403 = access denied
     - This is a list of all incidents where users unsuccessfully attempted to edit/update posts in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_update_fail', status_code=403, status_message='Access denied.')
@@ -341,6 +388,10 @@ def sentry_delete_success():
         + 403 = access denied
     - This is a list of all incidents where users successfully deleted posts in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_success', status_code=403, status_message='Access denied.')
@@ -360,6 +411,10 @@ def sentry_delete_fail():
         + 403 = access denied
     - This is a list of all incidents where users unsuccessfully attempted to delete a post in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_delete_fail', status_code=403, status_message='Access denied.')
@@ -379,6 +434,10 @@ def sentry_permission_success():
         + 403 = access denied
     - This is a list of all incidents where users successfully changed another user's permissions in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_success', status_code=403, status_message='Access denied.')
@@ -399,6 +458,10 @@ def sentry_permission_fail():
         + 403 = access denied
     - This is a list of all incidents where users unsuccessfully attempted to change another user's permissions in the past 14 days.
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_permission_fail', status_code=403, status_message='Access denied.')
@@ -420,6 +483,10 @@ def sentry_admin_success():
     - This is a list of all admin console access (i.e. all of the admin tools on this page) in the past 14 days
     - This should all be the domain admin...
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_success', status_code=403, status_message='Access denied.')
@@ -455,6 +522,10 @@ def sentry_admin_fail():
     - This is a list of all attempted (unsuccessful) admin console access in the past 14 days
     - This should be empty
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_admin_fail', status_code=403, status_message='Access denied.')
@@ -489,6 +560,10 @@ def sentry_creds_success():
         + 403 = access denied
     - This is a list of all successful changes to the domain's social media creds in the past 14 days
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_success', status_code=403, status_message='Access denied.')
@@ -508,6 +583,10 @@ def sentry_creds_fail():
         + 403 = access denied
     - This is a list of all unsuccessful attempts to change the domain's social media creds in the past 14 days
     '''
+    domain = Domain.query.filter_by(id=current_user.domain_id).first()
+    if domain.expires_on - datetime.utcnow() < timedelta(0):
+        return redirect(url_for('admin.subscription_elapsed'))
+        
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_fail', status_code=403, status_message='Access denied.')

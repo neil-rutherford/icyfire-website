@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h1>Your domain's subscription has elapsed.</h1>
+
+    <h2>What happened?</h2>
+    <p>Subscriptions are normally billed and renewed automatically. Something interfered with this process, and your subscription expired on {{ moment(domain.expires_on).format('LLL') }}. If you would like to learn more, please contact us at <a href="mailto:support@icy-fire.com">support@icy-fire.com</a>.</p>
+
+    <h2>What does this mean?</h2>
+    <p>You and your users are unable to interact with the IcyFire interface until your domain's subscription is renewed. Posts already queued will be posted as usual.</p>
+    
+    <h2>How can I fix this?</h2>
+    <p>You can <a href="{{ url_for('payment.us_renew_checkout', domain=domain.id) }}">manually renew your domain's subscription.</a></p>
+{% endblock %}
