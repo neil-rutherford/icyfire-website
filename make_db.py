@@ -42,7 +42,7 @@ def create_server():
 # Creates an IcyFire domain object
 def create_icyfire_domain():
     icyfire = Domain(domain_name='IcyFire Technologies, LLC')
-    domain.expires_on = datetime.datetime(2038, 1, 19, 3, 14, 7)
+    icyfire.expires_on = datetime.datetime(2038, 1, 19, 3, 14, 7)
     db.session.add(icyfire)
     db.session.commit()
     print("IcyFire domain successfully created.")
