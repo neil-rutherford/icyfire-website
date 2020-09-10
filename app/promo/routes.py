@@ -207,11 +207,11 @@ def pricing():
 
 # NOW: Redirects to "promo.contact_sales"
 # FUTURE: This is included in the payments module, entrypoint is on the pricing page / in the upper menu
-@bp.route('/checkout')
-def checkout():
-    flash("Our payment portal is undergoing scheduled maintenance. Please enter your contact information and one of our representatives will assist you with your purchase!")
-    make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.checkout', status_code=200, status_message='OK')
-    return redirect(url_for('promo.contact_sales'))
+#@bp.route('/checkout')
+#def checkout():
+    #flash("Our payment portal is undergoing scheduled maintenance. Please enter your contact information and one of our representatives will assist you with your purchase!")
+    #make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.checkout', status_code=200, status_message='OK')
+    #return redirect(url_for('promo.contact_sales'))
     #return render_template('promo/pay_now.html', title='Pay now')
 
 

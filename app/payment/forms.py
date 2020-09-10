@@ -14,7 +14,7 @@ def phone_check(form, field):
         elif character not in numbers:
             raise ValidationError('Numbers only, please.')
 
-class SaleForm(FlaskForm):
+class UsSaleForm(FlaskForm):
     client_name = StringField("Company's legal name", validators=[DataRequired(), Length(max=100)])
     client_street_address = StringField('Street address', validators=[DataRequired(), Length(max=100)])
     client_city = StringField('City', validators=[DataRequired(), Length(max=60)])
@@ -76,3 +76,51 @@ class SaleForm(FlaskForm):
     client_email = StringField('Contact email', validators=[DataRequired(), Email(), Length(max=120)])
     service_agreement = BooleanField('Checking this box signals my intent to sign the Service Agreement.', validators=[DataRequired()])
     submit = SubmitField('Next >>')
+
+
+class ChinaSaleForm(FlaskForm):
+    client_name = StringField("公司名称", validators=[DataRequired(message='这是必填栏。'), Length(max=100)])
+    client_state = SelectField('省/地区', choices=[
+        ('安徽省', '安徽省'),
+        ('北京市', '北京市'),
+        ('重庆市', '重庆市'),
+        ('福建省', '福建省'),
+        ('广东省', '广东省'),
+        ('甘肃省', '甘肃省'),
+        ('广西壮族自治区', '广西壮族自治区'),
+        ('贵州省', '贵州省'),
+        ('河南省', '河南省'),
+        ('湖北省', '湖北省'),
+        ('河北省', '河北省'),
+        ('海南省', '海南省'),
+        ('香港特别行政区', '香港特别行政区'),
+        ('黑龙江省', '黑龙江省'),
+        ('湖南省', '湖南省'),
+        ('吉林省', '吉林省'),
+        ('江苏省', '江苏省'),
+        ('江西省', '江西省'),
+        ('辽宁省', '辽宁省'),
+        ('澳门特别行政区', '澳门特别行政区'),
+        ('内蒙古自治区', '内蒙古自治区'),
+        ('宁夏回族自治区', '宁夏回族自治区'),
+        ('青海省', '青海省'),
+        ('四川省', '四川省'),
+        ('山东省', '山东省'),
+        ('上海市', '上海市'),
+        ('陕西省', '陕西省'),
+        ('山西省', '山西省'),
+        ('天津市', '天津市'),
+        ('台湾省', '台湾省'),
+        ('新疆维吾尔自治区', '新疆维吾尔自治区'),
+        ('西藏自治区', '西藏自治区'),
+        ('云南省', '云南省'),
+        ('浙江省', '浙江省')
+    ], validators=[DataRequired(message='这是必填栏。')])
+    client_city = StringField('城市/市区', validators=[DataRequired(message='这是必填栏。'), Length(max=60)])
+    client_street_address = StringField('详细地址', validators=[DataRequired(message='这是必填栏。'), Length(max=100)])
+    client_zip = StringField('邮政编码', validators=[DataRequired(), Length(max=15)])
+    contact_name = StringField('联系人姓名', validators=[DataRequired(), Length(max=100)])
+    client_phone = StringField('电话号码', validators=[DataRequired(), Length(min=10, max=10), phone_check])
+    client_email = StringField('电子邮箱', validators=[DataRequired(), Email(), Length(max=120)])
+    service_agreement = BooleanField('选中此框表示我愿意签署《IcyFire 服务协议》。', validators=[DataRequired()])
+    submit = SubmitField('下一步 >>')

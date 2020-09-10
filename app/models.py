@@ -56,6 +56,8 @@ class Domain(db.Model):
     domain_name = db.Column(db.String(120), index=True, unique=True)
     sale_id = db.Column(db.Integer, db.ForeignKey('sale.id'))
     activation_code = db.Column(db.String(300), unique=True)
+    expires_on = db.Column(db.DateTime, index=True)
+    stripe_customer_id = db.Column(db.String(300), unique=True)
     users = db.relationship('User', backref='group', lazy='dynamic')
     facebook_posts = db.relationship('FacebookPost', backref='author', lazy='dynamic')
     twitter_posts = db.relationship('TwitterPost', backref='author', lazy='dynamic')
