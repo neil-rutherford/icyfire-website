@@ -38,7 +38,7 @@ def dashboard():
         return redirect(url_for('main.dashboard'))
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.dashboard', status_code=200, status_message='Successful admin access.')
     users = User.query.filter_by(domain_id=current_user.domain_id).order_by(User.id.desc()).all()
-    return render_template('admin/dashboard.html', title='Admin Console', users=users)
+    return render_template('admin/dashboard.html', title='Admin Console', users=users, domain=domain)
 
 # GRANT PERMISSION - TESTED
 @bp.route('/admin/<user_id>/+<permission>', methods=['GET', 'POST'])
@@ -586,7 +586,7 @@ def sentry_creds_fail():
     domain = Domain.query.filter_by(id=current_user.domain_id).first()
     if domain.expires_on - datetime.utcnow() < timedelta(0):
         return redirect(url_for('admin.subscription_elapsed'))
-        
+
     if current_user.is_admin is False:
         flash("ERROR: You don't have permission to do that.")
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='admin.sentry_creds_fail', status_code=403, status_message='Access denied.')
