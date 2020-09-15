@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+
+    <img src="{{ url_for('promo.random_image', image_type='scenic') }}" alt="A random scenic image." width=100% height="auto">
+    <hr>
+    <h1>Congregant referral program</h1>
+
+    <h2>Help us out!</h2>
+
+    <p>Referring us to your church is the highest compliment we can receive. When your church subscribes to IcyFire, you get cash.</p>
+
+    <h2>How the program works</h2>
+
+    <ol>
+        <li>You recommend IcyFire to your church.</li>
+        <li>Your church thinks we're the best thing since sliced bread and signs up.</li>
+        <li>You send us an email at <a href="mailto:support@icy-fire.com">support@icy-fire.com</a> and include:
+            <ul>
+                <li>Your name and address (so we can send you a check)</li>
+                <li>The name of your church (so we can verify that they signed up)</li>
+                <li>A selfie of you in front of the church (so we can fight fraud)</li>
+            </ul>
+        <li>We send you a check for <b>$100</b>.</li>
+    </ol>
+
+    <h2>Resources</h2>
+    <h4><a href="{{ url_for('promo.landing', audience='church') }}">Your church as a 21st century lighthouse (the page before this)</a></h4>
+    <h4><a href="{{ url_for('promo.landing', audience='church_administrator') }}">An interview with a pastor who uses IcyFire</a></h4>
+    <h4><a href="{{ url_for('promo.product') }}">Product information</a></h4>
+    <h4><a href="{{ url_for('promo.pricing') }}">Pricing information</a></h4>
+    <h4><a href="{{ url_for('legal.service_agreement') }}">Service agreement</a></h4>
+{% endblock %}
