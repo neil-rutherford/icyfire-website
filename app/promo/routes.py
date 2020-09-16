@@ -119,7 +119,11 @@ def article(article_path, article_title):
 def landing(audience):
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.landing', status_code=200, status_message='{}'.format(audience))
     try:
-        return render_template('promo/landing/{}.html'.format(audience), title='Welcome to IcyFire!'.format(audience.capitalize()))
+        title_dict = {
+            'church': 'Learn how IcyFire can help your church.', 
+            'church_congregant': "Learn more about IcyFire's referral program.",
+            'church_administrator': "Being a guiding light in the digital age"}
+        return render_template('promo/landing/{}.html'.format(audience), title='{}'.format(title_dict[audience]))
     except:
         return redirect(url_for('promo.home'))
 
