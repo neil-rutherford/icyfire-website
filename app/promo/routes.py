@@ -122,7 +122,7 @@ def landing(audience):
         title_dict = {
             'church': 'Learn how IcyFire can help your church.', 
             'church_congregant': "Learn more about IcyFire's referral program.",
-            'church_administrator': "Being a guiding light in the digital age"}
+            'church_administrator': "How to be a guiding light in the digital age."}
         return render_template('promo/landing/{}.html'.format(audience), title='{}'.format(title_dict[audience]))
     except:
         return redirect(url_for('promo.home'))
