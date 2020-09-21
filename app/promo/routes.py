@@ -177,7 +177,7 @@ def claim(resource):
             return redirect(url_for('promo.download', filename='death_care.pdf'))
         else:
             return render_template('errors/404.html')
-    return render_template('promo/claim.html', title='Claim your free download!')
+    return render_template('promo/claim.html', title='Claim your free download!', form=form)
 
 @bp.route('/download/<filename>')
 def download(filename):
