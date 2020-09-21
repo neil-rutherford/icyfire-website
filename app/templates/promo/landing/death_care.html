@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <img src="{{ url_for('promo.random_image', image_type='scenic') }}" alt="A random scenic image." width=100% height="auto">
+    <hr>
+    <h1>Claim your <b>free</b> social media calendar!</h1>
+    <p>Social media marketing is a vital element. In fact, <a href="https://www.socialmediatoday.com/news/why-you-should-create-a-calendar-to-manage-your-social-media-posts-infogra/540168/">almost 80% of Americans</a> say that social media influences their purchasing decisions. Keeping your social media organized is essential for optimizing your promotional strategy. For the death care industry, social media is incredibly important for customer service (i.e. sharing obituaries), brand awareness, and promoting pre-need services.</p>
+
+    <p>IcyFire Technologies has developed an easy-to-use content calendar for your funeral home's digital marketing. In addition to a year's worth of evergreen content ideas, the guide also provides a six-month plan to kickstart your funeral home's digital marketing.</p>
+
+    <p>Click the link below to download your social media guide for <b>free</b>. Act fast...we will start charging at the beginning of October!</p>
+
+    <center><h4><b><a href="{{ url_for('promo.claim', resource='death_care') }}">Download now!</a></b></h4></center>
+{% endblock %}

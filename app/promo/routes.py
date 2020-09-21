@@ -122,7 +122,8 @@ def landing(audience):
         title_dict = {
             'church': 'Learn how IcyFire can help your church.', 
             'church_congregant': "Learn more about IcyFire's referral program.",
-            'church_administrator': "How to be a guiding light in the digital age."}
+            'church_administrator': "How to be a guiding light in the digital age.",
+            'death_care': "A year's worth of content for free."}
         return render_template('promo/landing/{}.html'.format(audience), title='{}'.format(title_dict[audience]))
     except:
         return redirect(url_for('promo.home'))
@@ -152,18 +153,52 @@ def random_image(image_type):
 #-----------------------------------------------------------------------------------
 # ACTION PAGES
 
+@bp.route('/claim/<resource>', methods=['GET', 'POST'])
+def claim(resource):
+    form = LeadForm()
+    if form.validate_on_submit():
+        if resource == 'death_care':
+            lead = Lead(ip_address=request.remote_addr)
+            lead.agent_id = None
+            lead.is_contacted = False
+            lead.first_name = form.first_name.data
+            lead.last_name = form.last_name.data
+            lead.company_name = form.company_name.data
+            lead.job_title = form.job_title.data
+            lead.number_of_employees = form.number_of_employees.data
+            lead.time_zone = form.time_zone.data
+            lead.phone_number = form.phone_number.data
+            lead.email = form.email.data
+            lead.contact_preference = form.contact_preference.data
+            lead.time_preference = form.time_preference.data
+            lead.email_opt_in = form.email_opt_in.data
+            db.session.add(lead)
+            db.session.commit()
+            return redirect(url_for('promo.download', filename='death_care.pdf'))
+        else:
+            return render_template('errors/404.html')
+    return render_template('promo/claim.html', title='Claim your free download!')
+
+@bp.route('/download/<filename>')
+def download(filename):
+    try:
+        return send_from_directory('static/resources', filename)
+    except:
+        return render_template('errors/404.html')
+    
+
 # Works, 2020-08-16
 @bp.route('/contact-sales', methods=['GET', 'POST'])
 def contact_sales():
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.contact_sales', status_code=200, status_message='OK')
     form = LeadForm()
     if form.validate_on_submit():
-        agents = Agent.query.filter().all()
-        x = random.randint(0, len(agents)-1)
-        lucky_agent = agents[x]
+        #agents = Agent.query.filter().all()
+        #x = random.randint(0, len(agents)-1)
+        #lucky_agent = agents[x]
 
         lead = Lead(ip_address=request.remote_addr)
-        lead.agent_id = lucky_agent.id
+        lead.agent_id = None
         lead.is_contacted = False
         lead.first_name = form.first_name.data
         lead.last_name = form.last_name.data
