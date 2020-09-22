@@ -161,12 +161,12 @@ def claim(resource):
     if form.validate_on_submit():
         if resource == 'death_care':
 
-            partners = Partner.query.filter_by().all()
-            x = random.randint(0, len(partners)-1)
-            lucky_partner = partners[x]
+            # partners = Partner.query.filter_by().all()
+            # x = random.randint(0, len(partners)-1)
+            # lucky_partner = partners[x]
 
             lead = Lead(ip_address=request.remote_addr)
-            lead.parter_id = lucky_partner.id
+            lead.parter_id = 1
             #lead.agent_id = None
             lead.is_contacted = False
             lead.first_name = form.first_name.data
