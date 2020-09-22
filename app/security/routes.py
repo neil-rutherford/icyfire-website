@@ -5,6 +5,8 @@ from app.security import bp
 from app.models import User, Sentry, Domain
 from datetime import datetime, timedelta
 
+authorized = ['neilrutherford@icy-fire.com']
+
 def make_sentry(user_id, domain_id, ip_address, endpoint, status_code, status_message, flag=False):
     activity = Sentry(ip_address=ip_address, user_id=user_id, endpoint=endpoint, status_code=status_code, status_message=status_message, domain_id=domain_id, flag=flag)
     db.session.add(activity)
@@ -22,7 +24,7 @@ def get_flags():
         + 403: denied
     - this shows all of the issues that domain admins have raised
     '''
-    if current_user.email != 'neilrutherford@icy-fire.com':
+    if current_user.email not in authorized:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.get_flags', status_code=403, status_message='Access denied.')
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
@@ -43,7 +45,7 @@ def sort_by_user(user_id):
     - allows ciso to see everything that a particular user has been doing
     - used for investigative purposes
     '''
-    if current_user.email != 'neilrutherford@icy-fire.com':
+    if current_user.email not in authorized:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_user', status_code=403, status_message='{}'.format(user_id))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
@@ -65,7 +67,7 @@ def sort_by_domain(domain_id):
     - allows ciso to see everything going on in a particular domain
     - used for investigative purposes
     '''
-    if current_user.email != 'neilrutherford@icy-fire.com':
+    if current_user.email not in authorized:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_domain', status_code=403, status_message='{}'.format(domain_id))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
@@ -87,7 +89,7 @@ def sort_by_ip(ip_address):
     - allows ciso to see everything that a particular ip address has been doing
     - used for investigative purposes and cross-checking with normal user behavior
     '''
-    if current_user.email != 'neilrutherford@icy-fire.com':
+    if current_user.email not in authorized:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_ip', status_code=403, status_message='{}'.format(ip_address))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
@@ -107,7 +109,7 @@ def sort_by_status_code(status_code):
         + 403: denied
     - used for diagnostics and website monitoring, as well as early warning for malintent
     '''
-    if current_user.email != 'neilrutherford@icy-fire.com':
+    if current_user.email not in authorized:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.sort_by_status_code', status_code=403, status_message='{}'.format(status_code))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))
@@ -135,7 +137,7 @@ def view_blueprint(blueprint_name):
         + sales
         + security
     '''
-    if current_user.email != 'neilrutherford@icy-fire.com':
+    if current_user.email not in authorized:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='security.view_blueprint', status_code=403, status_message='{}'.format(blueprint_name))
         flash("ERROR: You don't have permission to do that.")
         return redirect(url_for('main.dashboard'))

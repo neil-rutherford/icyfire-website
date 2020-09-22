@@ -120,8 +120,8 @@ def us_new_checkout_landing():
             'Wyoming': 0.00
             # (Source: https://blog.taxjar.com/saas-sales-tax/, https://taxfoundation.org/2020-sales-taxes/)
         }
-        sales_tax = float(1000 * sales_tax_dict[form.client_state.data])
-        total = 1000 + sales_tax
+        sales_tax = float(100 * sales_tax_dict[form.client_state.data])
+        total = 100 + sales_tax
         data_dict = {
             'receipt_date': datetime.datetime.utcnow().strftime('%m/%d/%Y %H:%M'),
             'agent_name': "NEIL RUTHERFORD",
@@ -156,10 +156,11 @@ def us_new_checkout_landing():
         file_to = '/receipts/{}_{}_sale_online.pdf'.format(form.client_name.data, datetime.datetime.utcnow().strftime('%Y%m%d'))
         transfer_data.upload_file(file_from, file_to)
 
-        sale = Sale(agent_id=None)
-        sale.team_lead = None
-        sale.region_lead = None
-        sale.country_lead = None
+        # sale = Sale(agent_id=None)
+        # sale.team_lead = None
+        # sale.region_lead = None
+        # sale.country_lead = None
+        sale = Sale(partner_id=None)
         sale.client_name = form.client_name.data
         sale.client_street_address = form.client_street_address.data
         sale.client_city = form.client_city.data
@@ -167,9 +168,10 @@ def us_new_checkout_landing():
         sale.client_zip = form.client_zip.data
         sale.client_phone_number = form.client_phone.data
         sale.client_email = form.client_email.data
-        sale.unit_price = 1000
+        sale.product_id = 'prod_I2uIS76ymDfaT4'
+        sale.unit_price = 100
         sale.quantity = 1
-        sale.subtotal = 1000
+        sale.subtotal = 100
         sale.sales_tax = float(sales_tax)
         sale.total = float(total)
         sale.receipt_url = 'dropbox/home/Apps/icyfire/receipts/{}_sale_online.pdf'.format(form.client_name.data)
@@ -222,10 +224,12 @@ def us_renew_checkout(domain_id):
     domain = Domain.query.filter_by(id=domain_id).first()
     old_sale = Sale.query.filter_by(id=domain.sale_id).first()
    
-    new_sale = Sale(agent_id=None)
-    new_sale.team_lead = None
-    new_sale.region_lead = None
-    new_sale.country_lead = None
+    # new_sale = Sale(agent_id=None)
+    # new_sale.team_lead = None
+    # new_sale.region_lead = None
+    # new_sale.country_lead = None
+    new_sale = Sale(partner_id=None)
+    new_sale.product_id = 'prod_I2uIS76ymDfaT4'
     new_sale.client_name = old_sale.client_name
     new_sale.client_street_address = old_sale.client_street_address
     new_sale.client_city = old_sale.client_city
@@ -323,7 +327,7 @@ def us_checkout(state, filename, domain_id):
             customer=domain.stripe_customer_id,
             payment_method_types=['card'], 
             line_items=[{
-                'price': 'prod_HzwfSRB3FjJmry', 
+                'price': 'price_1HSoThKcikwFuPuy52NxZOCq', 
                 'quantity': 1
             }],
             subscription_data={
@@ -338,7 +342,7 @@ def us_checkout(state, filename, domain_id):
             customer=domain.stripe_customer_id,
             payment_method_types=['card'], 
             line_items=[{
-                'price': 'price_1HPwmGKcikwFuPuyIS5bNUJV', 
+                'price': 'price_1HSoThKcikwFuPuy52NxZOCq', 
                 'quantity': 1
             }],
             mode='subscription', 
@@ -398,11 +402,11 @@ def stripe_webhook():
         else:
             time_left = datetime.timedelta(0)
 
-        purchased_time = datetime.timedelta(days=365) + time_left
+        purchased_time = datetime.timedelta(days=31) + time_left
         
         domain.expires_on = datetime.datetime.utcnow() + purchased_time
         db.session.add(domain)
         db.session.commit()
-        print("Added one year to Domain {}".format(domain.id))
+        print("Added one month to Domain {}".format(domain.id))
 
     return {}

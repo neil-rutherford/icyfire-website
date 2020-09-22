@@ -14,6 +14,7 @@ import markdown.extensions.fenced_code
 from app.main.transfer import TransferData
 from dotenv import load_dotenv
 import dropbox
+from app.auth.email import send_verify_email_email
 
 load_dotenv('.env')
 
@@ -76,12 +77,17 @@ def dashboard():
     if domain.expires_on - datetime.utcnow() < timedelta(0):
         return redirect(url_for('main.subscription_elapsed'))
 
-    if current_user.icyfire_crta is not None:
+    if current_user.partner_id is not None:
         return redirect(url_for('sales.dashboard'))
     
     if current_user.is_read is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='main.dashboard', status_code=403, status_message='Read permission denied.')
         return render_template('main/dashboard_defense.html', title="Insufficient permissions")
+    
+    if current_user.is_verified is False:
+        send_verify_email_email(current_user)
+        flash("Please verify your email.")
+        return redirect(url_for('main.dashboard'))
 
     domain = Domain.query.filter_by(id=current_user.domain_id).first()
 

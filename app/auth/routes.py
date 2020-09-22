@@ -3,9 +3,9 @@ from werkzeug.urls import url_parse
 from flask_login import login_user, logout_user, current_user, login_required, fresh_login_required
 from app import db
 from app.auth import bp
-from app.auth.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, ContractorRegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, FacebookCreds, TwitterCreds, TumblrCreds, RedditCreds
-from app.models import User, Sentry, Domain, FacebookCred, TwitterCred, TumblrCred, RedditCred, TimeSlot, FacebookPost, TwitterPost, TumblrPost, RedditPost, Agent, TeamLead, RegionLead, CountryLead
-from app.auth.email import send_password_reset_email
+from app.auth.forms import LoginForm, DomainRegistrationForm, UserRegistrationForm, PartnerRegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, FacebookCreds, TwitterCreds, TumblrCreds, RedditCreds
+from app.models import User, Sentry, Domain, FacebookCred, TwitterCred, TumblrCred, RedditCred, TimeSlot, FacebookPost, TwitterPost, TumblrPost, RedditPost, Partner
+from app.auth.email import send_password_reset_email, send_verify_email_email
 import base64
 import os
 from cryptography.hazmat.backends import default_backend
@@ -128,11 +128,14 @@ def register_domain():
         user.is_read = True
         user.is_update = True
         user.is_delete = True
+        user.is_verified = False
         user.email_opt_in = form.email_opt_in.data
+        user.partner_id = None
         domain.domain_name = str(form.domain_name.data)
         db.session.add(user)
         db.session.add(domain)
         db.session.commit()
+        send_verify_email_email(user)
         login_user(user, remember=True)
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_domain', status_code=200, status_message='{}'.format(domain.domain_name))
         flash("Welcome to IcyFire! Let's link your social media accounts.")
@@ -166,37 +169,31 @@ def register_user():
         user.is_update = False
         user.is_delete = False
         user.email_opt_in = form.email_opt_in.data
+        user.partner_id = None
+        user.is_verified = False
         db.session.add(user)
         db.session.commit()
+        send_verify_email_email(user)
         login_user(user, remember=True)
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_user', status_code=200, status_message='{}'.format(str(form.domain_name.data)))
         flash("As a security precaution, new users have limited permissions by default. This will change once your domain admin gives your account the all clear.")
         return redirect(url_for('main.dashboard'))
     return render_template('auth/register_user.html', title='New User Registration', form=form)
 
-# Works, but you have to have the hierarchy built above first, 2020-08-12
-# NEW CONTRACTOR REGISTRATION PAGE
-@bp.route('/register/contractor', methods=['GET', 'POST'])
-def register_contractor():
-    '''
-    - Sentry logs:
-        + auth.register_user 200 = user created successfully 
-        + auth.register_contractor.region_lead 200 = region lead created successfully
-        + auth.register_contractor.team_lead 200 = team lead created successfully
-        + auth.register_contractor.agent 200 = agent created successfully
-    - If the user is already logged in, it directs them to their dashboard.
-    - A new user is created and linked to the IcyFire domain.
-    - As a security measure, all of the user's CRUD permissions are set to False.
-    - Sentry logs the user creation event and hopefully updates the domain admin.
-    - The new user is logged in.
-    - Depending upon the user's CRTA (Country-Region-Team-Agent) code, a hierarchical entry will also be created. This will be used to track sales performance.
-    - The user is redirected to their dashboard.
-    '''
+# Not tested yet
+@bp.route('/register/partner', methods=['GET', 'POST'])
+def register_partner():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
-    form = ContractorRegistrationForm()
+    form = PartnerRegistrationForm()
     if form.validate_on_submit():
         domain = Domain.query.filter_by(domain_name='IcyFire Technologies, LLC').first()
+        partner = Partner(first_name=form.first_name.data)
+        partner.last_name = form.last_name.data
+        partner.phone_number = form.phone_number.data
+        partner.email = form.email.data
+        db.session.add(partner)
+        db.session.commit()
         user = User(email=str(form.email.data))
         user.domain_id = domain.id
         user.set_password(str(form.password.data))
@@ -206,54 +203,99 @@ def register_contractor():
         user.is_update = False
         user.is_delete = False
         user.email_opt_in = True
+        user.is_verified = False
         user.post_count = 0
-        user.icyfire_crta = 'USA-' + str(form.icyfire_region.data) + '-' + str(form.icyfire_team.data) + '-' + str(form.icyfire_agent.data)
+        user.partner_id = partner.id
         db.session.add(user)
         db.session.commit()
+        send_verify_email_email(user)
         login_user(user)
-        make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_user', status_code=200, status_message='User creation successful.')
-        if str(form.icyfire_team.data) == '00' and str(form.icyfire_agent.data) == '00':
-            region_lead = RegionLead(user_id=current_user.id)
-            region_lead.email = current_user.email
-            region_lead.first_name = str(form.first_name.data)
-            region_lead.last_name = str(form.last_name.data)
-            region_lead.phone_country = 1
-            region_lead.phone_number = int(form.phone_number.data)
-            region_lead.crta_code = current_user.icyfire_crta
-            country_lead = CountryLead.query.filter_by(crta_code='USA-00-00-00').first()
-            region_lead.country_lead_id = country_lead.id
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_contractor.region_lead', status_code=200, status_message='Region Lead creation successful.')
-            db.session.add(region_lead)
-            db.session.commit()
-        elif str(form.icyfire_agent.data) == '00':
-            team_lead = TeamLead(user_id=current_user.id)
-            team_lead.email = current_user.email
-            team_lead.first_name = str(form.first_name.data)
-            team_lead.last_name = str(form.last_name.data)
-            team_lead.phone_country = 1
-            team_lead.phone_number = int(form.phone_number.data)
-            team_lead.crta_code = current_user.icyfire_crta
-            region_lead = RegionLead.query.filter_by(crta_code='USA-{}-00-00'.format(str(form.icyfire_region.data))).first()
-            team_lead.region_lead_id = region_lead.id
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_contractor.team_lead', status_code=200, status_message='Team Lead creation successful.')
-            db.session.add(team_lead)
-            db.session.commit()
-        else:
-            agent = Agent(user_id=current_user.id)
-            agent.email = current_user.email
-            agent.first_name = str(form.first_name.data)
-            agent.last_name = str(form.last_name.data)
-            agent.phone_country = 1
-            agent.phone_number = int(form.phone_number.data)
-            agent.crta_code = current_user.icyfire_crta
-            team_lead = TeamLead.query.filter_by(crta_code='USA-{}-{}-00'.format(str(form.icyfire_region.data), str(form.icyfire_team.data))).first()
-            agent.team_lead_id = team_lead.id
-            make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_contractor.agent', status_code=200, status_message='Agent creation successful.')
-            db.session.add(agent)
-            db.session.commit()
         flash("As a security precaution, new users have limited permissions by default. This will change once your domain admin gives your account the all clear.")
         return redirect(url_for('main.dashboard'))
-    return render_template('auth/register_contractor.html', title='New Contractor Registration', form=form)
+    return render_template('auth/register_partner.html', title='New Partner Registration', form=form)
+        
+
+# Works, but you have to have the hierarchy built above first, 2020-08-12
+# NEW CONTRACTOR REGISTRATION PAGE
+# DEPRACATED AS OF 2020-09-21
+# @bp.route('/register/contractor', methods=['GET', 'POST'])
+# def register_contractor():
+#     '''
+#     - Sentry logs:
+#         + auth.register_user 200 = user created successfully 
+#         + auth.register_contractor.region_lead 200 = region lead created successfully
+#         + auth.register_contractor.team_lead 200 = team lead created successfully
+#         + auth.register_contractor.agent 200 = agent created successfully
+#     - If the user is already logged in, it directs them to their dashboard.
+#     - A new user is created and linked to the IcyFire domain.
+#     - As a security measure, all of the user's CRUD permissions are set to False.
+#     - Sentry logs the user creation event and hopefully updates the domain admin.
+#     - The new user is logged in.
+#     - Depending upon the user's CRTA (Country-Region-Team-Agent) code, a hierarchical entry will also be created. This will be used to track sales performance.
+#     - The user is redirected to their dashboard.
+#     '''
+#     if current_user.is_authenticated:
+#         return redirect(url_for('main.dashboard'))
+#     form = ContractorRegistrationForm()
+#     if form.validate_on_submit():
+#         domain = Domain.query.filter_by(domain_name='IcyFire Technologies, LLC').first()
+#         user = User(email=str(form.email.data))
+#         user.domain_id = domain.id
+#         user.set_password(str(form.password.data))
+#         user.is_admin = False
+#         user.is_create = False
+#         user.is_read = False
+#         user.is_update = False
+#         user.is_delete = False
+#         user.email_opt_in = True
+#         user.post_count = 0
+#         user.icyfire_crta = 'USA-' + str(form.icyfire_region.data) + '-' + str(form.icyfire_team.data) + '-' + str(form.icyfire_agent.data)
+#         db.session.add(user)
+#         db.session.commit()
+#         login_user(user)
+#         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_user', status_code=200, status_message='User creation successful.')
+#         if str(form.icyfire_team.data) == '00' and str(form.icyfire_agent.data) == '00':
+#             region_lead = RegionLead(user_id=current_user.id)
+#             region_lead.email = current_user.email
+#             region_lead.first_name = str(form.first_name.data)
+#             region_lead.last_name = str(form.last_name.data)
+#             region_lead.phone_country = 1
+#             region_lead.phone_number = int(form.phone_number.data)
+#             region_lead.crta_code = current_user.icyfire_crta
+#             country_lead = CountryLead.query.filter_by(crta_code='USA-00-00-00').first()
+#             region_lead.country_lead_id = country_lead.id
+#             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_contractor.region_lead', status_code=200, status_message='Region Lead creation successful.')
+#             db.session.add(region_lead)
+#             db.session.commit()
+#         elif str(form.icyfire_agent.data) == '00':
+#             team_lead = TeamLead(user_id=current_user.id)
+#             team_lead.email = current_user.email
+#             team_lead.first_name = str(form.first_name.data)
+#             team_lead.last_name = str(form.last_name.data)
+#             team_lead.phone_country = 1
+#             team_lead.phone_number = int(form.phone_number.data)
+#             team_lead.crta_code = current_user.icyfire_crta
+#             region_lead = RegionLead.query.filter_by(crta_code='USA-{}-00-00'.format(str(form.icyfire_region.data))).first()
+#             team_lead.region_lead_id = region_lead.id
+#             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_contractor.team_lead', status_code=200, status_message='Team Lead creation successful.')
+#             db.session.add(team_lead)
+#             db.session.commit()
+#         else:
+#             agent = Agent(user_id=current_user.id)
+#             agent.email = current_user.email
+#             agent.first_name = str(form.first_name.data)
+#             agent.last_name = str(form.last_name.data)
+#             agent.phone_country = 1
+#             agent.phone_number = int(form.phone_number.data)
+#             agent.crta_code = current_user.icyfire_crta
+#             team_lead = TeamLead.query.filter_by(crta_code='USA-{}-{}-00'.format(str(form.icyfire_region.data), str(form.icyfire_team.data))).first()
+#             agent.team_lead_id = team_lead.id
+#             make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='auth.register_contractor.agent', status_code=200, status_message='Agent creation successful.')
+#             db.session.add(agent)
+#             db.session.commit()
+#         flash("As a security precaution, new users have limited permissions by default. This will change once your domain admin gives your account the all clear.")
+#         return redirect(url_for('main.dashboard'))
+#     return render_template('auth/register_contractor.html', title='New Contractor Registration', form=form)
 
 # Works, 2020-08-12
 @bp.route('/reset-password-request', methods=['GET', 'POST'])
@@ -287,6 +329,20 @@ def reset_password(token):
         make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='auth.reset_token', status_code=200, status_message='OK')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
+
+
+@bp.route('/verify-email/<token>')
+def verify_email(token):
+    user = User.verify_verify_email_token(token)
+    if not user:
+        return redirect(url_for('promo.home'))
+    else:
+        user.is_verified = True
+        db.session.add(user)
+        db.session.commit()
+        flash("Your email has been verified. Thanks!")
+        return redirect(url_for('main.dashboard'))
+    
 
 # Works, 2020-08-13
 @bp.route('/register/link-social')

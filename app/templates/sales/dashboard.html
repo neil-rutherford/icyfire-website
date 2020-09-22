@@ -4,6 +4,60 @@
 
 <h1>{{ title }}</h1>
 
+<h2>Your leads</h2>
+<table width=100%>
+    <tr>
+        <th>First name</th>
+        <th>Last name</th>
+        <th>Company name</th>
+        <th>Phone number</th>
+        <th>Email</th>
+        <th>More info</th>
+        <th>Contacted?</th>
+    </tr>
+    {% for x in leads %}
+        <tr>
+            <td>{{ x.first_name }}</td>
+            <td>{{ x.last_name }}</td>
+            <td>{{ x.company_name }}</td>
+            <td>{{ x.phone_number }}</td>
+            <td>{{ x.email }}</td>
+            <td><a href="{{ url_for('sales.lead_info', lead_id=x.id) }}">More info</a></td>
+            {% if x.is_contacted == false %}
+                <td><a href="{{ url_for('sales.contacted_lead', lead_id=x.id) }}">I contacted this person!</a></td>
+            {% else %}
+                <td>Have you followed up recently?</td>
+            {% endif %}
+        </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h2>Your sales this month</h2>
+<br>
+<form action="{{ url_for('sales.create_sale') }}">
+    <input type="submit" value="Record new sale">
+</form>
+<table width=100%>
+    <tr>
+        <th>Timestamp</th>
+        <th>Client name</th>
+        <th>Client phone</th>
+        <th>Client email</th>
+        <th>Invoice</th>
+    </tr>
+    {% for sale in sales %}
+        <tr>
+            <td>{{ moment(sale.timestamp).format('LLL') }}</td>
+            <td>{{ sale.client_name }}</td>
+            <td>{{ sale.client_phone_number }}</td>
+            <td>{{ sale.client_email }}</td>
+            <td>{{ sale.receipt_url }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<!---
 {% if subs is not none %}
     <h2>Your support team</h2>
     <table width=100%>
@@ -25,35 +79,12 @@
         {% endfor %}
     </table>
 {% else %}
-    <h2>Your leads</h2>
-    <table width=100%>
-        <tr>
-            <th>First name</th>
-            <th>Last name</th>
-            <th>Company name</th>
-            <th>Phone number</th>
-            <th>Email</th>
-            <th>More info</th>
-            <th>Contacted?</th>
-        </tr>
-        {% for x in leads %}
-            <tr>
-                <td>{{ x.first_name }}</td>
-                <td>{{ x.last_name }}</td>
-                <td>{{ x.company_name }}</td>
-                <td>{{ x.phone_number }}</td>
-                <td>{{ x.email }}</td>
-                <td><a href="{{ url_for('sales.lead_info', lead_id=x.id) }}">More info</a></td>
-                {% if x.is_contacted == false %}
-                    <td><a href="{{ url_for('sales.contacted_lead', lead_id=x.id) }}">I contacted this person!</a></td>
-                {% else %}
-                    <td>Have you followed up recently?</td>
-                {% endif %}
-            </tr>
-        {% endfor %}
-    </table>
+--->
+    
+<!---
 {% endif %}
-
+--->
+<!---
 <hr>
 <h2>Your sales this month</h2>
 <br>
@@ -204,5 +235,5 @@
         </tr>
     </table>
 {% endif %}
-
+--->
 {% endblock %}

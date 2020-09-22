@@ -2,7 +2,7 @@ from flask import render_template, request, url_for, redirect, flash, send_from_
 from flask_login import current_user, login_user
 from app import db
 from app.promo import bp
-from app.models import Sentry, Agent, User, Lead
+from app.models import Sentry, User, Lead, Partner
 from app.promo.forms import LeadForm
 import glob
 import os
@@ -82,7 +82,9 @@ def competition():
 # Works, 2020-08-18
 @bp.route('/careers')
 def careers():
-    return send_from_directory('static/agreements', 'agent_jd.pdf')
+    flash("Thank you for your interest, but IcyFire doesn't have any career openings at the moment.")
+    return redirect(url_for('promo.home'))
+    #return send_from_directory('static/agreements', 'agent_jd.pdf')
 
 @bp.route('/about')
 def about():
@@ -158,8 +160,14 @@ def claim(resource):
     form = LeadForm()
     if form.validate_on_submit():
         if resource == 'death_care':
+
+            partners = Partner.query.filter_by().all()
+            x = random.randint(0, len(partners)-1)
+            lucky_partner = partners[x]
+
             lead = Lead(ip_address=request.remote_addr)
-            lead.agent_id = None
+            lead.parter_id = lucky_partner.id
+            #lead.agent_id = None
             lead.is_contacted = False
             lead.first_name = form.first_name.data
             lead.last_name = form.last_name.data
@@ -167,7 +175,7 @@ def claim(resource):
             lead.job_title = form.job_title.data
             lead.number_of_employees = form.number_of_employees.data
             lead.time_zone = form.time_zone.data
-            lead.phone_number = form.phone_number.data
+            lead.phone_number = str(form.phone_number.data)
             lead.email = form.email.data
             lead.contact_preference = form.contact_preference.data
             lead.time_preference = form.time_preference.data
@@ -197,8 +205,13 @@ def contact_sales():
         #x = random.randint(0, len(agents)-1)
         #lucky_agent = agents[x]
 
+        partners = Partner.query.filter_by().all()
+        x = random.randint(0, len(partners)-1)
+        lucky_partner = partners[x]
+
         lead = Lead(ip_address=request.remote_addr)
-        lead.agent_id = None
+        lead.partner_id = lucky_partner.id
+        #lead.agent_id = None
         lead.is_contacted = False
         lead.first_name = form.first_name.data
         lead.last_name = form.last_name.data
