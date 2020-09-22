@@ -59,10 +59,6 @@ def dashboard():
     if current_user.is_read is False:
         make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=403, status_message='Read permission denied.')
         return render_template('main/dashboard_defense.html', title="Insufficient permissions")
-    # country = str(current_user.icyfire_crta).split('-')[0]
-    # region = str(current_user.icyfire_crta).split('-')[1]
-    # team = str(current_user.icyfire_crta).split('-')[2]
-    # agent = str(current_user.icyfire_crta).split('-')[3]
     year = int(datetime.utcnow().strftime('%Y'))
     month = int(datetime.utcnow().strftime('%m'))
     start = date(year=year, month=month, day=1)
@@ -74,49 +70,6 @@ def dashboard():
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='{}'.format(partner.id))
 
     return render_template('sales/dashboard.html', sales=sales, title='Your sales dashboard', leads=leads)
-
-    # # Country lead
-    # if country != '00' and region == '00' and team == '00' and agent == '00':
-    #     country_lead = CountryLead.query.filter_by(crta_code=crta).first()
-    #     sales = Sale.query.filter(Sale.country_lead_id == country_lead.id, Sale.timestamp >= start).all()
-    #     subs = country_lead.region_leads
-    #     leads = None
-    #     label = 'country_lead'
-    #     title = 'Dashboard - {} Country Lead'.format(country)
-    #     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='country_lead')
-    # # Region lead
-    # elif country != '00' and region != '00' and team == '00' and agent == '00':
-    #     region_lead = RegionLead.query.filter_by(crta_code=crta).first()
-    #     sales = Sale.query.filter(Sale.region_lead_id == region_lead.id, Sale.timestamp >= start).all()
-    #     subs = region_lead.team_leads
-    #     leads = None
-    #     label = 'region_lead'
-    #     title = 'Dashboard - {} Region Lead'.format(region)
-    #     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='region_lead')
-    # # Team lead
-    # elif country != '00' and region != '00' and team != '00' and agent == '00':
-    #     team_lead = TeamLead.query.filter_by(crta_code=crta).first()
-    #     sales = Sale.query.filter(Sale.team_lead_id == team_lead.id, Sale.timestamp >= start).all()
-    #     subs = team_lead.agents
-    #     leads = None
-    #     label = 'team_lead'
-    #     title = 'Dashboard - {} Team Lead'.format(team)
-    #     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='team_lead')
-    # # Agent
-    # elif country != '00' and region != '00' and team != '00' and agent != '00':
-    #     agent = Agent.query.filter_by(crta_code=crta).first()
-    #     sales = Sale.query.filter(Sale.agent_id == agent.id, Sale.timestamp >= start).all()
-    #     subs = None
-    #     leads = Lead.query.filter_by(agent_id=agent.id).all()
-    #     label = 'agent'
-    #     title = 'Dashboard - Agent {}'.format(agent)
-    #     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='agent')
-    # # Else??
-    # else:
-    #     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=400, status_message='Malformed request; content not found.')
-    #     flash("ERROR: Couldn't process that request.")
-    #     return redirect(url_for('main.dashboard'))
-    # return render_template('sales/dashboard.html', sales=sales, subs=subs, title=title, label=label, leads=leads)
 
 # Works (weird bug with < 5, but whatever), 2020-08-11
 @bp.route('/sales/lead/<lead_id>')
@@ -252,18 +205,6 @@ def create_sale():
         file_to = '/receipts/{}.pdf'.format(form.client_name.data)
         transfer_data.upload_file(file_from, file_to)
 
-        # country = str(current_user.icyfire_crta).split('-')[0]
-        # region = str(current_user.icyfire_crta).split('-')[1]
-        # team = str(current_user.icyfire_crta).split('-')[2]
-
-        # team_lead = TeamLead.query.filter_by(crta_code=f'{country}-{region}-{team}-00').first()
-        # region_lead = RegionLead.query.filter_by(crta_code=f'{country}-{region}-00-00').first()
-        # country_lead = CountryLead.query.filter_by(crta_code=f'{country}-00-00-00').first()
-        
-        # sale = Sale(agent_id=agent.id)
-        # sale.team_lead_id = team_lead.id
-        # sale.region_lead_id = region_lead.id
-        # sale.country_lead_id = country_lead.id
         sale = Sale(partner_id=partner.id)
         sale.client_name = form.client_name.data
         sale.client_street_address = form.client_street_address.data

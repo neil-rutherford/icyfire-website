@@ -7,8 +7,6 @@ from flask_login import current_user, login_required
 from datetime import datetime, timedelta
 import datetime
 
-# TODO: Double check user, sale, domain!
-
 authorized = ['neilrutherford@icy-fire.com']
 
 # Tested 2020-08-08
@@ -38,18 +36,6 @@ def read(model):
     elif model == 'partner':
         results = Partner.query.filter_by().order_by(Partner.id.asc()).all()
         return render_template('meta/results.html', title='Search results', model=model, results=results)
-    # elif model == 'country_lead':
-    #     results = CountryLead.query.filter_by().order_by(CountryLead.id.asc()).all()
-    #     return render_template('meta/results.html', title='Search results', model=model, results=results)
-    # elif model == 'region_lead':
-    #     results = RegionLead.query.filter_by().order_by(RegionLead.id.asc()).all()
-    #     return render_template('meta/results.html', title='Search results', model=model, results=results)
-    # elif model == 'team_lead':
-    #     results = TeamLead.query.filter_by().order_by(TeamLead.id.asc()).all()
-    #     return render_template('meta/results.html', title='Search results', model=model, results=results)
-    # elif model == 'agent':
-    #     results = Agent.query.filter_by().order_by(Agent.id.asc()).all()
-    #     return render_template('meta/results.html', title='Search results', model=model, results=results)
     elif model == 'sale':
         results = Sale.query.filter_by().order_by(Sale.id.asc()).all()
         return render_template('meta/results.html', title='Search results', model=model, results=results)
@@ -119,10 +105,6 @@ def create_user():
             user.partner_id = None
         else:
             user.partner_id = form.partner_id.data
-        # if form.icyfire_crta.data == '':
-        #     user.icyfire_crta = None
-        # else:
-        #     user.icyfire_crta = form.icyfire_crta.data
         db.session.add(user)
         db.session.commit()
         flash("Success!")
@@ -151,116 +133,6 @@ def create_partner():
 
 
 # Works, 2020-08-08
-# @bp.route('/meta/create/country-lead', methods=['GET', 'POST'])
-# @login_required
-# def create_country_lead():
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = CountryLeadForm()
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl = CountryLead(user_id=form.user_id.data)
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='New country lead', form=form)
-
-# # Works, 2020-08-08
-# @bp.route('/meta/create/region-lead', methods=['GET', 'POST'])
-# @login_required
-# def create_region_lead():
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = RegionLeadForm()
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl = RegionLead(user_id=form.user_id.data)
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         country_lead = CountryLead.query.filter_by(crta_code=form.country_lead_id.data).first()
-#         cl.country_lead_id = country_lead.id
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='New region lead', form=form)
-
-# # Works, 2020-08-08
-# @bp.route('/meta/create/team-lead', methods=['GET', 'POST'])
-# @login_required
-# def create_team_lead():
-#     if current_user.email != 'neilrutherford@icy-fire.com':
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = TeamLeadForm()
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl = TeamLead(user_id=form.user_id.data)
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         region_lead = RegionLead.query.filter_by(crta_code=form.region_lead_id.data).first()
-#         cl.region_lead_id = region_lead.id
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='New team lead', form=form)
-
-# # Works, 2020-08-08
-# @bp.route('/meta/create/agent', methods=['GET', 'POST'])
-# @login_required
-# def create_agent():
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = AgentForm()
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl = Agent(user_id=form.user_id.data)
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         team_lead = TeamLead.query.filter_by(crta_code=form.team_lead_id.data).first()
-#         cl.team_lead_id = team_lead.id
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='New agent', form=form)
-
-# Works, 2020-08-08
 @bp.route('/meta/create/sale', methods=['GET', 'POST'])
 @login_required
 def create_sale():
@@ -279,20 +151,6 @@ def create_sale():
             sale.partner_id = form.partner_id.data
         else:
             sale.partner_id = None
-        # if form.agent_id.data != '':
-        #     agent = Agent.query.filter_by(crta_code=form.agent_id.data).first()
-        #     sale.agent_id = agent.id
-        #     team_lead = TeamLead.query.filter_by(crta_code=form.team_lead_id.data).first()
-        #     sale.team_lead_id = team_lead.id
-        #     region_lead = RegionLead.query.filter_by(crta_code=form.region_lead_id.data).first()
-        #     sale.region_lead_id = region_lead.id
-        #     country_lead = CountryLead.query.filter_by(crta_code=form.country_lead_id.data).first()
-        #     sale.country_lead_id = country_lead.id
-        # else:
-        #     sale.agent_id = None
-        #     sale.team_lead_id = None
-        #     sale.region_lead_id = None
-        #     sale.country_lead_id = None
         sale.client_street_address = form.client_street_address.data
         sale.client_city = form.client_city.data
         sale.client_state = form.client_state.data
@@ -330,11 +188,6 @@ def create_lead():
     if form.validate_on_submit():
         lead = Lead(email=form.email.data)
         lead.partner_id = form.partner_id.data
-        # if form.agent_id.data != '':
-        #     agent = Agent.query.filter_by(crta_code=form.agent_id.data).first()
-        #     lead.agent_id = agent.id
-        # else:
-        #     lead.agent_id = None
         lead.is_contacted = bool(form.is_contacted.data)
         lead.first_name = form.first_name.data
         lead.last_name = form.last_name.data
@@ -435,9 +288,6 @@ def system_status():
                 elif y.status_code == 403 and str(y.status_message).split('|')[-1] == str(x):
                     errors.append(y)
 
-            #good_calls = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 200, Sentry.status_code == 404, str(Sentry.status_message).split('|')[-1] == str(x), Sentry.timestamp >= limit).all()
-            #fines = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 218, str(Sentry.status_message) == str(x), Sentry.timestamp >= limit).all()
-            #errors = Sentry.query.filter(Sentry.endpoint == 'api.read', Sentry.status_code == 400, Sentry.status_code == 403, str(Sentry.status_code).split('|')[-1] == str(x), Sentry.timestamp >= limit).all()
             downtime = weekly_possible_requests - (len(good_calls) + len(fines) + len(errors))
             server_status = {'server_id': x, 'good_calls': int((len(good_calls)/weekly_possible_requests)*100), 'fines': int((len(fines)/weekly_possible_requests)*100), 'errors': int((len(errors)/weekly_possible_requests)*100), 'downtime': int((downtime/weekly_possible_requests)*100)}
             system_status.append(server_status)
@@ -499,7 +349,6 @@ def edit_user(user_id):
             user.partner_id = None
         else:
             user.partner_id = form.partner_id.data
-        #user.icyfire_crta = form.icyfire_crta.data
         db.session.add(user)
         db.session.commit()
         flash("Success!")
@@ -526,116 +375,6 @@ def edit_partner(partner_id):
         return redirect(url_for('meta.dashboard'))
     return render_template('meta/form.html', title='Edit partner', form=form)
 
-# Tested, 2020-08-10
-# @bp.route('/meta/edit/country-lead/<country_lead_id>', methods=['GET', 'POST'])
-# @login_required
-# def edit_country_lead(country_lead_id):
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     cl = CountryLead.query.filter_by(id=country_lead_id).first()
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = CountryLeadForm(obj=cl)
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl.user_id=form.user_id.data
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='Edit country lead', form=form)
-
-# Tested, 2020-08-10
-# @bp.route('/meta/edit/region-lead/<region_lead_id>', methods=['GET', 'POST'])
-# @login_required
-# def edit_region_lead(region_lead_id):
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     cl = RegionLead.query.filter_by(id=region_lead_id).first()
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = RegionLeadForm(obj=cl)
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl.user_id=form.user_id.data
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         cl.country_lead_id = form.country_lead_id.data
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='Edit region lead', form=form)
-
-# Tested, 2020-08-10
-# @bp.route('/meta/edit/team-lead/<team_lead_id>', methods=['GET', 'POST'])
-# @login_required
-# def edit_team_lead(team_lead_id):
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     cl = TeamLead.query.filter_by(id=team_lead_id).first()
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = TeamLeadForm(obj=cl)
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl.user_id=form.user_id.data
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         cl.region_lead_id = form.region_lead_id.data
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='Edit team lead', form=form)
-
-# Tested, 2020-08-10
-# @bp.route('/meta/edit/agent/<agent_id>', methods=['GET', 'POST'])
-# @login_required
-# def edit_agent(agent_id):
-#     if current_user.email not in authorized:
-#         db.session.delete(current_user)
-#         db.session.commit()
-#         return redirect("https://imgflip.com/i/4aqeg1")
-#     cl = Agent.query.filter_by(id=agent_id).first()
-#     available_users = User.query.filter_by().all()
-#     groups_list=[(i.id, i.email) for i in available_users]
-#     form = AgentForm(obj=cl)
-#     form.user_id.choices = groups_list
-#     if form.validate_on_submit():
-#         cl.user_id=form.user_id.data
-#         cl.first_name = form.first_name.data
-#         cl.last_name = form.last_name.data
-#         cl.phone_country = 1
-#         cl.phone_number = str(form.phone_number.data)
-#         cl.email = form.email.data
-#         cl.crta_code = form.crta_code.data
-#         cl.team_lead_id = form.team_lead_id.data
-#         db.session.add(cl)
-#         db.session.commit()
-#         flash("Success!")
-#         return redirect(url_for('meta.dashboard'))
-#     return render_template('meta/form.html', title='Edit agent', form=form)
 
 # Tested, 2020-08-10
 @bp.route('/meta/edit/sale/<sale_id>', methods=['GET', 'POST'])
@@ -657,20 +396,6 @@ def edit_sale(sale_id):
             sale.partner_id = form.partner_id.data
         else:
             sale.partner_id = None
-        # if form.agent_id.data != '':
-        #     agent = Agent.query.filter_by(crta_code=form.agent_id.data).first()
-        #     sale.agent_id = agent.id
-        #     team_lead = TeamLead.query.filter_by(crta_code=form.team_lead_id.data).first()
-        #     sale.team_lead_id = team_lead.id
-        #     region_lead = RegionLead.query.filter_by(crta_code=form.region_lead_id.data).first()
-        #     sale.region_lead_id = region_lead.id
-        #     country_lead = CountryLead.query.filter_by(crta_code=form.country_lead_id.data).first()
-        #     sale.country_lead_id = country_lead.id
-        # else:
-        #     sale.agent_id = None
-        #     sale.team_lead_id = None
-        #     sale.region_lead_id = None
-        #     sale.country_lead_id = None
         sale.client_street_address = form.client_street_address.data
         sale.client_city = form.client_city.data
         sale.client_state = form.client_state.data
@@ -709,11 +434,6 @@ def edit_lead(lead_id):
     if form.validate_on_submit():
         lead.email=form.email.data
         lead.partner_id = form.partner_id.data
-        # if form.agent_id.data != '':
-        #     agent = Agent.query.filter_by(id=form.agent_id.data).first()
-        #     lead.agent_id = agent.id
-        # else:
-        #     lead.agent_id = None
         lead.is_contacted = bool(form.is_contacted.data)
         lead.first_name = form.first_name.data
         lead.last_name = form.last_name.data
@@ -757,30 +477,6 @@ def delete(model, id):
         db.session.commit()
         flash("Success!")
         return redirect(url_for('meta.dashboard'))
-    # elif model == 'country_lead':
-    #     x = CountryLead.query.filter_by(id=id).first()
-    #     db.session.delete(x)
-    #     db.session.commit()
-    #     flash('Success!')
-    #     return redirect(url_for('meta.dashboard'))
-    # elif model == 'region_lead':
-    #     x = RegionLead.query.filter_by(id=id).first()
-    #     db.session.delete(x)
-    #     db.session.commit()
-    #     flash('Success!')
-    #     return redirect(url_for('meta.dashboard'))
-    # elif model == 'team_lead':
-    #     x = TeamLead.query.filter_by(id=id).first()
-    #     db.session.delete(x)
-    #     db.session.commit()
-    #     flash('Success!')
-    #     return redirect(url_for('meta.dashboard'))
-    # elif model == 'agent':
-    #     x = Agent.query.filter_by(id=id).first()
-    #     db.session.delete(x)
-    #     db.session.commit()
-    #     flash('Success!')
-    #     return redirect(url_for('meta.dashboard'))
     elif model == 'sale':
         x = Sale.query.filter_by(id=id).first()
         db.session.delete(x)

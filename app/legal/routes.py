@@ -45,9 +45,6 @@ def privacy_policy():
         if crta is None:
             contractor = None
             sales = None
-        # elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] == '00' and str(current_user.icyfire_crta).split('-')[2] == '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
-        #     contractor = CountryLead.query.filter_by(crta_code=crta).first()
-        #     sales = Sale.query.filter_by(country_lead_id=contractor.id).all()
         else:
             contractor = Partner.query.filter_by(id=crta).first()
             sales = Sale.query.filter_by(partner_id=crta).all()

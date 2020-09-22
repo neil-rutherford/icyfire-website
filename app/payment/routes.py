@@ -156,10 +156,6 @@ def us_new_checkout_landing():
         file_to = '/receipts/{}_{}_sale_online.pdf'.format(form.client_name.data, datetime.datetime.utcnow().strftime('%Y%m%d'))
         transfer_data.upload_file(file_from, file_to)
 
-        # sale = Sale(agent_id=None)
-        # sale.team_lead = None
-        # sale.region_lead = None
-        # sale.country_lead = None
         sale = Sale(partner_id=None)
         sale.client_name = form.client_name.data
         sale.client_street_address = form.client_street_address.data
@@ -224,10 +220,6 @@ def us_renew_checkout(domain_id):
     domain = Domain.query.filter_by(id=domain_id).first()
     old_sale = Sale.query.filter_by(id=domain.sale_id).first()
    
-    # new_sale = Sale(agent_id=None)
-    # new_sale.team_lead = None
-    # new_sale.region_lead = None
-    # new_sale.country_lead = None
     new_sale = Sale(partner_id=None)
     new_sale.product_id = 'prod_I2uIS76ymDfaT4'
     new_sale.client_name = old_sale.client_name

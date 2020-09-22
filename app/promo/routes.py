@@ -161,13 +161,8 @@ def claim(resource):
     if form.validate_on_submit():
         if resource == 'death_care':
 
-            # partners = Partner.query.filter_by().all()
-            # x = random.randint(0, len(partners)-1)
-            # lucky_partner = partners[x]
-
             lead = Lead(ip_address=request.remote_addr)
             lead.parter_id = 1
-            #lead.agent_id = None
             lead.is_contacted = False
             lead.first_name = form.first_name.data
             lead.last_name = form.last_name.data
@@ -201,17 +196,13 @@ def contact_sales():
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.contact_sales', status_code=200, status_message='OK')
     form = LeadForm()
     if form.validate_on_submit():
-        #agents = Agent.query.filter().all()
-        #x = random.randint(0, len(agents)-1)
-        #lucky_agent = agents[x]
 
         partners = Partner.query.filter_by().all()
         x = random.randint(0, len(partners)-1)
         lucky_partner = partners[x]
 
         lead = Lead(ip_address=request.remote_addr)
-        lead.partner_id = lucky_partner.id
-        #lead.agent_id = None
+        lead.partner_id = 1
         lead.is_contacted = False
         lead.first_name = form.first_name.data
         lead.last_name = form.last_name.data
