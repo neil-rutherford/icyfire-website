@@ -73,7 +73,7 @@ def terms_of_service():
 # Tested 2020-08-04
 @bp.route('/legal/hacker/vulnerability-disclosure-program')
 def vulnerability_disclosure_program():
-    return render_template('legal/vdp.html', title='IcyFire - Vulnerability Disclosure Program (VDP)')
+    return render_template('legal/vdp.html', title='Vulnerability Disclosure Program (VDP)')
 
 # Tested 2020-08-04
 @bp.route('/legal/hacker/report-vulnerability')

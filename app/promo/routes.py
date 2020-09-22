@@ -106,13 +106,13 @@ def blog():
         article_dict[date].append(title)
         article_dict[date].append(filename)
     ordered = collections.OrderedDict(sorted(article_dict.items(), key=lambda t: t[0], reverse=True))
-    return render_template('promo/blog.html', title='IcyFire - Blog', article_dict=article_dict, ordered=ordered)
+    return render_template('promo/blog.html', title='Blog', article_dict=article_dict, ordered=ordered)
 
 @bp.route('/blog/<article_path>&<article_title>')
 def article(article_path, article_title):
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.article', status_code=200, status_message='{}'.format(article_title))
     try:
-        return render_template('promo/articles/{}'.format(article_path), title='IcyFire - {}'.format(article_title))
+        return render_template('promo/articles/{}'.format(article_path), title='{}'.format(article_title))
     except:
         flash("Sorry, we couldn't find the article you were looking for.")
         return redirect(url_for('promo.blog'))
@@ -251,4 +251,4 @@ def product_demo():
 @bp.route('/pricing')
 def pricing(): 
     make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='promo.pricing', status_code=200, status_message='OK')
-    return render_template('promo/pricing.html', title='IcyFire - Pricing')
+    return render_template('promo/pricing.html', title='Pricing')

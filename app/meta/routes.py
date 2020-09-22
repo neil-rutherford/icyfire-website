@@ -443,7 +443,7 @@ def system_status():
             system_status.append(server_status)
     else:
         system_status = None
-    return render_template('meta/system_status.html', title='IcyFire system status (past 7 days)', system_status=system_status)
+    return render_template('meta/system_status.html', title='System status (past 7 days)', system_status=system_status)
 
 @bp.route('/meta/edit/domain/<domain_id>', methods=['GET', 'POST'])
 @login_required
