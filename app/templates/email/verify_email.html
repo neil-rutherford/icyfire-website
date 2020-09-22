@@ -1,6 +1,6 @@
 <p>Dear {{ user.username }},</p>
 <p>
-    To reset your password
+    To verify your email
     <a href="{{ url_for('auth.verify_email', token=token, _external=True) }}">
         click here
     </a>.
