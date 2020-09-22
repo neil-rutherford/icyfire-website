@@ -69,7 +69,7 @@ def dashboard():
 
     partner = Partner.query.filter_by(id=current_user.partner_id).first()
     sales = Sale.query.filter(Sale.partner_id == partner.id, Sale.timestamp >= start).all()
-    leads = Lead.query.filter_by(partner_id=partner.id).all()
+    leads = Lead.query.filter_by().all()
 
     make_sentry(user_id=current_user.id, domain_id=current_user.domain_id, ip_address=request.remote_addr, endpoint='sales.dashboard', status_code=200, status_message='{}'.format(partner.id))
 
