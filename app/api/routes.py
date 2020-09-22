@@ -71,7 +71,7 @@ def read(timeslot_id, read_token, cred_token, server_id):
                 make_sentry(user_id=None, domain_id=int(domain_id), ip_address=request.remote_addr, endpoint='api.read', status_code=404, status_message='reddit|{}|{}'.format(cred.id, server_id))
                 return make_error(endpoint='api/_r/reddit', status='404 Not Found', error_details='ERROR: Queue is empty.', code=404)
             else:
-                return jsonify(platform='reddit', client_id=cred.client_id, client_secret=cred.client_secret, user_agent=cred.user_agent, username=cred.username, password=cred.password, post_type=post.post_type, title=post.title, body=post.body, link_url=post.link_url, image_url=post.image_url, video_url=post.video_url, caption=post.caption), 200
+                return jsonify(platform='reddit', client_id=cred.client_id, client_secret=cred.client_secret, user_agent=cred.user_agent, username=cred.username, password=cred.password, post_type=post.post_type, title=post.title, body=post.body, link_url=post.link_url, multimedia_url=post.multimedia_url, caption=post.caption), 200
         
         else:
             make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='api.read', status_code=218, status_message='{}'.format(server_id))
