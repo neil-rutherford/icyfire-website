@@ -2,7 +2,7 @@ from app.legal import bp
 from flask import render_template, flash, redirect, url_for, request, send_from_directory
 from app import db
 from app.legal.forms import GenerateIcaForm
-from app.models import Domain, User, Sentry, CountryLead, RegionLead, TeamLead, Sale
+from app.models import Domain, User, Sentry, Sale, Partner #CountryLead, RegionLead, TeamLead, Sale
 from flask_login import current_user, login_required
 from datetime import datetime, date
 import uuid
@@ -41,22 +41,16 @@ def privacy_policy():
         domain = Domain.query.filter_by(id=current_user.domain_id).first()
         user = User.query.filter_by(id=current_user.id).first()
         incidents = Sentry.query.filter_by(user_id=current_user.id).all()
-        crta = current_user.icyfire_crta
+        crta = current_user.partner_id
         if crta is None:
             contractor = None
             sales = None
-        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] == '00' and str(current_user.icyfire_crta).split('-')[2] == '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
-            contractor = CountryLead.query.filter_by(crta_code=crta).first()
-            sales = Sale.query.filter_by(country_lead_id=contractor.id).all()
-        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] != '00' and str(current_user.icyfire_crta).split('-')[2] == '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
-            contractor = RegionLead.query.filter_by(crta_code=crta).first()
-            sales = Sale.query.filter_by(region_lead_id=contractor.id).all()
-        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] != '00' and str(current_user.icyfire_crta).split('-')[2] != '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
-            contractor = TeamLead.query.filter_by(crta_code=crta).first()
-            sales = Sale.query.filter_by(team_lead_id=contractor.id).all()
-        elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] != '00' and str(current_user.icyfire_crta).split('-')[2] != '00' and str(current_user.icyfire_crta).split('-')[3] != '00':
-            contractor = Agent.query.filter_by(crta_code=crta).first()
-            sales = Sale.query.filter_by(agent_id=contractor.id).all()
+        # elif str(current_user.icyfire_crta).split('-')[0] != '00' and str(current_user.icyfire_crta).split('-')[1] == '00' and str(current_user.icyfire_crta).split('-')[2] == '00' and str(current_user.icyfire_crta).split('-')[3] == '00':
+        #     contractor = CountryLead.query.filter_by(crta_code=crta).first()
+        #     sales = Sale.query.filter_by(country_lead_id=contractor.id).all()
+        else:
+            contractor = Partner.query.filter_by(id=crta).first()
+            sales = Sale.query.filter_by(partner_id=crta).all()
     else:
         make_sentry(user_id=None, domain_id=None, ip_address=request.remote_addr, endpoint='legal.privacy_policy', status_code=200, status_message='OK')
         domain = None
