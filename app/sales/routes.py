@@ -77,9 +77,9 @@ def dashboard():
 def lead_info(lead_id):
     lead = Lead.query.filter_by(id=lead_id).first()
     partner = Partner.query.filter_by(id=current_user.partner_id).first()
-    if partner.id != lead.partner_id:
-        flash("ERROR: You don't have permission to do that.")
-        return redirect(url_for('sales.dashboard'))
+    # if partner.id != lead.partner_id:
+    #     flash("ERROR: You don't have permission to do that.")
+    #     return redirect(url_for('sales.dashboard'))
     history = []
     timestamps = []
     time_spent = []
